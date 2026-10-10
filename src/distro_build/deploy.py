@@ -26,7 +26,7 @@ def vm_directory(project: Path, name: str) -> Path:
     info = directory.stat()
     if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) != 0o700:
         raise RuntimeError("Development VM directory must be private and owned by the current user")
-    for filename in ("state.json", "vm.lock", "deploy.lock", "agent.sock", "deployment.json"):
+    for filename in ("state.json", "vm.lock", "deploy.lock", "agent.sock", "deployment.json", "development.json", "development.next", "development-report.json"):
         if (directory / filename).is_symlink():
             raise RuntimeError("Development VM control files cannot be symlinks")
     state = json.loads((directory / "state.json").read_text())

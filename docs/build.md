@@ -76,6 +76,73 @@ assertions or injected test input. Close the guest normally to retain its data;
 closing QEMU or Ctrl+C also ends the launcher. Logs and the exact QEMU command
 are saved alongside the VM state.
 
+## Update changed applications automatically
+
+Build a `desktop-dev` image once and keep its named VM running. Inspect the
+first update in a second terminal:
+
+```sh
+python3 build.py dev --name dev --plan --adopt-base
+python3 build.py dev --name dev --adopt-base --jobs 4
+```
+
+First adoption compares the recorded SDK and native package inventory with the
+guest and records the current base inputs after a successful update. Confirm
+that the VM was built from your intended base before adopting: this check cannot
+reconstruct historical source edits used by an older image. `--plan` snapshots
+source and writes a report under `out/`, but does not fetch, compile, install or
+adopt the baseline. Review any reported base errors before continuing.
+
+For subsequent edits:
+
+```sh
+python3 build.py dev --name dev --jobs 4
+python3 build.py dev --name dev --build-profile release
+```
+
+The command discovers `packages/*/application.toml` and selects the application's
+runtime dependency closure from the guest's image profile. It uses each app's
+declared source projects, recipe, toolchain and SDK to calculate the same build
+identity as the package builder. Already installed identities are skipped;
+valid cached packages are reused. A shared framework change selects every app
+that declares it. All selected packages use one verified guest pacman transaction.
+No image composition or VM disk replacement occurs.
+
+Before deployment, `dev` verifies canonical `origin` URLs, discovers their default
+branches and fetches distro plus every registered source repository. If any
+checkout lacks upstream commits, it stops with repository paths and commit IDs.
+Have your coding agent integrate upstream in each owning contribution checkout,
+preserve local work, adapt the changes and rerun affected checks, then retry.
+Fetching updates remote references only: the builder never merges, stashes,
+resets, advances pinned checkouts or updates distro gitlinks. A detached pin
+behind upstream requires deliberate component integration, or an explicitly
+selected current source workspace with `--source-root`. Pin updates remain a
+separate authorized contribution. Other build commands retain their existing
+source replay behavior; the freshness gate applies to `dev`.
+
+`--offline` uses cached upstream references and Cargo inputs. It still rejects
+known missing commits, but cannot establish network-verified freshness.
+Source bundles without Git metadata remain usable with explicit `deploy`;
+the `dev` upstream gate needs real repository checkouts.
+
+Native recipe/runtime, SDK, loader, system-policy and base-profile changes stop
+the app loop. Build a fresh image with `run` and use a new VM name, then inspect
+and adopt that VM. `--adopt-base` cannot overwrite an existing baseline to bypass
+this check. Adding an app that needs only existing native packages does not
+require a new base; adding a new native dependency does.
+
+Restart behavior comes from each app manifest: ordinary apps are listed for
+manual reopening, services use declared user units, and shell changes restart
+the desktop. **Save work before shell updates: a desktop restart closes apps.**
+`--no-restart` defers all restarts. Installation/version checks do not qualify
+GUI behavior; exercise the affected apps afterwards. The latest attempt is
+recorded in `out/vms/<name>/development-report.json`; the last successful base
+and package identities live in `development.json`. Failed attempts preserve the
+last successful baseline. Rebuilding an image does not upgrade the saved disk.
+
+Future apps join this workflow through the
+[source and application catalogs](sources.md#register-another-application).
+
 ## Deploy applications into a running development VM
 
 Implement fixes in the owning checkout under `sources/<module>/`. Generated
@@ -199,6 +266,6 @@ camera does not establish portal consent, capture or screen-sharing behavior.
 | Guest install fails | Inspect `deployment.json`; failed transactions/restarts do not imply rollback |
 | Build fails | Read its reported log and fix the owning source/recipe, then retry |
 
-For CLI details use `python3 build.py --help`, `run --help`, `deploy --help`,
+For CLI details use `python3 build.py --help`, `run --help`, `dev --help`, `deploy --help`,
 `vm --help` or the individual stage help. Source snapshots, packages and logs
 remain under `out/`; [architecture](architecture.md) maps their locations.

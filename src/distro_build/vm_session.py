@@ -27,7 +27,7 @@ def prepare(project: Path, image: Path, name: str, runtime: dict) -> tuple[Path,
         raise RuntimeError("Persistent VM directory cannot be a symlink")
     directory.mkdir(mode=0o700, exist_ok=True)
     directory.chmod(0o700)
-    for filename in ("disk.img", "OVMF_VARS.fd", "state.json", "vm.lock", "serial.log", "qemu.log", "command.json", "session.json", "qmp.sock", "agent.sock", "deploy.lock", "deployment.json"):
+    for filename in ("disk.img", "OVMF_VARS.fd", "state.json", "vm.lock", "serial.log", "qemu.log", "command.json", "session.json", "qmp.sock", "agent.sock", "deploy.lock", "deployment.json", "development.json", "development.next", "development-report.json"):
         if (directory / filename).is_symlink():
             raise RuntimeError("Persistent VM files cannot be symlinks")
     lock = directory / "vm.lock"

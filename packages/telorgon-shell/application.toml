@@ -26,3 +26,6 @@ bindgen = true
 [runtime]
 packages = ["glibc", "libgcc", "libstdc++", "wayland", "libdrm", "mesa-gbm", "libseat", "libinput", "libxkbcommon", "xkeyboard-config", "systemd", "dbus", "dconf", "gsettings-desktop-schemas", "pipewire", "wireplumber", "networkmanager", "upower", "polkit", "xdg-desktop-portal", "telorgon-file-explorer", "telorgon-settings-app", "telorgon-portal-picker"]
 files = ["/usr/bin/dconf", "/usr/share/glib-2.0/schemas/gschemas.compiled", "/usr/bin/pipewire", "/usr/bin/wireplumber", "/usr/bin/dbus-daemon", "/usr/sbin/NetworkManager"]
+
+[development]
+restart = "desktop"

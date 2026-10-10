@@ -19,6 +19,12 @@ product uses the Telorgon bootloader and applications.
   install through `python3 build.py deploy <packages> --name <vm>`; it verifies
   transfers, runs one guest `pacman -U` transaction and checks installed versions.
   Never test by copying executables or libraries over package-owned guest files.
+- For automatic app selection, use `python3 build.py dev --name <vm>` after
+  inspecting and adopting that VM's first base plan. It fetches canonical
+  upstream references and stops for deliberate integration when behind; it
+  never merges or moves source checkouts. Preserve local work, integrate in
+  owning contribution repositories and retry. Register future app/source inputs
+  in the catalogs; base changes need a fresh image and separate named VM.
 - Framework changes require rebuilding and deploying every affected application.
   Use `--build-profile release` for rendering/performance tests. Save work before
   a session restart; prefer a separate named test VM over disturbing a user's VM.
