@@ -1,13 +1,25 @@
 # Development documentation
 
-Start with [environment setup](setup.md), then [build and run](build.md).
-All commands run from the distro checkout in a Linux terminal unless a block
-explicitly says Windows PowerShell. The `./run` wrapper calls the Python CLI.
+## Start here
+
+1. **[Environment setup](setup.md):** choose Linux or WSL2, install prerequisites,
+   create the workspace and check that it is ready to build.
+2. **[First build](build.md#first-build):** choose a desktop profile, build the OS
+   and open your first saved VM.
+3. **[Daily development](build.md#update-changed-applications-automatically):**
+   update applications in that VM, then follow [testing](testing.md) to exercise
+   your changes.
+
+Setup steps identify the terminal and working directory to use. After setup,
+build commands run from `~/wip-os/distro` in a Linux terminal. The `./run` wrapper
+calls the Python CLI.
+
+## Guides
 
 | Guide | Use it for |
 | --- | --- |
-| [Environment setup](setup.md) | Ubuntu/Linux seeds, Rustup/Cargo and pinned Rust, host audit and missing-GCC/Meson/Python-venv troubleshooting, QEMU/OVMF troubleshooting, WSL2, WSLg frame rate and checkout setup |
-| [Build and run](build.md) | First build, build speed, build/cleanup progress and logs, package build troubleshooting, saved VMs, automatic app updates, upstream checks and pacman deployment |
+| [Environment setup](setup.md) | Numbered Linux/WSL2 setup, host tools, Rustup, workspace creation, prerequisite checks, KVM and WSLg |
+| [Build and run](build.md) | Numbered first build, saved VMs, progress and logs, build speed, cleanup, troubleshooting and application deployment |
 | [Testing](testing.md) | Hover measurements, desktop input/presentation, boot, password and upgrade gates |
 | [Contributing](contributing.md) | Source changes, recipes, CI and commit/PR handoff |
 | [Source modules](sources.md) | Repository ownership, immutable pins and portable source bundles |

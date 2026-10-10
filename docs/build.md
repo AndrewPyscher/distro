@@ -1,36 +1,77 @@
 # Build and run
 
-Complete [environment setup](setup.md) first. Run commands from the distro root
-in a Linux terminal. `./run` forwards arguments to `python3 build.py run`.
+Complete [environment setup](setup.md) first. All commands below run from the
+**distro directory in a Linux terminal**, as your normal user. The `./run`
+launcher forwards arguments to `python3 build.py run`.
 
-## Host setup
+## First build
 
-Use the [setup guide](setup.md) for host seeds, Rust, QEMU/OVMF, KVM and WSLg.
-On Windows, apply the [WSLg frame-rate setting](setup.md#wslg-frame-rate) before
-high-refresh testing. Run the pipeline as your normal user.
+These steps create a desktop development image and a saved VM named `dev`.
+That profile includes the source-built QEMU Guest Agent and private application
+deployment channel. For a desktop without that channel, use the
+[normal desktop profile](#desktop-build) instead.
 
-## Build and run
+### 1. Enter the checkout and validate it
 
-For source development, create a named development VM:
+```sh
+cd ~/wip-os/distro
+python3 build.py validate
+```
+
+Continue when validation finishes without an error. If you have not yet run the
+host checks, complete [environment verification](setup.md#4-verify-the-environment)
+before starting the build.
+
+### 2. Build the OS and open QEMU
 
 ```sh
 ./run --profile desktop-dev --name dev
 ```
 
-The pipeline audits the host, validates recipes, downloads verified sources,
-builds/checks the bootstrap compiler, builds the private package toolkit and
-runtime packages, builds Telorgon EFI and applications, composes the image and
-opens QEMU. The first build needs network access and can take substantial time.
-Failures stop at the affected stage and report its log. `./run` chooses a
-CPU/memory-aware compiler budget up to 8 for the bootstrap, native toolkit,
-packages and applications.
-Use `--jobs N` to choose another count.
+No separate bootstrap or manual package-build sequence is needed. The first
+build needs internet access and can take substantial time. The pipeline:
 
-Telorgon starts the local `custom` desktop session. Open applications from the
-launcher and test mouse/keyboard behavior. The development profile adds the
-source-built QEMU Guest Agent and private deployment channel.
+1. Audits host tools, validates recipes and downloads verified sources.
+2. Builds and checks the bootstrap compiler and private package tools.
+3. Builds the OS runtime packages, Telorgon EFI, desktop SDK and applications.
+4. Composes the OS image, prepares a private VM disk and opens QEMU.
 
-### Build progress
+The build chooses a CPU/memory-aware job count up to eight. Let it choose the
+default, or add `--jobs 4` to set a smaller budget. See
+[build speed and parallelism](#build-speed-and-parallelism) for the controls.
+
+Watch the progress bar for the current stage and elapsed time. Large compiler
+stages can take a long time at one percentage; see [build progress](#build-progress).
+If a stage fails, read its reported log, fix the underlying problem and rerun the
+same command. Completed work is reused; cleaning is unnecessary for a retry.
+See [troubleshooting](#troubleshooting) for common failures.
+
+### 3. Check the running desktop
+
+When the QEMU window opens, wait for Telorgon's local `custom` desktop session.
+Open File Explorer and Settings from the launcher and check mouse and keyboard
+input. A completed progress bar establishes image preparation and QEMU startup;
+it does not establish that the guest desktop or applications work correctly.
+
+The VM's private disk, firmware variables and logs live under `out/vms/dev/`.
+Close the guest normally when finished. To check a newly rebuilt base later,
+choose a **new VM name**: rebuilding the image does not replace a saved disk.
+
+### 4. Reopen the VM or begin development
+
+Reopen the saved development VM without building:
+
+```sh
+python3 build.py vm --use --development --name dev
+```
+
+When you are ready to edit source, keep this VM running and follow
+[update changed applications](#update-changed-applications-automatically) in a
+second Linux terminal. Implement changes under `sources/`, then build and install
+packages through guest pacman. The [testing guide](testing.md) describes how to
+exercise the installed behavior.
+
+## Build progress
 
 `./run` and `python3 build.py run` show progress automatically, including on a
 first build with no cached outputs. The display covers host/recipe checks,
