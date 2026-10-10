@@ -1,6 +1,8 @@
 """Cleanup must remove build outputs while preserving source and saved work."""
 import fcntl
 import io
+import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -17,6 +19,9 @@ class CleanTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
+        capture = patch("sys.stderr", new=io.StringIO())
+        self.stderr = capture.start()
+        self.addCleanup(capture.stop)
         self.project = Path(temporary.name)
         self.output = self.project / "out"
         self.artifacts = ["bootstrap/root/compiler", "work/package/object", "apps/incremental/object",
@@ -115,3 +120,101 @@ class CleanTests(unittest.TestCase):
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('"dry_run": true', result.stdout)
+
+    def test_live_progress_keeps_json_stdout_and_persists_log(self):
+        with patch("sys.stdout", new=io.StringIO()) as output:
+            self.assertEqual(main(["--project", str(self.project), "clean"]), 0)
+        report = json.loads(output.getvalue())
+        text = self.stderr.getvalue()
+        self.assertIn("Cleaning out/work", text)
+        self.assertIn("Finished out/work", text)
+        self.assertIn("100%", text)
+        self.assertIn("entries removed", text)
+        self.assertNotIn("\x1b", text)
+        self.assertNotIn("\r", text)
+        self.assertGreater(report["entries_removed"], len(report["removed"]))
+        log = Path(report["log"])
+        self.assertEqual(log.parent, self.output / "verification/clean")
+        self.assertIn("Cleanup complete", log.read_text())
+        self.assertIn("Cleaning out/work", log.read_text())
+        self.assertNotIn("\x1b", log.read_text())
+        second = clean_outputs(self.project)
+        self.assertNotEqual(second["log"], str(log))
+        self.assertTrue(log.exists())
+
+    def test_large_single_target_reports_entries_before_target_finishes(self):
+        from distro_build.cleanup import CleanupProgress, remove_artifact
+        directory = self.output / "large"
+        directory.mkdir()
+        for number in range(10):
+            (directory / str(number)).touch()
+        logs = self.output / "verification"
+        # A controlled clock exercises periodic updates without slowing deletion.
+        with patch("distro_build.cleanup.time.monotonic", side_effect=range(100)):
+            with CleanupProgress(self.project, 1, logs) as status:
+                status.begin(directory)
+                remove_artifact(directory, status)
+                status.done(directory)
+        text = self.stderr.getvalue()
+        self.assertIn("0% (0/1 targets) 1 entries removed", text)
+        self.assertIn("Removed out/large/", text)
+        self.assertIn("100% (1/1 targets) 11 entries removed", text)
+
+    def test_terminal_gets_live_bar_but_saved_log_has_no_controls(self):
+        self.stderr.isatty = lambda: True
+        with patch("distro_build.cleanup.time.monotonic", side_effect=range(1000)):
+            report = clean_outputs(self.project)
+        self.assertIn("\r\x1b[2K", self.stderr.getvalue())
+        self.assertIn("100%", self.stderr.getvalue())
+        self.assertNotIn("\x1b", Path(report["log"]).read_text())
+
+    def test_partial_failure_logs_error_and_never_claims_completion(self):
+        unlink = os.unlink
+
+        def fail(name, *args, **kwargs):
+            if str(name) == "object":
+                raise PermissionError("fixture refuses deletion")
+            return unlink(name, *args, **kwargs)
+
+        with patch("distro_build.cleanup.os.unlink", side_effect=fail):
+            with self.assertRaisesRegex(PermissionError, "fixture refuses deletion"):
+                clean_outputs(self.project)
+        logs = list((self.output / "verification/clean").glob("*.log"))
+        self.assertEqual(len(logs), 1)
+        text = logs[0].read_text()
+        self.assertIn("FAILED at out/apps/incremental/object", text)
+        self.assertNotIn("Cleanup complete", text)
+        self.assertTrue((self.output / "apps/incremental/object").exists())
+
+    def test_interruption_is_recorded_without_deleting_remaining_targets(self):
+        with patch("distro_build.cleanup.remove_artifact", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                clean_outputs(self.project)
+        log = next((self.output / "verification/clean").glob("*.log"))
+        self.assertIn("Interrupted at out/apps", log.read_text())
+        self.assertNotIn("Cleanup complete", log.read_text())
+        self.assertTrue(all((self.output / name).exists() for name in self.artifacts))
+
+    def test_redirected_log_directories_fail_before_artifact_deletion(self):
+        outside = self.project / "outside"
+        outside.mkdir()
+        (self.output / "verification/clean").symlink_to(outside)
+        with self.assertRaisesRegex(BuildError, "symlink"):
+            clean_outputs(self.project)
+        self.assertTrue(all((self.output / name).exists() for name in self.artifacts))
+        self.assertEqual(list(outside.iterdir()), [])
+
+    def test_directory_symlink_and_dangling_link_are_unlinked_without_traversal(self):
+        outside = self.project / "outside"
+        outside.mkdir()
+        (outside / "keep").write_text("saved")
+        (self.output / "work/package/linked-dir").symlink_to(outside, target_is_directory=True)
+        (self.output / "work/package/dangling").symlink_to(self.project / "missing")
+        clean_outputs(self.project)
+        self.assertEqual((outside / "keep").read_text(), "saved")
+
+    def test_dry_run_creates_no_progress_log(self):
+        report = clean_outputs(self.project, dry_run=True)
+        self.assertNotIn("log", report)
+        self.assertFalse((self.output / "verification/clean").exists())
+        self.assertEqual(self.stderr.getvalue(), "")

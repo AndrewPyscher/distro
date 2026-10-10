@@ -65,6 +65,7 @@ the defaults. Optional ccache support keeps C/C++ objects under `out/`. See
 [build speed](docs/build.md#build-speed-and-parallelism) for cache behavior and controls.
 
 For a fresh source build, preview with `./clean --dry-run`, then run `./clean`.
+It shows live progress and saves cleanup logs under `out/verification/clean/`.
 It keeps saved VM disks and downloaded archives; `--vms` and `--downloads`
 explicitly remove those too. See [cleanup options](docs/build.md#clean-for-a-fresh-build).
 

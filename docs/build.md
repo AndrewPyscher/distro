@@ -263,7 +263,7 @@ source builds with prebuilt OS packages.
 ## Clean for a fresh build
 
 Preview cleanup, then remove the generated toolchain, SDK, packages, application
-compiler caches (including `out/compiler-cache/`), images, staging trees, logs and build receipts:
+compiler caches (including `out/compiler-cache/`), images, staging trees, build logs and build receipts:
 
 ```sh
 ./clean --dry-run
@@ -275,6 +275,21 @@ compiler caches (including `out/compiler-cache/`), images, staging trees, logs a
 refuses to delete outputs when an existing build, deployment or saved-VM lock is
 held. Do not start another build during cleanup. Persistent lock files remain so
 the builder and cleaner continue to share the same locks.
+
+Cleanup prints each target as it starts and finishes, with a live terminal bar,
+elapsed time and a count of removed entries (files, directories and symlinks).
+The percentage measures **completed top-level cleanup targets**, not bytes or
+estimated time. Inside a large target, the entry counter and sampled current
+path keep updating without a separate counting pass. Redirected/piped stderr
+gets plain progress lines instead of terminal control sequences.
+
+Live progress goes to stderr; stdout remains the final JSON summary, including
+`entries_removed`, `seconds` and the saved `log` path. Every real cleanup saves a
+unique timestamped log under `out/verification/clean/`, which survives cleanup.
+Deletion failures and Ctrl+C record partial progress and the failure/interruption;
+they do not report successful completion. Lock/path preflight failures happen
+before deletion or log creation. `--dry-run` only prints the plan and creates no
+cleanup log. An absent `out/` directory likewise needs no log or cleanup.
 
 Source checkouts and local edits under `sources/` stay intact. Cleanup also
 preserves downloaded archives under `out/sources/downloads/`, saved disks under

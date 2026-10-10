@@ -53,7 +53,7 @@ def vm_timeout(value: str) -> int:
 
 
 def clean_outputs(project: Path, *, downloads: bool = False, vms: bool = False,
-                  dry_run: bool = False) -> dict:
+                  dry_run: bool = False, progress: bool = True) -> dict:
     """Remove known pipeline outputs without deleting source or saved work."""
     output = project / "out"
     if output.is_symlink():
@@ -122,11 +122,20 @@ def clean_outputs(project: Path, *, downloads: bool = False, vms: bool = False,
                                    if (directory / filename).exists() or (directory / filename).is_symlink()]
         for path in lock_paths:
             acquire(path)
-        for path in selected:
-            if path.is_dir():
-                shutil.rmtree(path)
-            else:
-                path.unlink()
+        from .cleanup import CleanupProgress, remove_artifact
+        log_directory = output / "verification/clean"
+        safe(log_directory)
+        log_directory.mkdir(parents=True, exist_ok=True)
+        if str(output / "verification") not in report["preserved"]:
+            report["preserved"].append(str(output / "verification"))
+        with CleanupProgress(project, len(selected), log_directory, console=progress) as status:
+            report["log"] = str(status.log_path)
+            for path in selected:
+                status.begin(path)
+                remove_artifact(path, status)
+                status.done(path)
+        report["entries_removed"] = status.entries
+        report["seconds"] = round(time.monotonic() - status.started, 2)
     return report
 
 
@@ -520,7 +529,8 @@ def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
     project = args.project.resolve()
     try:
         if args.command == "clean":
-            report(clean_outputs(project, downloads=args.downloads, vms=args.vms, dry_run=args.dry_run))
+            report(clean_outputs(project, downloads=args.downloads, vms=args.vms,
+                                 dry_run=args.dry_run, progress=not quiet))
         elif args.command == "run":
             if args.output and args.profile in {"desktop-use", "desktop-dev"}:
                 raise BuildError("--output requires --profile console or --profile systemd")
