@@ -17,9 +17,9 @@ Run from the checkout in a Linux terminal:
 ./run --profile desktop-dev --name dev
 ```
 
-This builds the development image and opens a saved VM. Builds use 8 compile
-jobs by default; set `--jobs N` to choose another count. Open File Explorer and
-Settings from Telorgon's launcher. Close the guest normally when finished;
+This builds the development image and opens a saved VM. Builds choose a
+CPU/memory-aware job count up to 8; set `--jobs N` to choose another count.
+Open File Explorer and Settings from Telorgon's launcher. Close the guest normally when finished;
 its disk and firmware variables remain under `out/vms/dev/`.
 
 `./run` shows a live progress bar with the current build step and elapsed time,
@@ -65,11 +65,16 @@ See [build and run](docs/build.md) for saved-disk behavior, cache reuse, profile
 audio/camera controls and troubleshooting. Rebuilding an image does not upgrade
 an existing named VM's disk; deploy apps or use a new VM name for a fresh base.
 
-For a full rebuild, stop builds and QEMU, then run `./clean` followed by `./run`.
-Cleanup shows progress and clears generated outputs, caches, downloads and test
-evidence under `out/`, preserving saved VMs. Use `./clean --dry-run` to preview,
-or `./clean --all` to also delete saved VM disks and guest files. See
-[clean build outputs](docs/build.md#clean-build-outputs) for details.
+Build commands automatically choose a CPU/memory-aware job count. Native packages
+share that budget across ready builds; `--jobs` and `--package-workers` override
+the defaults. Optional ccache support keeps C/C++ objects under `out/`. See
+[build speed](docs/build.md#build-speed-and-parallelism) for cache behavior and controls.
+
+For a fresh source build, preview with `./clean --dry-run`, then run `./clean`.
+It shows live progress and saves cleanup logs under `out/verification/clean/`.
+It keeps saved VM disks and downloaded archives; `--vms` and `--downloads`
+explicitly remove those too, or use `--all` for both. See
+[cleanup options](docs/build.md#clean-for-a-fresh-build).
 
 ## Documentation
 

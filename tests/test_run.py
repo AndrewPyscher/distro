@@ -48,6 +48,7 @@ class RunTests(unittest.TestCase):
             return {"identity": self.identity, "image": {"path": str(self.image), "sha256": self.digest}}
 
         with ExitStack() as stack:
+            stack.enter_context(patch.object(cli, "default_jobs", return_value=8))
             stack.enter_context(patch.object(cli, "main", side_effect=stage))
             stack.enter_context(patch.object(cli, "emit", wraps=cli.emit if progress_events else None))
             # These tests exercise orchestration; real inventories are covered in test_run_cache.
@@ -70,7 +71,7 @@ class RunTests(unittest.TestCase):
         self.assertIn(["bootstrap", "--check"], self.events)
         self.assertIn(["bootstrap", "--jobs", "8"], self.events)
         self.assertIn(["native-toolkit", "--jobs", "8", "--fetch"], self.events)
-        self.assertIn(["build", "--jobs", "8"], self.events)
+        self.assertIn(["build", "--jobs", "8", "--package-workers", "2"], self.events)
         self.assertIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "8", "--online"], self.events)
         self.desktop.assert_called_once_with(self.project, self.image, name="test-" + self.identity[:16])
         self.boot.assert_not_called()
@@ -159,7 +160,7 @@ class RunTests(unittest.TestCase):
         self.assertIn(["fetch", "--bootstrap", "--offline"], self.events)
         self.assertIn(["bootstrap", "--jobs", "2"], self.events)
         self.assertIn(["native-toolkit", "--jobs", "2"], self.events)
-        self.assertIn(["build", "--jobs", "2"], self.events)
+        self.assertIn(["build", "--jobs", "2", "--package-workers", "2"], self.events)
         self.assertIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "2"], self.events)
         self.assertFalse(any("--online" in event or "--fetch" in event for event in self.events))
 
@@ -184,7 +185,7 @@ class RunTests(unittest.TestCase):
 
     def test_systemd_headless_uses_runtime_closure_and_propagates_boot_failure(self):
         self.assertEqual(self.invoke("--profile", "systemd", "--headless", "--output", "out/check", boot_ok=False), 1)
-        self.assertIn(["build", "linux", "busybox", "--jobs", "8"], self.events)
+        self.assertIn(["build", "linux", "busybox", "--jobs", "8", "--package-workers", "2"], self.events)
         self.assertFalse(any(event[0] == "apps" for event in self.events))
         self.boot.assert_called_once_with(self.image, self.project / "out/check", timeout=600,
             headless=True, interactive=False, project=self.project, expect="CUSTOM_SYSTEMD_RUNTIME_OK")

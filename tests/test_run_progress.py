@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import threading
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -84,6 +85,49 @@ class RunProgressTests(unittest.TestCase):
         stages = [row for row in self.records(reporter) if row.get("event") == "progress-bootstrap"]
         self.assertEqual([(row["stage"], row["done"]) for row in stages],
                          [("binutils", False), ("binutils", True), ("gcc", False)])
+
+    def test_parallel_package_cli_keeps_worker_events_and_counts_out_of_order_completions(self):
+        recipes = {name: SimpleNamespace(name=name, dependencies={"target": dependencies})
+                   for name, dependencies in [("first", []), ("second", []), ("cached", ["first", "second"])]}
+        rendezvous = threading.Barrier(2)
+        second_done = threading.Event()
+        original_emit = cli.emit
+
+        def emit(value):
+            original_emit(value)
+            if value.get("event") == "package-done" and value["package"] == "second":
+                second_done.set()
+
+        def build(project, recipe, **options):
+            progress.detail(f"Compiling {recipe.name}")
+            rendezvous.wait(timeout=3)
+            if recipe.name == "first":
+                self.assertTrue(second_done.wait(3))
+                self.assertEqual(reporter.fraction, 1 / 3)
+            return {"path": f"/fixture/{recipe.name}"}
+
+        def cached(project, recipe, *args, **options):
+            return {"path": "/fixture/cached"} if recipe.name == "cached" else None
+
+        with progress.RunProgress(self.project, "desktop-dev") as reporter:
+            progress.stage("build")
+            with patch.object(cli, "catalog", return_value=recipes), \
+                 patch.object(runner, "seed_report", return_value={}), \
+                 patch.object(cli, "cached_package", side_effect=cached), \
+                 patch.object(cli, "package_dependencies", return_value=[]), \
+                 patch.object(runner, "build_package", side_effect=build), \
+                 patch.object(cli, "emit", side_effect=emit), patch("sys.stdout", new=io.StringIO()):
+                self.assertEqual(cli.main(["--project", str(self.project), "build", "--seed",
+                                           "--jobs", "4", "--package-workers", "2"]), 0)
+            self.assertEqual(reporter.fraction, 1)
+            self.assertEqual(reporter.packages_active, set())
+            self.assertIn("3/3 complete", reporter.text)
+            self.finish(reporter)
+        records = self.records(reporter)
+        self.assertEqual([row["package"] for row in records if row.get("event") == "package-done"],
+                         ["second", "first", "cached"])
+        self.assertTrue(any(row.get("detail") == "Compiling first" for row in records))
+        self.assertTrue(any(row.get("detail") == "Compiling second" for row in records))
 
     def test_verified_cache_skips_are_reported_without_running_the_action(self):
         source = self.project / "source"

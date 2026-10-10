@@ -82,6 +82,8 @@ class RunProgress:
         self.lock = threading.RLock()
         self.stop = threading.Event()
         self.completed: set[str] = set()
+        self.packages_completed: set[str] = set()
+        self.packages_active: set[str] = set()
         self.key = "doctor"
         self.text = ""
         self.item_label = ""
@@ -175,6 +177,9 @@ class RunProgress:
             self._read_bootstrap()
             self.key, self.text, self.fraction, self.watch = key, "", 0.0, None
             self.item_label = ""
+            if key == "build":
+                self.packages_completed.clear()
+                self.packages_active.clear()
             self._record({"event": "progress-stage", "stage": key})
             self._render()
 
@@ -227,6 +232,19 @@ class RunProgress:
                 elif name != "stage-start":
                     for key in group:
                         self.complete(key, cached=name == "stage-cached")
+            elif name in {"package-start", "package-done"} and self.key == "build" and not self.finished:
+                package = value["package"]
+                if name == "package-start":
+                    self.packages_active.add(package)
+                else:
+                    self.packages_active.discard(package)
+                    self.packages_completed.add(package)
+                total = value["total"]
+                self.fraction = len(self.packages_completed) / total if total else 0
+                active = ", ".join(sorted(self.packages_active)) or package
+                self.item_label = f"{active} ({len(self.packages_completed)}/{total} complete)"
+                self.text = self.item_label
+                self._render()
             elif name == "command" and not self.finished:
                 arguments = [str(argument) for argument in value["argv"]]
                 if self.key == "bootstrap" and "--check" not in arguments:

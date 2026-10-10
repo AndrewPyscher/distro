@@ -21,8 +21,9 @@ The pipeline audits the host, validates recipes, downloads verified sources,
 builds/checks the bootstrap compiler, builds the private package toolkit and
 runtime packages, builds Telorgon EFI and applications, composes the image and
 opens QEMU. The first build needs network access and can take substantial time.
-Failures stop at the affected stage and report its log. `./run` defaults to 8
-compile jobs for the bootstrap, native toolkit, packages and applications.
+Failures stop at the affected stage and report its log. `./run` chooses a
+CPU/memory-aware compiler budget up to 8 for the bootstrap, native toolkit,
+packages and applications.
 Use `--jobs N` to choose another count.
 
 Telorgon starts the local `custom` desktop session. Open applications from the
@@ -38,7 +39,9 @@ packages, Telorgon EFI, the desktop SDK and applications, OS image assembly,
 and private VM preparation/startup. Console/systemd builds omit desktop steps.
 
 The bar counts completed steps. Package/application counts and bootstrap stage
-names show progress inside larger steps; percentages describe completed work
+names show progress inside larger steps. Parallel packages list active builds
+and advance their count as each finishes, including cached packages.
+Percentages describe completed work
 units, rather than estimated time. Compiling GCC can hold the overall percentage
 for a long time. The activity indicator and elapsed time keep updating while
 commands run or cached inputs are checked. Verified cached steps are marked as
@@ -236,9 +239,65 @@ valid lower-level compiler caches. Use `--jobs 2` for less compile parallelism.
 There is no fixed compilation-time guarantee. Do not edit caches or receipts to
 force reuse; inspect the failing inputs/log and retry after fixing the cause.
 
-## Clean build outputs
+## Build speed and parallelism
 
-Stop builds, deployments and QEMU before cleaning. From the checkout root:
+Build commands choose a CPU/memory-aware job count by default, capped at eight.
+The policy respects Linux CPU affinity and cgroup v2 CPU/memory limits and budgets
+roughly 1.5 GiB per compiler job with 512 MiB left for coordination. Override it
+explicitly for your machine:
+
+```sh
+./run --profile desktop-dev --name dev --jobs 8 --package-workers 2
+python3 build.py build busybox zlib --jobs 8 --package-workers 2
+```
+
+`--jobs` is the total compiler budget. `--package-workers` limits simultaneous
+native package builds, defaulting to two. Ready packages share that budget;
+a lone ready package gets all available jobs. Target dependencies finish before
+their consumers start. Runtime-only cycles do not serialize compilation. Use
+`--package-workers 1` for sequential packages, or `--jobs 2` on a small machine.
+Bootstrap, loader and app stages retain their existing ordering; this scheduler
+parallelizes native packages, not independent Rust applications.
+
+Native package cache keys follow each recipe's Python imports and their local
+helpers, package resources, source pins, seed tools, bootstrap receipts and
+native dependency archives. Computed Python imports use a conservative dependency
+boundary for their consumer. Stage receipts track their own build code and inputs.
+Adding an app or editing deployment/VM helpers does not invalidate native OS
+packages. Timestamps or an identical file replacement alone do not invalidate a
+stage; content, modes, ownership and symlink changes still do. The cache policy
+upgrade requires one rebuild of existing native packages and stage receipts.
+
+For optional C/C++ object reuse, the native package builder detects an existing
+host `ccache`, or accepts an explicit executable:
+
+```sh
+DISTRO_CCACHE=/path/to/ccache python3 build.py build busybox zlib --jobs 8
+DISTRO_CCACHE=0 ./run                         # Disable compiler caching
+CCACHE_DIR="$PWD/out/compiler-cache" ccache --show-stats
+```
+
+The executable hash is recorded as a declared host seed. Objects stay in
+`out/compiler-cache/` with a 5 GB limit. Builds hash the real compiler, toolchain
+receipts and dependency bytes, use preprocessor mode, and exclude inherited
+ccache configuration. They keep target sysroot checks in front of cache dispatch.
+No host software is installed automatically. Without ccache, compilation runs
+normally; Rust continues using its existing Cargo workspaces. Object-cache hits
+also depend on compiler arguments and source paths; there is no promised speedup
+for a first build. See the [ccache manual](https://ccache.dev/manual/latest.html)
+for its cache behavior and statistics.
+
+Keep build outputs between normal iterations. Use `dev` for app-only updates,
+`vm --use` for reopening a VM, and `clean` when you need a full rebuild. A fresh
+source build still compiles the bootstrap and kernel; these changes do not replace
+source builds with prebuilt OS packages.
+
+## Clean for a fresh build
+
+Stop builds, deployments and QEMU before cleaning.
+
+Preview cleanup, then remove the generated toolchain, SDK, packages, application
+compiler caches (including `out/compiler-cache/`), images, staging trees, build logs and build receipts:
 
 ```sh
 ./clean --dry-run
@@ -246,33 +305,47 @@ Stop builds, deployments and QEMU before cleaning. From the checkout root:
 ./run --profile desktop-dev --name fresh-dev
 ```
 
-`./clean` is a shell launcher for `python3 build.py clean`. It clears everything
-under `out/` except `out/vms/`: bootstrap tools, compiled packages, images, SDKs,
-generated source snapshots, Cargo caches, downloaded archives, build receipts,
-logs and test evidence. Save any evidence you need before cleaning. Source
-checkouts and their local changes remain in `sources/`. The next build needs
-network access to fetch inputs again; cleanup does not clear host Rust tools
-or caches outside `out/`.
+`./clean` is a shell launcher that forwards to `python3 build.py clean`. Cleanup
+refuses to delete outputs when an existing build, deployment or saved-VM lock is
+held. Do not start another build during cleanup. Persistent lock files remain so
+the builder and cleaner continue to share the same locks.
 
-The command scans first, then shows a progress bar based on the number of files,
-directories and symlinks removed, rather than bytes or estimated time. Redirected
-output uses periodic progress lines. `--dry-run` lists the directories and entry
-counts without deleting anything. Cleanup refuses symlinked `out/` directories,
-does not follow symlinks within the outputs, and stops if an existing managed
-build, deployment or VM lock is busy. Do not start another job during cleanup;
-individual build commands do not all share a global lock.
+Cleanup prints each target as it starts and finishes, with a live terminal bar,
+elapsed time and a count of removed entries (files, directories and symlinks).
+The percentage measures **completed top-level cleanup targets**, not bytes or
+estimated time. Inside a large target, the entry counter and sampled current
+path keep updating without a separate counting pass. Redirected/piped stderr
+gets plain progress lines instead of terminal control sequences.
 
-To also delete **all saved VM disks, guest files and firmware variables**:
+Live progress goes to stderr; stdout remains the final JSON summary, including
+`entries_removed`, `seconds` and the saved `log` path. Every real cleanup saves a
+unique timestamped log under `out/verification/clean/`, which survives cleanup.
+Deletion failures and Ctrl+C record partial progress and the failure/interruption;
+they do not report successful completion. Lock/path preflight failures happen
+before deletion or log creation. `--dry-run` only prints the plan and creates no
+cleanup log. An absent `out/` directory likewise needs no log or cleanup.
+
+Source checkouts and local edits under `sources/` stay intact. Cleanup also
+preserves downloaded archives under `out/sources/downloads/`, saved disks under
+`out/vms/`, evidence under `out/verification/`, source bundles, contribution
+checkouts and unrecognized output directories. It only deletes the pipeline's
+known generated outputs; it does not run `git clean` or touch host caches.
+
+Optional flags:
 
 ```sh
-./clean --all --dry-run
-./clean --all
+./clean --downloads             # Also remove downloaded source archives
+./clean --vms                   # Also delete saved VM disks, data and firmware variables
+./clean --downloads --vms       # Rebuild and download again with no saved VMs
+./clean --all                   # Same as --downloads --vms
 ```
 
-Both modes leave the `out/` directory itself in place. Keeping a saved VM does
-not upgrade its disk: after rebuilding, use a new VM name for the fresh base.
-For CI or an explicitly selected distro checkout, use
-`python3 build.py --project /path/to/distro clean [--all] [--dry-run]`.
+The next build must recreate the toolchain and packages and can take substantial
+time. Retaining archives avoids downloading them again; Cargo caches inside
+generated app/loader directories are removed. Reusing a preserved VM name still
+opens its original disk, so use a new name to test the freshly rebuilt base.
+The cleaner does not repair cache invalidation or speed up ordinary iteration;
+use `dev` for app updates and `vm --use` to reopen a saved disk.
 
 ## Base-system and desktop checks
 
@@ -333,6 +406,6 @@ camera does not establish portal consent, capture or screen-sharing behavior.
 | Guest install fails | Inspect `deployment.json`; failed transactions/restarts do not imply rollback |
 | Build fails | Read its reported log and fix the owning source/recipe, then retry |
 
-For CLI details use `python3 build.py --help`, `run --help`, `dev --help`, `deploy --help`,
+For CLI details use `python3 build.py --help`, `run --help`, `clean --help`, `dev --help`, `deploy --help`,
 `vm --help` or the individual stage help. Source snapshots, packages and logs
 remain under `out/`; [architecture](architecture.md) maps their locations.
