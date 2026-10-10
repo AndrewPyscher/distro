@@ -566,7 +566,10 @@ def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
                 return 130
         elif args.command == "doctor":
             from .runner import seed_report
-            report(seed_report(project))
+            from .host import python_venv_report
+            seeds = seed_report(project)
+            seeds["python_venv"] = python_venv_report()
+            report(seeds)
         elif args.command in {"validate", "plan", "affected", "fetch", "build"}:
             recipes = catalog(project)
             if not recipes and args.command != "fetch":

@@ -205,11 +205,13 @@ class RunTests(unittest.TestCase):
                 self.assertEqual(self.events, [])
 
     def test_quiet_stages_hide_receipts_and_keep_failure_diagnostics(self):
-        with patch.object(runner, "seed_report", return_value={"large": "receipt"}), patch.object(cli, "emit") as emit:
+        with patch.object(runner, "seed_report", return_value={"large": "receipt"}), \
+             patch("distro_build.host.python_venv_report", return_value={"ready": True}), \
+             patch.object(cli, "emit") as emit:
             self.assertEqual(self.entry(["doctor"], quiet=True), 0)
             emit.assert_not_called()
             self.assertEqual(self.entry(["doctor"]), 0)
-            emit.assert_called_once_with({"large": "receipt"})
+            emit.assert_called_once_with({"large": "receipt", "python_venv": {"ready": True}})
         with patch.object(runner, "seed_report", side_effect=RuntimeError("missing seed")), patch("sys.stderr", new=io.StringIO()) as stderr:
             self.assertEqual(self.entry(["doctor"], quiet=True), 1)
             self.assertIn("missing seed", stderr.getvalue())
