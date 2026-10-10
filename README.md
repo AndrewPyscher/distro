@@ -66,6 +66,9 @@ For a bounded base-system boot check, use:
 See [build and run](docs/build.md) for saved-disk behavior, cache reuse, profiles,
 audio/camera controls and troubleshooting. Rebuilding an image does not upgrade
 an existing named VM's disk; deploy apps or use a new VM name for a fresh base.
+After fixing a package build failure, retry `./run`; completed work is reused.
+See [package build troubleshooting](docs/build.md#troubleshooting) for logs and
+the GLib `iconv` configuration error.
 
 Build commands automatically choose a CPU/memory-aware job count. Native packages
 share that budget across ready builds; `--jobs` and `--package-workers` override

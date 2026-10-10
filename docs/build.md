@@ -406,6 +406,16 @@ camera does not establish portal consent, capture or screen-sharing behavior.
 | Guest install fails | Inspect `deployment.json`; failed transactions/restarts do not imply rollback |
 | Build fails | Read its reported log and fix the owning source/recipe, then retry |
 
+If the OS packages stage stops at GLib with `Dependency "iconv" not found`, read
+the package log under `out/logs/packages/` and the Meson log it names. A nested
+`libgcc_s.so.1 ... not found` error indicates a cross-compiler configuration
+failure. The Meson adapter clears the inherited `CXX` variable for target builds
+and selects C++ explicitly through its sysroot wrapper only for recipes that
+require it. GLib's C build can then detect glibc's built-in iconv without adding
+host libraries. Retry `./run` after updating the build configuration; completed
+bootstrap stages and matching package builds are reused. To check GLib alone
+after the bootstrap is ready, use `python3 build.py build glib`.
+
 For CLI details use `python3 build.py --help`, `run --help`, `clean --help`, `dev --help`, `deploy --help`,
 `vm --help` or the individual stage help. Source snapshots, packages and logs
 remain under `out/`; [architecture](architecture.md) maps their locations.
