@@ -59,6 +59,10 @@ See [build and run](docs/build.md) for saved-disk behavior, cache reuse, profile
 audio/camera controls and troubleshooting. Rebuilding an image does not upgrade
 an existing named VM's disk; deploy apps or use a new VM name for a fresh base.
 
+For a fresh source build, preview with `./clean --dry-run`, then run `./clean`.
+It keeps saved VM disks and downloaded archives; `--vms` and `--downloads`
+explicitly remove those too. See [cleanup options](docs/build.md#clean-for-a-fresh-build).
+
 ## Documentation
 
 The [documentation index](docs/README.md) covers environment setup, daily

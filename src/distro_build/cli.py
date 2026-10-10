@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 import fcntl
 import hashlib
 import json
@@ -47,6 +48,84 @@ def vm_timeout(value: str) -> int:
     if number > 3600:
         raise argparse.ArgumentTypeError("must be between 1 and 3600 seconds")
     return number
+
+
+def clean_outputs(project: Path, *, downloads: bool = False, vms: bool = False,
+                  dry_run: bool = False) -> dict:
+    """Remove known pipeline outputs without deleting source or saved work."""
+    output = project / "out"
+    if output.is_symlink():
+        raise BuildError("Refusing to clean a symlinked out directory")
+    if not output.exists():
+        return {"dry_run": dry_run, "removed": [], "preserved": []}
+
+    def safe(path: Path) -> None:
+        # Reject redirected control directories before opening locks or deleting.
+        for parent in [path, *path.parents]:
+            if parent == output:
+                break
+            if parent.is_symlink():
+                raise BuildError(f"Refusing to clean through a symlink: {parent}")
+
+    names = ("apps", "boot", "bootstrap", "esp", "images", "loader", "logs",
+             "native-toolkit", "packages", "qualification", "repository", "roots", "sdk", "work")
+    selected = [output / name for name in names if (output / name).exists() or (output / name).is_symlink()]
+    for directory, retained in [(output / "state", {"run.lock", "locks"}),
+                                (output / "sources", set() if downloads else {"downloads"})]:
+        safe(directory)
+        if directory.exists():
+            selected += [path for path in sorted(directory.iterdir()) if path.name not in retained]
+    if vms and ((output / "vms").exists() or (output / "vms").is_symlink()):
+        selected.append(output / "vms")
+    for path in selected:
+        safe(path)
+    preserved = [str(path) for path in sorted(output.iterdir()) if path not in selected]
+    report = {"dry_run": dry_run, "removed": [str(path) for path in selected], "preserved": preserved,
+              "downloads_removed": downloads, "saved_vms_removed": vms}
+    if dry_run:
+        report["planned"] = report.pop("removed")
+        return report
+
+    # Keep the global lock and lock directories: unlinking them would let another
+    # builder lock a different inode while this cleanup is still running.
+    state = output / "state"
+    state.mkdir(exist_ok=True)
+    with ExitStack() as stack:
+        def acquire(path: Path) -> None:
+            safe(path)
+            descriptor = os.open(path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+            handle = stack.enter_context(os.fdopen(descriptor, "r+b"))
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as error:
+                raise BuildError(f"Build or VM is running ({path}); stop it before cleaning") from error
+
+        acquire(state / "run.lock")
+        lock_paths = []
+        for directory in [state / "locks", output / "locks"]:
+            safe(directory)
+            if directory.exists():
+                lock_paths += sorted(directory.glob("*.lock"))
+        bootstrap_lock = output / "bootstrap/work/.bootstrap.lock"
+        safe(bootstrap_lock)
+        if bootstrap_lock.exists():
+            lock_paths.append(bootstrap_lock)
+        vm_root = output / "vms"
+        safe(vm_root)
+        if vm_root.exists():
+            for directory in sorted(vm_root.iterdir()):
+                safe(directory)
+                if directory.is_dir():
+                    lock_paths += [directory / filename for filename in ("vm.lock", "deploy.lock")
+                                   if (directory / filename).exists() or (directory / filename).is_symlink()]
+        for path in lock_paths:
+            acquire(path)
+        for path in selected:
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
+    return report
 
 
 class DevelopmentCache:
@@ -327,6 +406,10 @@ def parser() -> argparse.ArgumentParser:
     command = argparse.ArgumentParser(description="Build Custom Distro from source")
     command.add_argument("--project", type=Path, default=project_root())
     actions = command.add_subparsers(dest="command", required=True)
+    action = actions.add_parser("clean", help="Remove generated outputs for a fresh build; preserve source, saved VMs and evidence")
+    action.add_argument("--dry-run", action="store_true", help="List removal targets without changing files")
+    action.add_argument("--downloads", action="store_true", help="Also remove downloaded source archives")
+    action.add_argument("--vms", action="store_true", help="Also delete saved VM disks and firmware variables")
     action = actions.add_parser("run", help="Build the OS image from source and run it in QEMU")
     action.add_argument("--profile", choices=("desktop-use", "desktop-dev", "systemd", "console"), default="desktop-use")
     action.add_argument("--jobs", type=positive_integer, default=4)
@@ -422,7 +505,9 @@ def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
     args = parser().parse_args(argv)
     project = args.project.resolve()
     try:
-        if args.command == "run":
+        if args.command == "clean":
+            report(clean_outputs(project, downloads=args.downloads, vms=args.vms, dry_run=args.dry_run))
+        elif args.command == "run":
             if args.output and args.profile in {"desktop-use", "desktop-dev"}:
                 raise BuildError("--output requires --profile console or --profile systemd")
             return build_and_run(project, args)

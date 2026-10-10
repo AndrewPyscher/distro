@@ -207,6 +207,43 @@ valid lower-level compiler caches. Use `--jobs 2` for less compile parallelism.
 There is no fixed compilation-time guarantee. Do not edit caches or receipts to
 force reuse; inspect the failing inputs/log and retry after fixing the cause.
 
+## Clean for a fresh build
+
+Preview cleanup, then remove the generated toolchain, SDK, packages, application
+compiler caches, images, staging trees, logs and build receipts:
+
+```sh
+./clean --dry-run
+./clean
+./run --profile desktop-dev --name fresh-dev --jobs 4
+```
+
+`./clean` forwards to `python3 build.py clean`. Stop builds and VMs first; cleanup
+refuses to delete outputs when an existing build, deployment or saved-VM lock is
+held. Do not start another build during cleanup. Persistent lock files remain so
+the builder and cleaner continue to share the same locks.
+
+Source checkouts and local edits under `sources/` stay intact. Cleanup also
+preserves downloaded archives under `out/sources/downloads/`, saved disks under
+`out/vms/`, evidence under `out/verification/`, source bundles, contribution
+checkouts and unrecognized output directories. It only deletes the pipeline's
+known generated outputs; it does not run `git clean` or touch host caches.
+
+Optional flags:
+
+```sh
+./clean --downloads             # Also remove downloaded source archives
+./clean --vms                   # Also delete saved VM disks, data and firmware variables
+./clean --downloads --vms       # Rebuild and download again with no saved VMs
+```
+
+The next build must recreate the toolchain and packages and can take substantial
+time. Retaining archives avoids downloading them again; Cargo caches inside
+generated app/loader directories are removed. Reusing a preserved VM name still
+opens its original disk, so use a new name to test the freshly rebuilt base.
+The cleaner does not repair cache invalidation or speed up ordinary iteration;
+use `dev` for app updates and `vm --use` to reopen a saved disk.
+
 ## Base-system and desktop checks
 
 For a systemd test window that stays open after startup checks, use
@@ -266,6 +303,6 @@ camera does not establish portal consent, capture or screen-sharing behavior.
 | Guest install fails | Inspect `deployment.json`; failed transactions/restarts do not imply rollback |
 | Build fails | Read its reported log and fix the owning source/recipe, then retry |
 
-For CLI details use `python3 build.py --help`, `run --help`, `dev --help`, `deploy --help`,
+For CLI details use `python3 build.py --help`, `run --help`, `clean --help`, `dev --help`, `deploy --help`,
 `vm --help` or the individual stage help. Source snapshots, packages and logs
 remain under `out/`; [architecture](architecture.md) maps their locations.
