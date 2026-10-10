@@ -46,6 +46,17 @@ class DevelopmentCacheTests(unittest.TestCase):
         self.assertEqual(self.run_stage()["inputs"], "modified")
         self.assertEqual(self.action.call_count, 2)
 
+    def test_touch_and_identical_atomic_replacement_reuse_cache(self):
+        self.run_stage()
+        os.utime(self.recipe, ns=(1, 1))
+        self.run_stage()
+        replacement = self.source / "replacement"
+        replacement.write_bytes(self.recipe.read_bytes())
+        replacement.chmod(self.recipe.stat().st_mode)
+        replacement.replace(self.recipe)
+        self.run_stage()
+        self.action.assert_called_once()
+
     def test_changed_or_missing_output_is_rebuilt(self):
         self.run_stage()
         self.artifact.write_text("tampered")

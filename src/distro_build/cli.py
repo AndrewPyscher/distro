@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 import fcntl
 import hashlib
 import json
@@ -17,6 +18,9 @@ from .graph import plan, affected
 from .model import BuildError, Source, catalog
 from .sources import fetch_all
 from .packaging import PackageError, ToolkitError
+from . import progress
+from .build_inputs import engine_inputs, recipe_inputs
+from .build_resources import default_jobs
 
 
 def project_root() -> Path:
@@ -24,7 +28,8 @@ def project_root() -> Path:
 
 
 def emit(value: object) -> None:
-    print(json.dumps(value, indent=2, default=str), flush=True)
+    if not progress.event(value):
+        print(json.dumps(value, indent=2, default=str), flush=True)
 
 
 def bootstrap_sources(project: Path) -> list[Source]:
@@ -49,11 +54,98 @@ def vm_timeout(value: str) -> int:
     return number
 
 
+def clean_outputs(project: Path, *, downloads: bool = False, vms: bool = False,
+                  dry_run: bool = False, progress: bool = True) -> dict:
+    """Remove known pipeline outputs without deleting source or saved work."""
+    output = project / "out"
+    if output.is_symlink():
+        raise BuildError("Refusing to clean a symlinked out directory")
+    if not output.exists():
+        return {"dry_run": dry_run, "removed": [], "preserved": []}
+
+    def safe(path: Path) -> None:
+        # Reject redirected control directories before opening locks or deleting.
+        for parent in [path, *path.parents]:
+            if parent == output:
+                break
+            if parent.is_symlink():
+                raise BuildError(f"Refusing to clean through a symlink: {parent}")
+
+    names = ("apps", "boot", "bootstrap", "compiler-cache", "esp", "images", "loader", "logs",
+             "native-toolkit", "packages", "qualification", "repository", "roots", "sdk", "work")
+    selected = [output / name for name in names if (output / name).exists() or (output / name).is_symlink()]
+    for directory, retained in [(output / "state", {"run.lock", "locks"}),
+                                (output / "sources", set() if downloads else {"downloads"})]:
+        safe(directory)
+        if directory.exists():
+            selected += [path for path in sorted(directory.iterdir()) if path.name not in retained]
+    if vms and ((output / "vms").exists() or (output / "vms").is_symlink()):
+        selected.append(output / "vms")
+    for path in selected:
+        safe(path)
+    preserved = [str(path) for path in sorted(output.iterdir()) if path not in selected]
+    report = {"dry_run": dry_run, "removed": [str(path) for path in selected], "preserved": preserved,
+              "downloads_removed": downloads, "saved_vms_removed": vms}
+    if dry_run:
+        report["planned"] = report.pop("removed")
+        return report
+
+    # Keep the global lock and lock directories: unlinking them would let another
+    # builder lock a different inode while this cleanup is still running.
+    state = output / "state"
+    state.mkdir(exist_ok=True)
+    with ExitStack() as stack:
+        def acquire(path: Path) -> None:
+            safe(path)
+            descriptor = os.open(path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+            handle = stack.enter_context(os.fdopen(descriptor, "r+b"))
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as error:
+                raise BuildError(f"Build or VM is running ({path}); stop it before cleaning") from error
+
+        acquire(state / "run.lock")
+        lock_paths = []
+        for directory in [state / "locks", output / "locks"]:
+            safe(directory)
+            if directory.exists():
+                lock_paths += sorted(directory.glob("*.lock"))
+        bootstrap_lock = output / "bootstrap/work/.bootstrap.lock"
+        safe(bootstrap_lock)
+        if bootstrap_lock.exists():
+            lock_paths.append(bootstrap_lock)
+        vm_root = output / "vms"
+        safe(vm_root)
+        if vm_root.exists():
+            for directory in sorted(vm_root.iterdir()):
+                safe(directory)
+                if directory.is_dir():
+                    lock_paths += [directory / filename for filename in ("vm.lock", "deploy.lock")
+                                   if (directory / filename).exists() or (directory / filename).is_symlink()]
+        for path in lock_paths:
+            acquire(path)
+        from .cleanup import CleanupProgress, remove_artifact
+        log_directory = output / "verification/clean"
+        safe(log_directory)
+        log_directory.mkdir(parents=True, exist_ok=True)
+        if str(output / "verification") not in report["preserved"]:
+            report["preserved"].append(str(output / "verification"))
+        with CleanupProgress(project, len(selected), log_directory, console=progress) as status:
+            report["log"] = str(status.log_path)
+            for path in selected:
+                status.begin(path)
+                remove_artifact(path, status)
+                status.done(path)
+        report["entries_removed"] = status.entries
+        report["seconds"] = round(time.monotonic() - status.started, 2)
+    return report
+
+
 class DevelopmentCache:
     """Reuse completed local stages after checking input and output contents.
 
     Only completed actions are recorded. Inventories cover file hashes,
-    replacements, modes, symlink targets and directory membership.
+    modes, ownership, symlink targets and directory membership.
     The caller serializes preparation with run.lock, releasing it before QEMU.
     """
 
@@ -77,11 +169,11 @@ class DevelopmentCache:
             except FileNotFoundError:
                 digest.update(json.dumps([str(path), "missing"]).encode())
                 return
-            row = [str(path), info.st_dev, info.st_ino, info.st_mode, info.st_uid, info.st_gid]
+            row = [str(path), info.st_mode, info.st_uid, info.st_gid]
             if path.is_symlink():
                 row.append(os.readlink(path))
             elif not path.is_dir():
-                row.extend([info.st_size, info.st_mtime_ns, info.st_ctime_ns])
+                row.append(info.st_size)
                 if path.is_file():
                     from .sources import sha256
                     row.append(sha256(path))
@@ -99,20 +191,29 @@ class DevelopmentCache:
 
     def run(self, name: str, inputs, outputs, action, *, options=None):
         started = time.monotonic()
+        group = {"essentials": "doctor", "loader": "loader", "sdk": "sdk", "apps": "apps", "image": "image"}
+        if name in group:
+            progress.stage(group[name])
+            progress.detail("Checking inputs and cached outputs")
         # Hash environment values without writing them (or credentials) to disk.
         environment = {key: os.environ.get(key) for key in (
             "PATH", "CC", "CXX", "AR", "AS", "LD", "CFLAGS", "CXXFLAGS", "CPPFLAGS", "LDFLAGS",
             "PKG_CONFIG_PATH", "PKG_CONFIG_SYSROOT_DIR", "PKG_CONFIG_LIBDIR", "RUSTUP_HOME", "CARGO_HOME",
-            "RUSTFLAGS", "CARGO_ENCODED_RUSTFLAGS", "RUSTC", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER", "SOURCE_DATE_EPOCH")}
-        identity = hashlib.sha256(json.dumps({"schema": 1, "inputs": self.inventory(inputs()),
+            "RUSTFLAGS", "CARGO_ENCODED_RUSTFLAGS", "RUSTC", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER", "SOURCE_DATE_EPOCH", "DISTRO_CCACHE")}
+        identity = hashlib.sha256(json.dumps({"schema": 2, "inputs": self.inventory(inputs()),
             "options": options, "environment": environment}, sort_keys=True).encode()).hexdigest()
         record = self.directory / f"{name}.json"
         prior = None
+        reason = "missing-receipt"
         if record.is_file():
             try:
                 prior = json.loads(record.read_text())
             except (ValueError, OSError):
-                pass
+                reason = "invalid-receipt"
+        if self.verify:
+            reason = "verification-requested"
+        elif isinstance(prior, dict):
+            reason = "inputs-changed" if prior.get("identity") != identity else "outputs-changed"
         if not self.verify and isinstance(prior, dict) and prior.get("identity") == identity:
             paths = outputs(prior.get("result"))
             if paths and all(path.exists() for path in paths) and prior.get("outputs") == self.inventory(paths):
@@ -120,9 +221,9 @@ class DevelopmentCache:
                 return prior.get("result")
         # A failed or interrupted action must not leave an older success reusable.
         record.unlink(missing_ok=True)
-        emit({"event": "stage-start", "stage": name})
+        emit({"event": "stage-start", "stage": name, "reason": reason})
         result = action()
-        current = hashlib.sha256(json.dumps({"schema": 1, "inputs": self.inventory(inputs()),
+        current = hashlib.sha256(json.dumps({"schema": 2, "inputs": self.inventory(inputs()),
             "options": options, "environment": environment}, sort_keys=True).encode()).hexdigest()
         if current != identity:
             raise BuildError(f"{name} inputs changed during preparation; rerun before testing")
@@ -213,9 +314,14 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
                              "with git submodule update --init --recursive")
 
     def step(*arguments: str) -> None:
+        key = "bootstrap-check" if arguments[0] == "bootstrap" and "--check" in arguments else arguments[0]
+        if key != "apps" or arguments[1] == "build":
+            progress.stage(key)
         emit({"event": "stage", "command": list(arguments)})
         if main(["--project", str(project), *arguments], quiet=True):
             raise BuildError(f"{arguments[0]} failed; build-and-run stopped")
+        if key != "apps" or arguments[1] == "build":
+            progress.complete(key)
 
     jobs = str(args.jobs)
     profile = tomllib.loads((project / f"profiles/{args.profile}.toml").read_text())
@@ -225,10 +331,11 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
     sources = ["--source-root", str(source_root)]
     cache = DevelopmentCache(project, args.profile, verify=args.verify)
     output = project / "out"
-    engine = [project / "src/distro_build", project / "build.py"]
     recipes = catalog(project)
     ordered = plan(recipes, packages or sorted(recipes)) if recipes else []
     names = [recipe.name for recipe in ordered]
+    native_inputs = sorted({path for recipe in ordered for path in recipe_inputs(project, recipe)})
+    native_inputs += engine_inputs(project, ["model", "graph", "packaging.bootstrap_toolkit"])
     bootstrap = [output / "bootstrap/root", output / "bootstrap/work/stamps"]
     prefix = output / "native-toolkit/prefix"
     toolkit = [prefix / name for name in ("bin", "lib", "include", "share", "toolkit.json", ".development-dependencies.json")]
@@ -238,6 +345,9 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
     seeds += [Path(path) for command in ("gcc", "g++", "ld", "make", "bash", "tar", "xz", "perl", "meson",
         "ninja", "pkg-config", "cmake", "autoconf", "automake", "libtoolize", "bison", "m4", "bc")
         if (path := shutil.which(command))]
+    from .compiler_cache import executable as cache_executable
+    if executable := cache_executable():
+        seeds.append(executable)
 
     def essentials():
         step("doctor")
@@ -247,7 +357,9 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
         step("bootstrap", "--check")
         step("native-toolkit", "--jobs", jobs, *([] if args.offline else ["--fetch"]))
         if not reuse_package_set(project, recipes, ordered):
-            step("build", *packages, "--jobs", jobs)
+            step("build", *packages, "--jobs", jobs, "--package-workers", str(args.package_workers))
+        else:
+            progress.complete("build", cached=True)
 
     def essential_outputs(_=None):
         return bootstrap + toolkit + [output / "sources/downloads", output / "native-toolkit/sources"] + package_outputs(project, names)
@@ -262,10 +374,11 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
 
     # Serialize preparation, but release the lock before an interactive VM opens.
     with (output / "state/run.lock").open("a") as lock:
+        progress.detail("Waiting for build lock")
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-        cache.run("essentials", lambda: engine + [project / "packages", project / "bootstrap", project / "profiles" / f"{args.profile}.toml"] + seeds,
+        cache.run("essentials", lambda: native_inputs + [project / "bootstrap", project / "profiles" / f"{args.profile}.toml"] + seeds,
                   essential_outputs, essentials)
-        cache.run("loader", lambda: engine + [source_root / name for name in ("telorgon", "telorgon-bootloader")] + rust_seeds,
+        cache.run("loader", lambda: engine_inputs(project, ["boot"]) + [source_root / name for name in ("telorgon", "telorgon-bootloader")] + rust_seeds,
                   lambda _: loader, lambda: step("loader", *sources, *online),
                   options={name: _git_metadata(source_root / name) for name in ("telorgon", "telorgon-bootloader")})
         if desktop:
@@ -274,7 +387,7 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
             def sdk_outputs(_):
                 return [sdk_record, Path(json.loads(sdk_record.read_text())["sysroot"])] if sdk_record.is_file() else [sdk_record]
 
-            cache.run("sdk", lambda: engine + [project / "tools/compose-desktop-sdk.py"] + essential_outputs(),
+            cache.run("sdk", lambda: engine_inputs(project, [], [project / "tools/compose-desktop-sdk.py"]) + essential_outputs(),
                       sdk_outputs, lambda: run([sys.executable, str(project / "tools/compose-desktop-sdk.py")], project,
                                               os.environ.copy(), output / "logs/desktop-sdk.log"))
             sdk = json.loads(sdk_record.read_text())
@@ -287,7 +400,7 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
                     raise BuildError("desktop SDK preflight failed; see missing inputs above")
                 step("apps", "build", "--sysroot", sdk["sysroot"], "--jobs", jobs, *online)
 
-            cache.run("apps", lambda: engine + [project / "packages", project / "source-projects.toml"] + rust_seeds + sdk_outputs(None)
+            cache.run("apps", lambda: engine_inputs(project, ["apps", "source_bundle"]) + list((project / "packages").glob("*/application.toml")) + [project / "source-projects.toml"] + rust_seeds + sdk_outputs(None)
                       + [source_root / name for name in apps.source_inputs(project)],
                       lambda _: package_outputs(project, list(apps.catalog(project)), applications=True), applications,
                       options={name: _git_metadata(source_root / name) for name in apps.source_inputs(project)})
@@ -296,19 +409,21 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
             emit({"event": "stage", "command": ["image", "--profile", args.profile]})
             return console_image(project, profile_name=args.profile)
 
-        cache_inputs = lambda: engine + [project / "system", project / "profiles" / f"{args.profile}.toml"] + loader + package_outputs(project, names) + (
+        cache_inputs = lambda: engine_inputs(project, ["compose"]) + [project / "system", project / "profiles" / f"{args.profile}.toml"] + loader + package_outputs(project, names) + (
             package_outputs(project, list(apps.catalog(project)), applications=True) if desktop else [])
         report = cache.run("image", cache_inputs,
                           lambda result: [Path(result["image"]["path"])] if result else [], image)
     emit({"event": "image", "path": report["image"]["path"], "sha256": report["image"]["sha256"]})
     emit({"event": "ready-to-boot", "elapsed_seconds": round(time.monotonic() - started, 2)})
     image = Path(report["image"]["path"])
+    progress.stage("vm")
     if desktop:
         # Filesystem timestamps can change image bytes without changing the
         # build. Reuse that build's disk; isolate a different build's disk.
         name = args.name or f"test-{report['identity'][:16]}"
         options = {"development": True} if args.profile == "desktop-dev" else {}
         emit(vm_session.start(project, image, name=name, **options))
+        progress.complete("vm")
         return 0
     output = args.output or project / "out/verification" / f"run-{args.profile}"
     if not output.is_absolute():
@@ -318,18 +433,28 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
                     expect="CUSTOM_SYSTEMD_RUNTIME_OK" if args.profile == "systemd"
                     else "CUSTOM_DISTRO_PERSISTENT_ROOT_OK")
     emit(result)
+    if result["success"]:
+        progress.complete("vm")
     emit({"event": "run-complete", "success": result["success"],
           "elapsed_seconds": round(time.monotonic() - started, 2)})
     return 0 if result["success"] else 1
 
 
 def parser() -> argparse.ArgumentParser:
+    jobs_default = default_jobs()
     command = argparse.ArgumentParser(description="Build Custom Distro from source")
     command.add_argument("--project", type=Path, default=project_root())
     actions = command.add_subparsers(dest="command", required=True)
+    action = actions.add_parser("clean", help="Remove generated outputs for a fresh build; preserve source, saved VMs and evidence")
+    action.add_argument("--dry-run", action="store_true", help="List removal targets without changing files")
+    action.add_argument("--downloads", action="store_true", help="Also remove downloaded source archives")
+    action.add_argument("--vms", action="store_true", help="Also delete saved VM disks and firmware variables")
+    action.add_argument("--all", action="store_true", help="Also remove downloaded archives and saved VMs")
     action = actions.add_parser("run", help="Build the OS image from source and run it in QEMU")
     action.add_argument("--profile", choices=("desktop-use", "desktop-dev", "systemd", "console"), default="desktop-use")
-    action.add_argument("--jobs", type=positive_integer, default=4)
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default, help="Compiler job budget (default: CPU/memory aware, up to 8)")
+    action.add_argument("--package-workers", type=positive_integer, default=2, help="Concurrent ready native packages sharing --jobs (default: 2)")
+    action.add_argument("--no-progress", action="store_true", help="Disable the progress display and keep JSON event output")
     action.add_argument("--offline", action="store_true", help="Require verified cached sources and Cargo inputs")
     action.add_argument("--verify", action="store_true", help="Run full build/input integrity checks instead of trusting local development stage receipts")
     action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ submodules)")
@@ -352,13 +477,14 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("--check", action="store_true", help="Verify completed bootstrap inputs/artifacts without compiling or changing stamps")
     action.add_argument("--upgrade-stamps", action="store_true", help="Explicitly record current-baseline receipts for legacy bootstrap artifacts")
     action.add_argument("--stage")
-    action.add_argument("--jobs", type=int, default=min(os.cpu_count() or 1, 12))
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action = actions.add_parser("native-toolkit", help="Build the private source-built assembly package manager")
     action.add_argument("--fetch", action="store_true")
-    action.add_argument("--jobs", type=int, default=4)
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action = actions.add_parser("build", help="Build packages from verified cached sources")
     action.add_argument("packages", nargs="*")
-    action.add_argument("--jobs", type=int, default=min(os.cpu_count() or 1, 12))
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
+    action.add_argument("--package-workers", type=positive_integer, default=2, help="Concurrent ready packages sharing --jobs; 1 for serial builds")
     action.add_argument("--seed", action="store_true", help="Explicit development build using host compiler")
     action = actions.add_parser("loader", help="Build a recorded snapshot of the Telorgon EFI application")
     action.add_argument("--online", action="store_true")
@@ -394,11 +520,11 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("--tools", type=Path)
     action.add_argument("--online", action="store_true")
     action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ submodules)")
-    action.add_argument("--jobs", type=int, default=4)
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action = actions.add_parser("dev", help="Plan and deploy changed registered apps to a running development VM")
     action.add_argument("--name", required=True, help="Running development VM name")
     action.add_argument("--source-root", type=Path)
-    action.add_argument("--jobs", type=positive_integer, default=4)
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action.add_argument("--offline", action="store_true", help="Use cached upstream references and Cargo inputs; upstream freshness is not network verified")
     action.add_argument("--build-profile", choices=("dev", "release"), default="dev")
     action.add_argument("--plan", action="store_true", help="Inspect package and compatibility decisions without compiling, fetching or installing")
@@ -409,7 +535,7 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("names", nargs="+")
     action.add_argument("--name", required=True, help="Running development VM name")
     action.add_argument("--source-root", type=Path)
-    action.add_argument("--jobs", type=positive_integer, default=4)
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action.add_argument("--online", action="store_true", help="Allow fetching locked Cargo dependencies")
     action.add_argument("--build-profile", choices=("dev", "release"), default="dev")
     action.add_argument("--no-restart", action="store_true", help="Install packages without restarting the desktop; reopen updated apps manually")
@@ -422,10 +548,22 @@ def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
     args = parser().parse_args(argv)
     project = args.project.resolve()
     try:
-        if args.command == "run":
+        if args.command == "clean":
+            try:
+                report(clean_outputs(project, downloads=args.downloads or args.all,
+                                     vms=args.vms or args.all, dry_run=args.dry_run, progress=not quiet))
+            except KeyboardInterrupt:
+                print("Cleanup interrupted; rerun to finish.", file=sys.stderr)
+                return 130
+        elif args.command == "run":
             if args.output and args.profile in {"desktop-use", "desktop-dev"}:
                 raise BuildError("--output requires --profile console or --profile systemd")
-            return build_and_run(project, args)
+            try:
+                with progress.RunProgress(project, args.profile, enabled=not args.no_progress):
+                    return build_and_run(project, args)
+            except KeyboardInterrupt:
+                print("Build interrupted; rerun ./run to resume completed stages.", file=sys.stderr)
+                return 130
         elif args.command == "doctor":
             from .runner import seed_report
             report(seed_report(project))
@@ -455,15 +593,21 @@ def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
                 if not args.seed:
                     check_bootstrap(project, project / "out/bootstrap/root/tools")
                 seed = seed_report(project)
-                artifacts = {}
-                for recipe in ordered:
+                from .build_resources import build_packages
+
+                def build_one(recipe, artifacts, budget):
+                    emit({"event": "package-start", "package": recipe.name, "jobs": budget, "total": len(ordered)})
                     dependencies = package_dependencies(recipes, recipe, artifacts)
                     prior = cached_package(project, recipe, seed, dependencies, seed_build=args.seed)
                     if prior is not None:
                         emit({"event": "cache-hit", "package": recipe.name, "path": prior["path"]})
-                        artifacts[recipe.name] = prior
+                        result = prior
                     else:
-                        artifacts[recipe.name] = build_package(project, recipe, jobs=args.jobs, seed_build=args.seed, dependencies=dependencies)
+                        result = build_package(project, recipe, jobs=budget, seed_build=args.seed, dependencies=dependencies)
+                    emit({"event": "package-done", "package": recipe.name, "total": len(ordered)})
+                    return result
+
+                artifacts = build_packages(ordered, jobs=args.jobs, workers=args.package_workers, action=build_one)
                 report({"artifacts": artifacts})
         elif args.command == "bootstrap":
             from .runner import run
@@ -547,8 +691,13 @@ def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
                 report(apps.preflight(project, args.sysroot, tools=args.tools, names=args.names))
             else:
                 names = args.names or list(apps.catalog(project))
-                report({"artifacts": [apps.build_app(project, name, args.sysroot, args.tools, offline=not args.online, jobs=args.jobs) for name in names]})
+                artifacts = []
+                for index, name in enumerate(names, 1):
+                    progress.item(name, index, len(names))
+                    artifacts.append(apps.build_app(project, name, args.sysroot, args.tools, offline=not args.online, jobs=args.jobs))
+                    progress.item(name, index, len(names), done=True)
+                report({"artifacts": artifacts})
         return 0
     except (BuildError, PackageError, ToolkitError, RuntimeError, OSError, ValueError, KeyError) as error:
-        print(json.dumps({"error": str(error), "command": args.command}), file=sys.stderr, flush=True)
+        progress.message(json.dumps({"error": str(error), "command": args.command}))
         return 1

@@ -259,6 +259,8 @@ def console_image(project: Path, existing_root: Path | None = None, *, test_upgr
 
 def _compose_image(project: Path, existing_root: Path | None = None, *, test_upgrade: bool = False,
                    test_signed_upgrade: bool = False, test_pam_auth: bool = False, profile_name: str = "console") -> dict:
+    from . import progress
+    progress.detail("Preparing OS packages and system policy")
     output = project / "out"
     if profile_name not in {"console", "systemd", "desktop", "desktop-use", "desktop-dev"}:
         raise BuildError(f"unsupported image profile: {profile_name}")
@@ -332,6 +334,7 @@ def _compose_image(project: Path, existing_root: Path | None = None, *, test_upg
     if fixture:
         archives.append(Path(fixture["initial_package"]))
     if not existing_root:
+        progress.detail("Installing packages into the OS filesystem")
         toolkit.install(root, archives, bootstrap=True,
                         expected_hashes={path.name: sha256(path) for path in archives})
     if test_upgrade:
@@ -356,7 +359,10 @@ def _compose_image(project: Path, existing_root: Path | None = None, *, test_upg
                      "base_package_sha256": sha256(base), "session_policy_sha256": sha256(policy) if policy else None},
                  "security_support": "experimental inputs; vulnerability review and maintenance policy required before release"}
     (root / "etc/custom-distro/package-inventory.json").write_text(json.dumps(inventory, indent=2) + "\n")
-    print(toolkit.query(root), flush=True)
+    installed = toolkit.query(root)
+    if not progress.event({"event": "installed-packages", "packages": installed}):
+        print(installed, flush=True)
+    progress.detail("Creating the package repository and initramfs")
     snapshot = output / f"repository/{profile_name}" / identity
     if not snapshot.exists():
         toolkit.create_repository(snapshot, archives)
@@ -377,6 +383,7 @@ def _compose_image(project: Path, existing_root: Path | None = None, *, test_upg
     uuid = root_uuid(root)
     boot = stage_esp(loader, kernels[0], initramfs, esp, root_uuid=uuid)
     image_name = "custom-distro-pam-auth-test.img" if test_pam_auth else "custom-distro-signed-update-test.img" if test_signed_upgrade else "custom-distro-update-test.img" if test_upgrade else f"custom-distro-{profile_name}.img" if policy else "custom-distro.img"
+    progress.detail("Writing the bootable OS disk image")
     image = build_disk(esp, root, output / "images" / f"candidate-{identity}.img", size_mib=profile.get("image_size_mib", 1024), root_uuid=uuid,
                        ownership={"home/custom": (1000, 1000)} if policy else None)
     # Retain the exact qualified bytes when the convenient current alias moves.

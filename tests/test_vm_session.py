@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from distro_build import cli, vm, vm_session, vm_media
+from distro_build import cli, progress, vm, vm_session, vm_media
 from distro_build.boot import sha256
 
 
@@ -189,7 +189,7 @@ class VmSessionTests(unittest.TestCase):
         self.assertEqual(list(outside.iterdir()), [outside / "sentinel"])
         self.assertEqual((outside / "sentinel").read_bytes(), b"untouched")
 
-    def start_fixture(self, *, interrupt=False, development=False, kvm=False, kvm_error=None):
+    def start_fixture(self, *, interrupt=False, development=False, kvm=False, kvm_error=None, progress_reporter=None):
         owner = self
         events = []
         directory = self.project / "out/vms/custom"
@@ -204,6 +204,9 @@ class VmSessionTests(unittest.TestCase):
             def wait(self, timeout=None):
                 events.append(("wait", timeout))
                 if timeout is None:
+                    if progress_reporter is not None:
+                        owner.assertTrue(progress_reporter.finished, "progress must finish before the human session wait")
+                        owner.assertTrue(progress_reporter.stop.is_set())
                     # The manager retains the actual lock for the complete
                     # human session, not just disk preparation.
                     with (directory / "vm.lock").open("a") as contender:
@@ -256,6 +259,17 @@ class VmSessionTests(unittest.TestCase):
         with (directory / "vm.lock").open("a") as after_session:
             fcntl.flock(after_session, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return result, events
+
+    def test_build_progress_finishes_when_qemu_starts_before_waiting_for_close(self):
+        with patch("sys.stderr", new=io.StringIO()) as output:
+            with progress.RunProgress(self.project, "desktop-dev") as reporter:
+                for key, _ in reporter.stages[:-1]:
+                    progress.complete(key)
+                progress.stage("vm")
+                self.start_fixture(progress_reporter=reporter)
+        self.assertIn("Copying the OS image", output.getvalue())
+        self.assertIn("100% 12/12 steps", output.getvalue())
+        self.assertIn("VM started", output.getvalue())
 
     def test_missing_kvm_reports_emulation_and_group_refresh_hint(self):
         result, _ = self.start_fixture()

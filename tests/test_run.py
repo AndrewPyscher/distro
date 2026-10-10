@@ -36,7 +36,7 @@ class RunTests(unittest.TestCase):
         self.entry = cli.main
         self.events = []
 
-    def invoke(self, *arguments, fail_stage=None, sdk_ready=True, boot_ok=True, desktop_start=None):
+    def invoke(self, *arguments, fail_stage=None, sdk_ready=True, boot_ok=True, desktop_start=None, progress_events=False):
         def stage(argv, *, quiet):
             self.assertTrue(quiet)
             self.assertEqual(argv[:2], ["--project", str(self.project)])
@@ -48,8 +48,9 @@ class RunTests(unittest.TestCase):
             return {"identity": self.identity, "image": {"path": str(self.image), "sha256": self.digest}}
 
         with ExitStack() as stack:
+            stack.enter_context(patch.object(cli, "default_jobs", return_value=8))
             stack.enter_context(patch.object(cli, "main", side_effect=stage))
-            stack.enter_context(patch.object(cli, "emit"))
+            stack.enter_context(patch.object(cli, "emit", wraps=cli.emit if progress_events else None))
             # These tests exercise orchestration; real inventories are covered in test_run_cache.
             stack.enter_context(patch.object(cli.DevelopmentCache, "inventory", return_value="fixture-inputs"))
             stack.enter_context(patch.object(vm, "discover_runtime"))
@@ -68,8 +69,10 @@ class RunTests(unittest.TestCase):
         self.assertEqual(self.invoke(), 0)
         self.assertEqual(self.events[-1], ["compose", "desktop-use"])
         self.assertIn(["bootstrap", "--check"], self.events)
-        self.assertIn(["build", "--jobs", "4"], self.events)
-        self.assertIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "4", "--online"], self.events)
+        self.assertIn(["bootstrap", "--jobs", "8"], self.events)
+        self.assertIn(["native-toolkit", "--jobs", "8", "--fetch"], self.events)
+        self.assertIn(["build", "--jobs", "8", "--package-workers", "2"], self.events)
+        self.assertIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "8", "--online"], self.events)
         self.desktop.assert_called_once_with(self.project, self.image, name="test-" + self.identity[:16])
         self.boot.assert_not_called()
 
@@ -79,6 +82,29 @@ class RunTests(unittest.TestCase):
         self.identity = "d" * 64
         self.invoke()
         self.assertNotEqual(first, self.desktop.call_args.kwargs["name"])
+
+    def test_cold_run_progress_covers_the_os_image_and_vm(self):
+        with patch("sys.stdout", new=io.StringIO()):
+            self.assertEqual(self.invoke(progress_events=True), 0)
+        output = self.stderr.getvalue()
+        for name in ("Host checks", "Source downloads", "Toolchain", "Package tools", "OS packages",
+                     "Bootloader", "Desktop SDK", "Desktop applications", "OS image", "VM preparation"):
+            self.assertIn(name, output)
+        self.assertIn("100% 12/12 steps", output)
+        self.assertIn("VM started", output)
+
+    def test_progress_failure_does_not_claim_completion_or_launch_a_vm(self):
+        self.assertEqual(self.invoke(fail_stage="build", progress_events=True), 1)
+        self.assertIn("OS packages: Failed", self.stderr.getvalue())
+        self.assertNotIn("100%", self.stderr.getvalue())
+        self.desktop.assert_not_called()
+
+    def test_no_progress_keeps_json_events_without_creating_a_progress_log(self):
+        with patch("sys.stdout", new=io.StringIO()) as output:
+            self.assertEqual(self.invoke("--no-progress", progress_events=True), 0)
+        self.assertIn('"event": "stage"', output.getvalue())
+        self.assertNotIn("Build progress", self.stderr.getvalue())
+        self.assertFalse(list((self.project / "out/logs").glob("run-*.jsonl")))
 
     def test_development_profile_explicitly_enables_named_guest_channel(self):
         self.assertEqual(self.invoke("--profile", "desktop-dev", "--name", "dev"), 0)
@@ -132,7 +158,9 @@ class RunTests(unittest.TestCase):
     def test_offline_is_applied_to_download_toolkit_loader_and_apps(self):
         self.assertEqual(self.invoke("--offline", "--jobs", "2"), 0)
         self.assertIn(["fetch", "--bootstrap", "--offline"], self.events)
+        self.assertIn(["bootstrap", "--jobs", "2"], self.events)
         self.assertIn(["native-toolkit", "--jobs", "2"], self.events)
+        self.assertIn(["build", "--jobs", "2", "--package-workers", "2"], self.events)
         self.assertIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "2"], self.events)
         self.assertFalse(any("--online" in event or "--fetch" in event for event in self.events))
 
@@ -146,7 +174,7 @@ class RunTests(unittest.TestCase):
     def test_failed_sdk_preflight_stops_before_apps_or_image(self):
         self.assertEqual(self.invoke(sdk_ready=False), 1)
         self.assertNotIn("compose", [event[0] for event in self.events])
-        self.assertNotIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "4", "--online"], self.events)
+        self.assertNotIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "8", "--online"], self.events)
         self.desktop.assert_not_called()
 
     def test_missing_sources_fail_before_building(self):
@@ -157,7 +185,7 @@ class RunTests(unittest.TestCase):
 
     def test_systemd_headless_uses_runtime_closure_and_propagates_boot_failure(self):
         self.assertEqual(self.invoke("--profile", "systemd", "--headless", "--output", "out/check", boot_ok=False), 1)
-        self.assertIn(["build", "linux", "busybox", "--jobs", "4"], self.events)
+        self.assertIn(["build", "linux", "busybox", "--jobs", "8", "--package-workers", "2"], self.events)
         self.assertFalse(any(event[0] == "apps" for event in self.events))
         self.boot.assert_called_once_with(self.image, self.project / "out/check", timeout=600,
             headless=True, interactive=False, project=self.project, expect="CUSTOM_SYSTEMD_RUNTIME_OK")

@@ -17,12 +17,12 @@ if os.environ.get("CD_BUILD_MODE") != "target" or not (root / ".bootstrap-valida
     raise SystemExit("BusyBox requires the validated source-built glibc bootstrap")
 work.mkdir()
 prefix = str(tools / "bin" / target) + "-"
-compiler = prefix + "gcc"
+compiler = os.environ["CD_CC"]
 libc = Path(subprocess.check_output([compiler, f"--sysroot={root}", "-print-file-name=libc.a"], text=True).strip())
 if libc.resolve() != (root / "usr/lib/libc.a").resolve():
     raise SystemExit(f"BusyBox compiler selected libc outside its declared sysroot: {libc}")
 # CONFIG_SYSROOT controls both compilation and scripts/trylink's library search.
-base = ["make", "-C", str(source), f"O={work}", "ARCH=x86", f"CROSS_COMPILE={prefix}",
+base = ["make", "-C", str(source), f"O={work}", "ARCH=x86", f"CROSS_COMPILE={prefix}", f"CC={compiler}",
         f"CONFIG_SYSROOT={root}"]
 subprocess.run(base + ["allnoconfig"], check=True)
 enabled = {

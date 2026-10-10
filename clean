@@ -1,0 +1,5 @@
+#!/bin/sh
+# Clear generated distro outputs through the standard Python CLI.
+set -eu
+clean_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec python3 "$clean_dir/build.py" clean "$@"

@@ -19,6 +19,9 @@ class ToolkitError(RuntimeError):
 
 def _run(command: Sequence[str], *, env: Mapping[str, str], cwd: Path | None = None,
          log: Path | None = None) -> str:
+    from .. import progress
+    label = Path(command[0]).name + (f" in {cwd.name}" if cwd is not None else "")
+    progress.detail(label, log=log)
     completed = subprocess.run(list(command), cwd=cwd, env=dict(env), text=True,
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     if log:

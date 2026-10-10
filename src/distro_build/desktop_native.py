@@ -41,6 +41,9 @@ def _link_wrapper(path: Path, compiler: Path, sysroot: Path, allowed: list[Path]
               "options=['--sysroot='+sysroot,'-march=x86-64','-mtune=generic']\n"
               "if not any(argument in arguments for argument in ('-c','-E','-S','-M','-MM')):\n"
               "    options+=['-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2']\n"
+              "cache=os.environ.get('CD_CCACHE')\n"
+              "if cache:\n"
+              "    os.execv(cache,[cache,compiler,*options,*arguments])\n"
               "os.execv(compiler,[compiler,*options,*arguments])\n")
     path.write_text(script)
     path.chmod(0o755)
@@ -49,6 +52,7 @@ def _link_wrapper(path: Path, compiler: Path, sysroot: Path, allowed: list[Path]
 class DesktopBuild(TargetBuild):
     def __init__(self) -> None:
         super().__init__()
+        self.cc = Path(os.environ.get("CD_REAL_CC", str(self.cc)))
         pass2 = self.tools / "pass2/bin" / f"{self.target}-gcc"
         if pass2.is_file() and (self.tools / "pass2/.runtime-validated.json").is_file():
             self.cc = pass2

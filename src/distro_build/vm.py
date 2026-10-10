@@ -14,6 +14,7 @@ import time
 
 from .boot import BOOT_MARKER, sha256
 from .media import validate_disk
+from . import progress
 
 
 def discover_runtime(project: Path | None = None) -> dict:
@@ -250,6 +251,7 @@ def run(image: Path, output: Path, *, timeout: float = 180,
                     break
                 if observed_success(text, required_markers, desktop_input=desktop_input, input_sent=input_sent):
                     success = True
+                    progress.complete("vm")
                     break
                 if expect.endswith("_OK") and observed_marker(text, expect[:-3] + "_FAILED"):
                     error = "Guest runtime assertion failed; inspect the serial log"
