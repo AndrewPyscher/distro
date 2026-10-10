@@ -116,7 +116,7 @@ On Ubuntu 24.04:
 sudo apt update
 sudo apt install -y build-essential bison bc m4 perl autoconf automake \
   libtool pkg-config meson ninja-build fakeroot zlib1g-dev xz-utils \
-  e2fsprogs gnupg python3 python3-jinja2 cmake clang libclang-dev \
+  e2fsprogs gnupg python3 python3-venv python3-jinja2 cmake clang libclang-dev \
   curl ca-certificates git qemu-system-x86 qemu-system-gui ovmf
 ```
 
@@ -191,6 +191,21 @@ meson --version
 ninja --version
 pkg-config --version
 ```
+
+QEMU Guest Agent's build creates a private Python virtual environment. On
+Ubuntu/Debian, `python3-venv` supplies the `ensurepip` support it needs; having
+`python3` alone is insufficient. If the build reports `Python's ensurepip module
+is not found` or `python venv creation failed`, install the missing prerequisite:
+
+```sh
+sudo apt install python3-venv
+python3 build.py doctor
+./run
+```
+
+The host audit checks this support using the `/usr/bin/python3` interpreter used
+by package builds. It accepts either `ensurepip` or an existing system pip and
+setuptools. Retry without cleaning; matching completed build outputs are reused.
 
 Rerun `python3 build.py doctor` after installation. It stops at the first missing
 required tool; if another is reported, complete the full host setup above and

@@ -402,6 +402,7 @@ camera does not establish portal consent, capture or screen-sharing behavior.
 | Rebuilt changes absent | Confirm the VM name and deployment receipt; a saved disk is not replaced by image composition |
 | Missing guest-agent socket | Boot a `desktop-dev` image with `--use --development` and the matching name |
 | Missing image | Use `run` to build it; `vm` only launches existing media |
+| QEMU Guest Agent cannot create its Python venv | Install `python3-venv` and rerun `doctor`; see [host prerequisites](setup.md#check-host-prerequisites) |
 | Cargo feature/API mismatch | Inspect actual framework/app sources and preserve local edits; review compatible changes together |
 | Guest install fails | Inspect `deployment.json`; failed transactions/restarts do not imply rollback |
 | Build fails | Read its reported log and fix the owning source/recipe, then retry |
