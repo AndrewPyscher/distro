@@ -7,7 +7,7 @@ explicitly says Windows PowerShell. The `./run` wrapper calls the Python CLI.
 | Guide | Use it for |
 | --- | --- |
 | [Environment setup](setup.md) | Ubuntu/Linux seeds, Rustup/Cargo and pinned Rust, host audit and missing-GCC/Meson troubleshooting, QEMU/OVMF troubleshooting, WSL2, WSLg frame rate and checkout setup |
-| [Build and run](build.md) | First build, build speed, build/cleanup progress and logs, saved VMs, automatic app updates, upstream checks and pacman deployment |
+| [Build and run](build.md) | First build, build speed, build/cleanup progress and logs, package build troubleshooting, saved VMs, automatic app updates, upstream checks and pacman deployment |
 | [Testing](testing.md) | Hover measurements, desktop input/presentation, boot, password and upgrade gates |
 | [Contributing](contributing.md) | Source changes, recipes, CI and commit/PR handoff |
 | [Source modules](sources.md) | Repository ownership, immutable pins and portable source bundles |

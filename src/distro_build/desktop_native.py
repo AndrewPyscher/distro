@@ -80,6 +80,11 @@ class DesktopBuild(TargetBuild):
 
     def meson(self, options: list[str], *, cpp: bool = False, data_only: bool = False,
               installed_only: bool = False) -> None:
+        # The runner exports CXX for generic adapters. Meson also uses it for
+        # optional languages, bypassing this cross file's compiler wrappers and
+        # a C package's declared dependency sysroot (notably GLib's iconv check).
+        # Only cpp=True packages may select the wrapped target C++ compiler.
+        self.env.pop("CXX", None)
         cross = self.work / "cross.ini"
         lines = ["[binaries]", f"c = {str(self.wrapper)!r}",
                  f"ar = {self.env['AR']!r}", f"strip = {self.env['STRIP']!r}",
