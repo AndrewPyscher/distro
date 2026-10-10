@@ -9,6 +9,8 @@ runtime packages or root filesystem.
 ## Start here
 
 Set up [Linux or WSL2/WSLg](docs/setup.md) first, including
+[Rustup and Cargo](docs/setup.md#rustup-and-rust-toolchain),
+[host compiler checks](docs/setup.md#check-host-prerequisites),
 [QEMU and OVMF](docs/setup.md#qemu-availability) and the
 [WSLg frame-rate setting](docs/setup.md#wslg-frame-rate) for high-refresh testing.
 Run from the checkout in a Linux terminal:

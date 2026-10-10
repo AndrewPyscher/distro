@@ -123,13 +123,79 @@ sudo apt install -y build-essential bison bc m4 perl autoconf automake \
 Other Linux hosts need equivalent tools. The bootstrap builds its pinned private
 Meson and additional generators under `out/`.
 
-Install [Rustup](https://rust-lang.github.io/rustup/installation/index.html)
-if it is missing, then install the recipe-selected toolchain:
+### Rustup and Rust toolchain
+
+Install Rustup as your normal Linux user. It supplies Cargo and the Rust
+compiler used by the bootloader and desktop applications. For a standard
+installation, the [official Rustup instructions](https://rust-lang.github.io/rustup/installation/index.html)
+support installing Rustup first and selecting the required toolchain separately:
+
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+. "$HOME/.cargo/env"
+rustup --version
+```
+
+If Rustup is already installed, skip the installer. Loading
+`$HOME/.cargo/env` makes its commands available in the current shell; open a new
+terminal to pick up the installer's PATH changes in later sessions. If `rustup`
+or `cargo` reports `command not found`, load that environment file and retry.
+
+Then install and verify the project-selected toolchain and targets:
 
 ```sh
 rustup toolchain install nightly-2026-10-06 --profile minimal \
   --target x86_64-unknown-uefi --target x86_64-unknown-linux-gnu
+cargo +nightly-2026-10-06 --version
+rustc +nightly-2026-10-06 --version
 ```
+
+The build selects this pinned toolchain explicitly. Complete these Rustup/Cargo
+checks even if `python3 build.py doctor` succeeds; that host audit does not check
+Rustup or Cargo availability.
+
+### Check host prerequisites
+
+After checking out the repository, run the host audit from the distro root:
+
+```sh
+python3 build.py doctor
+```
+
+If `./run` reports `doctor failed; build-and-run stopped`, this command shows
+the underlying prerequisite error. For example:
+
+```text
+{"error": "missing host seed tool: gcc", "command": "doctor"}
+```
+
+The host GCC/G++ compilers and Make are needed to bootstrap the source-built
+toolchain. On Ubuntu, including Ubuntu under WSL, `build-essential` supplies
+these tools and development headers. It is included in the full host setup
+command above; to fix a missing compiler on an otherwise configured host:
+
+```sh
+sudo apt update
+sudo apt install build-essential
+gcc --version
+g++ --version
+make --version
+```
+
+If the next error is `missing host seed tool: meson`, install the native build
+tools from the full host setup command:
+
+```sh
+sudo apt install meson ninja-build pkg-config
+meson --version
+ninja --version
+pkg-config --version
+```
+
+Rerun `python3 build.py doctor` after installation. It stops at the first missing
+required tool; if another is reported, complete the full host setup above and
+check again. Retry `./run` once the host audit succeeds. The build pipeline
+does not install these host prerequisites automatically.
 
 ### QEMU availability
 
