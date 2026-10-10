@@ -14,18 +14,47 @@ high-refresh testing. Run the pipeline as your normal user.
 For source development, create a named development VM:
 
 ```sh
-./run --profile desktop-dev --name dev --jobs 4
+./run --profile desktop-dev --name dev
 ```
 
 The pipeline audits the host, validates recipes, downloads verified sources,
 builds/checks the bootstrap compiler, builds the private package toolkit and
 runtime packages, builds Telorgon EFI and applications, composes the image and
 opens QEMU. The first build needs network access and can take substantial time.
-Failures stop at the affected stage and report its log.
+Failures stop at the affected stage and report its log. `./run` defaults to 8
+compile jobs for the bootstrap, native toolkit, packages and applications.
+Use `--jobs N` to choose another count.
 
 Telorgon starts the local `custom` desktop session. Open applications from the
 launcher and test mouse/keyboard behavior. The development profile adds the
 source-built QEMU Guest Agent and private deployment channel.
+
+### Build progress
+
+`./run` and `python3 build.py run` show progress automatically, including on a
+first build with no cached outputs. The display covers host/recipe checks,
+downloads, the bootstrap toolchain and its verification, package tools, OS
+packages, Telorgon EFI, the desktop SDK and applications, OS image assembly,
+and private VM preparation/startup. Console/systemd builds omit desktop steps.
+
+The bar counts completed steps. Package/application counts and bootstrap stage
+names show progress inside larger steps; percentages describe completed work
+units, rather than estimated time. Compiling GCC can hold the overall percentage
+for a long time. The activity indicator and elapsed time keep updating while
+commands run or cached inputs are checked. Verified cached steps are marked as
+reused. Failures and interruptions stop the bar at the affected step.
+
+In a terminal the display updates in place on stderr. Redirected output uses
+plain progress lines with a heartbeat every 30 seconds. Structured events,
+command log paths and progress details are saved to the printed
+`out/logs/run-<profile>-<timestamp>.jsonl` file. Existing compiler and VM logs
+remain in their usual locations. Use `./run --no-progress` to retain the previous
+JSON event output without a progress display or additional progress log.
+
+For normal desktops, 100% means the OS image and private VM preparation are
+complete and QEMU has started; guest boot and GUI behavior still require actual
+qualification. The bar stops before waiting for you to close QEMU. Console and
+systemd runs finish the bar when their expected boot markers are observed.
 
 ## Desktop build
 
@@ -206,6 +235,44 @@ workspaces retain unchanged files and compiler outputs for deployment builds.
 valid lower-level compiler caches. Use `--jobs 2` for less compile parallelism.
 There is no fixed compilation-time guarantee. Do not edit caches or receipts to
 force reuse; inspect the failing inputs/log and retry after fixing the cause.
+
+## Clean build outputs
+
+Stop builds, deployments and QEMU before cleaning. From the checkout root:
+
+```sh
+./clean --dry-run
+./clean
+./run --profile desktop-dev --name fresh-dev
+```
+
+`./clean` is a shell launcher for `python3 build.py clean`. It clears everything
+under `out/` except `out/vms/`: bootstrap tools, compiled packages, images, SDKs,
+generated source snapshots, Cargo caches, downloaded archives, build receipts,
+logs and test evidence. Save any evidence you need before cleaning. Source
+checkouts and their local changes remain in `sources/`. The next build needs
+network access to fetch inputs again; cleanup does not clear host Rust tools
+or caches outside `out/`.
+
+The command scans first, then shows a progress bar based on the number of files,
+directories and symlinks removed, rather than bytes or estimated time. Redirected
+output uses periodic progress lines. `--dry-run` lists the directories and entry
+counts without deleting anything. Cleanup refuses symlinked `out/` directories,
+does not follow symlinks within the outputs, and stops if an existing managed
+build, deployment or VM lock is busy. Do not start another job during cleanup;
+individual build commands do not all share a global lock.
+
+To also delete **all saved VM disks, guest files and firmware variables**:
+
+```sh
+./clean --all --dry-run
+./clean --all
+```
+
+Both modes leave the `out/` directory itself in place. Keeping a saved VM does
+not upgrade its disk: after rebuilding, use a new VM name for the fresh base.
+For CI or an explicitly selected distro checkout, use
+`python3 build.py --project /path/to/distro clean [--all] [--dry-run]`.
 
 ## Base-system and desktop checks
 

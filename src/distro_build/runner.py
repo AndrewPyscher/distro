@@ -13,11 +13,14 @@ import time
 
 from .model import BuildError, Recipe
 from .sources import extract, fetch, sha256
+from . import progress
 
 
 def run(arguments: list[str], cwd: Path, env: dict[str, str], log: Path) -> None:
     log.parent.mkdir(parents=True, exist_ok=True)
-    print(json.dumps({"event": "command", "argv": arguments, "cwd": str(cwd), "log": str(log)}), flush=True)
+    event = {"event": "command", "argv": arguments, "cwd": str(cwd), "log": str(log)}
+    if not progress.event(event):
+        print(json.dumps(event), flush=True)
     with log.open("ab") as output:
         output.write(("\n$ " + repr(arguments) + "\n").encode())
         started = time.monotonic()
@@ -27,7 +30,9 @@ def run(arguments: list[str], cwd: Path, env: dict[str, str], log: Path) -> None
                     code = process.wait(timeout=30)
                     break
                 except subprocess.TimeoutExpired:
-                    print(json.dumps({"event": "building", "elapsed_seconds": round(time.monotonic() - started), "log": str(log)}), flush=True)
+                    event = {"event": "building", "elapsed_seconds": round(time.monotonic() - started), "log": str(log)}
+                    if not progress.event(event):
+                        print(json.dumps(event), flush=True)
         if code:
             with log.open("rb") as stream:
                 stream.seek(max(0, log.stat().st_size - 6000))
@@ -152,7 +157,9 @@ def _build_package(project: Path, recipe: Recipe, *, jobs: int, seed_build: bool
         prior = json.loads(state.read_text())
         artifact = Path(prior.get("path", ""))
         if prior.get("build_identity") == identity and artifact.is_file() and sha256(artifact) == prior.get("sha256"):
-            print(json.dumps({"event": "cache-hit", "package": recipe.name, "path": str(artifact)}), flush=True)
+            event = {"event": "cache-hit", "package": recipe.name, "path": str(artifact)}
+            if not progress.event(event):
+                print(json.dumps(event), flush=True)
             return prior
     work = output / "work" / recipe.name / identity
     if work.exists():

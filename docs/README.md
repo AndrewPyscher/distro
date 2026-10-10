@@ -6,8 +6,8 @@ explicitly says Windows PowerShell. The `./run` wrapper calls the Python CLI.
 
 | Guide | Use it for |
 | --- | --- |
-| [Environment setup](setup.md) | Ubuntu/Linux seeds, WSL2, WSLg frame rate, Rust and checkout setup |
-| [Build and run](build.md) | First build, saved VMs, automatic app updates, upstream checks and pacman deployment |
+| [Environment setup](setup.md) | Ubuntu/Linux seeds, QEMU/OVMF and missing-QEMU troubleshooting, WSL2, WSLg frame rate, Rust and checkout setup |
+| [Build and run](build.md) | First build and live progress, cleanup, saved VMs, automatic app updates, upstream checks and pacman deployment |
 | [Testing](testing.md) | Hover measurements, desktop input/presentation, boot, password and upgrade gates |
 | [Contributing](contributing.md) | Source changes, recipes, CI and commit/PR handoff |
 | [Source modules](sources.md) | Repository ownership, immutable pins and portable source bundles |

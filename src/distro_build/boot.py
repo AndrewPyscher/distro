@@ -121,6 +121,8 @@ def build_loader(loader_source: Path, framework_source: Path, output: Path, *,
     Dirty/local sources are recorded as such. This provenance is a reproducible
     local input record, not a claim of an upstream signed release.
     """
+    from . import progress
+    progress.detail("Snapshotting bootloader and framework sources")
     source_bundle = None
     bundle_root = Path(loader_source).resolve().parent
     if (bundle_root / "source-manifest.json").is_file():
@@ -178,6 +180,7 @@ def build_loader(loader_source: Path, framework_source: Path, output: Path, *,
         if offline:
             command.append("--offline")
         log = output / "loader-build.log"
+        progress.detail("Compiling Telorgon EFI", log=log)
         with log.open("w") as stream:
             result = subprocess.run(command, cwd=snapshot / "telorgon-bootloader", env=env,
                                     stdout=stream, stderr=subprocess.STDOUT, check=False)

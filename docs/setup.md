@@ -129,6 +129,22 @@ if it is missing, then install the recipe-selected toolchain:
 ```sh
 rustup toolchain install nightly-2026-10-06 --profile minimal \
   --target x86_64-unknown-uefi --target x86_64-unknown-linux-gnu
+```
+
+### QEMU availability
+
+`./run` builds the guest OS image and starts a VM using QEMU on your Linux host.
+QEMU and the OVMF firmware must already be installed; the build pipeline does
+not install them. If you see
+`QEMU is missing; set QEMU_SYSTEM_X86_64 to an existing host tool`, the launcher
+cannot find the emulator executable.
+
+On Ubuntu, including Ubuntu under WSL, install the emulator packages from the
+host setup above and verify that QEMU runs:
+
+```sh
+sudo apt update
+sudo apt install qemu-system-x86 qemu-system-gui ovmf
 qemu-system-x86_64 --version
 qemu-system-x86_64 -display help
 ```
@@ -136,6 +152,18 @@ qemu-system-x86_64 -display help
 The QEMU display list must include `gtk`. Under WSLg, `DISPLAY` or
 `WAYLAND_DISPLAY` should already be set; preserve the environment WSLg supplies.
 Host systemd is not required for the guest's systemd desktop session.
+
+If QEMU is installed in a custom location, point to its existing executable:
+
+```sh
+export QEMU_SYSTEM_X86_64=/absolute/path/to/qemu-system-x86_64
+"$QEMU_SYSTEM_X86_64" --version
+```
+
+An incorrect `QEMU_SYSTEM_X86_64` override also causes the missing-QEMU error.
+Use `unset QEMU_SYSTEM_X86_64` to return to automatic discovery of the installed
+system executable. After fixing QEMU, retry `./run` from your checkout in the
+same terminal.
 
 ### KVM and firmware
 

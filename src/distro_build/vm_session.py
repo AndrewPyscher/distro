@@ -8,11 +8,11 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
-import sys
 
 from .boot import sha256
 from .media import validate_disk
 from .vm import discover_runtime
+from . import progress
 
 
 def prepare(project: Path, image: Path, name: str, runtime: dict) -> tuple[Path, dict]:
@@ -36,6 +36,7 @@ def prepare(project: Path, image: Path, name: str, runtime: dict) -> tuple[Path,
 
 
 def initialize(directory: Path, image: Path, runtime: dict) -> dict:
+    progress.detail("Checking saved VM disk and firmware")
     state = directory / "state.json"
     disk = directory / "disk.img"
     variables = directory / "OVMF_VARS.fd"
@@ -69,8 +70,10 @@ def initialize(directory: Path, image: Path, runtime: dict) -> dict:
     temporary = directory / "disk.next"
     if temporary.exists() or temporary.is_symlink():
         raise RuntimeError("Incomplete VM preparation exists; preserve it and select another --name")
+    progress.detail("Copying the OS image to the private VM disk")
     shutil.copyfile(image, temporary)
     temporary.chmod(0o600)
+    progress.detail("Verifying the private VM disk")
     if sha256(temporary) != image_digest:
         temporary.unlink()
         raise RuntimeError("VM disk copy differs from its source")
@@ -100,8 +103,8 @@ def start(project: Path, image: Path, *, name: str = "custom", display: str = "g
         audio_arguments, audio_record = audio_options(runtime, audio)
         camera_arguments, camera_record = camera_options(usb_camera)
         if audio_record["backend"] == "none" and audio != "none":
-            print("No host PulseAudio endpoint found; VM sound uses a silent backend. "
-                  "Set PULSE_SERVER and use --audio pulse for host playback and microphone input.", file=sys.stderr)
+            progress.message("No host PulseAudio endpoint found; VM sound uses a silent backend. "
+                             "Set PULSE_SERVER and use --audio pulse for host playback and microphone input.")
         record = initialize(directory, image, runtime)
         qmp = directory / "qmp.sock"
         agent = directory / "agent.sock"
@@ -125,11 +128,11 @@ def start(project: Path, image: Path, *, name: str = "custom", display: str = "g
                 acceleration_failure = None
             else:
                 acceleration_failure = probe.stderr.strip() or f"KVM probe exited with status {probe.returncode}"
-        print(f"VM acceleration: {acceleration.upper()}", file=sys.stderr, flush=True)
+        progress.message(f"VM acceleration: {acceleration.upper()}")
         if acceleration == "tcg":
-            print(f"Warning: using slow CPU emulation because KVM is unavailable: {acceleration_failure}. "
-                  "If your account was just added to the kvm group, open a new login session or run "
-                  "'newgrp kvm' before launching again.", file=sys.stderr, flush=True)
+            progress.message(f"Warning: using slow CPU emulation because KVM is unavailable: {acceleration_failure}. "
+                             "If your account was just added to the kvm group, open a new login session or run "
+                             "'newgrp kvm' before launching again.")
         for path in (directory, Path(runtime["code"])):
             if any(char in str(path) for char in ",\n\r"):
                 raise RuntimeError("QEMU paths cannot contain commas or newlines")
@@ -156,10 +159,11 @@ def start(project: Path, image: Path, *, name: str = "custom", display: str = "g
                         "-chardev", f"socket,path={agent},server=on,wait=off,id=development-agent",
                         "-device", "virtserialport,bus=development.0,chardev=development-agent,name=org.qemu.guest_agent.0"]
         (directory / "command.json").write_text(json.dumps(command, indent=2) + "\n")
-        print(f"Opening Custom Distro. Your files and settings are saved in {directory / 'disk.img'}. Close QEMU to stop.", file=sys.stderr, flush=True)
+        progress.message(f"Opening Custom Distro. Your files and settings are saved in {directory / 'disk.img'}. Close QEMU to stop.")
         with (directory / "qemu.log").open("w") as log:
             process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, env=env, umask=0o077)
             try:
+                progress.complete("vm")
                 process.wait()
             except KeyboardInterrupt:
                 process.terminate()
