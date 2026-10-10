@@ -40,6 +40,10 @@ product uses the Telorgon bootloader and applications.
 - Keep [the documentation index](docs/README.md) current. Environment setup,
   including WSL2 and the WSLg frame-rate setting, belongs in [setup](docs/setup.md).
   Daily build, saved-VM and pacman deployment commands belong in [build](docs/build.md).
+- Keep repository and organization front pages focused on the project and links.
+  Route new contributors through environment setup, first build and daily
+  development in that order. Keep installation and build commands in the guides,
+  with numbered steps, terminal labels and clear completion checks.
 - Verify documented commands against the Python CLI and actual launcher behavior.
   Distinguish rebuilding an image from upgrading an existing named VM's disk.
 - Remove superseded guides and fix their incoming links instead of retaining

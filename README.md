@@ -6,86 +6,34 @@ Python coordinates the toolchain, packages, images and private QEMU VMs. The
 guest uses source-built pacman/libalpm; it does not import another distro's
 runtime packages or root filesystem.
 
-## Start here
+## Get started
 
-Set up [Linux or WSL2/WSLg](docs/setup.md) first, including
-[Rustup and Cargo](docs/setup.md#rustup-and-rust-toolchain),
-[host compiler and Python venv checks](docs/setup.md#check-host-prerequisites),
-[QEMU and OVMF](docs/setup.md#qemu-availability) and the
-[WSLg frame-rate setting](docs/setup.md#wslg-frame-rate) for high-refresh testing.
-Run from the checkout in a Linux terminal:
+Follow these guides in order:
 
-```sh
-./run --profile desktop-dev --name dev
-```
+1. **[Set up your environment](docs/setup.md)** — prepare Linux or WSL2, install
+   the host tools and Rustup, create your workspace and verify prerequisites.
+2. **[Build and open your first VM](docs/build.md#first-build)** — choose a
+   desktop profile, build the OS from source and check the running desktop.
+3. **[Develop and test changes](docs/build.md#update-changed-applications-automatically)**
+   — rebuild changed applications and install them into a saved development VM.
 
-This builds the development image and opens a saved VM. Builds choose a
-CPU/memory-aware job count up to 8; set `--jobs N` to choose another count.
-Open File Explorer and Settings from Telorgon's launcher. Close the guest normally when finished;
-its disk and firmware variables remain under `out/vms/dev/`.
+The environment guide covers one-time setup. The build guide covers daily
+commands, progress, incremental builds, cleanup and troubleshooting. Rebuilding
+an image does not upgrade an existing named VM's disk; use application deployment
+or a new VM name when testing a new base.
 
-`./run` shows a live progress bar with the current build step and elapsed time,
-from the toolchain through OS image assembly and VM startup. Progress counts
-completed steps, whose durations vary. Use `--no-progress` for JSON event output.
+## Explore the project
 
-To reopen that VM without building:
+| Guide | What you will find |
+| --- | --- |
+| [Documentation index](docs/README.md) | All current guides and the recommended reading order |
+| [Architecture](docs/architecture.md) | Bootstrap, boot images, desktop services and runtime capabilities |
+| [Source modules](docs/sources.md) | Component ownership, pinned sources and portable source bundles |
+| [Contributing](docs/contributing.md) | Source changes, package recipes, checks and pull requests |
+| [Testing](docs/testing.md) | Reusable build, boot, installation and desktop test procedures |
+| [Release requirements](docs/release.md) | Gates for installer/recovery, public updates and physical hardware |
 
-```sh
-python3 build.py vm --use --development --name dev
-```
-
-## Change source and test it
-
-Edit the owning repository under `sources/`. Keep QEMU running, then use a second
-Linux terminal to discover, build and install changed apps through guest pacman:
-
-```sh
-python3 build.py dev --name dev --plan --adopt-base
-python3 build.py dev --name dev --adopt-base --build-profile release
-```
-
-Use `--adopt-base` only for the VM's first development update, after reviewing
-the plan and confirming its base matches your workspace. Later updates use
-`python3 build.py dev --name dev --build-profile release`.
-The command fetches canonical upstream references and stops if integration is
-needed; it preserves local edits and source pins. It rebuilds only changed app
-packages, including consumers of framework changes, and leaves the OS image
-alone. Shell updates restart the desktop and close apps, so save work first;
-ordinary apps need reopening. Test the actual interaction after installation.
-See the [automatic update workflow](docs/build.md#update-changed-applications-automatically)
-for base changes, offline work and new application registration.
-Generated snapshots under `out/` are build outputs; implement fixes in source.
-
-For a normal desktop image without the deployment channel, use `./run`.
-For a bounded base-system boot check, use:
-
-```sh
-./run --profile systemd --headless
-```
-
-See [build and run](docs/build.md) for saved-disk behavior, cache reuse, profiles,
-audio/camera controls and troubleshooting. Rebuilding an image does not upgrade
-an existing named VM's disk; deploy apps or use a new VM name for a fresh base.
-After fixing a package build failure, retry `./run`; completed work is reused.
-See [package build troubleshooting](docs/build.md#troubleshooting) for logs and
-the GLib `iconv` configuration error.
-
-Build commands automatically choose a CPU/memory-aware job count. Native packages
-share that budget across ready builds; `--jobs` and `--package-workers` override
-the defaults. Optional ccache support keeps C/C++ objects under `out/`. See
-[build speed](docs/build.md#build-speed-and-parallelism) for cache behavior and controls.
-
-For a fresh source build, preview with `./clean --dry-run`, then run `./clean`.
-It shows live progress and saves cleanup logs under `out/verification/clean/`.
-It keeps saved VM disks and downloaded archives; `--vms` and `--downloads`
-explicitly remove those too, or use `--all` for both. See
-[cleanup options](docs/build.md#clean-for-a-fresh-build).
-
-## Documentation
-
-The [documentation index](docs/README.md) covers environment setup, daily
-commands, testing, architecture, packages, source ownership and contributions.
-Runtime reports belong under `out/verification/` and identify their actual
-images and installed packages. This is a development system; installer/recovery,
-public update delivery and physical hardware need the separate gates in
-[release requirements](docs/release.md).
+Implement application and framework changes in their owning repositories under
+`sources/`. Generated snapshots, caches and evidence belong under `out/`.
+This is a development system; runtime reports qualify only the images and
+packages they identify.

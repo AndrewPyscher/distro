@@ -1,8 +1,10 @@
 # Contributing
 
-Set up the [development environment](setup.md), then use the Python
-[build and deployment loop](build.md). Read the root [AGENTS.md](../AGENTS.md)
-and the owning component's instructions before changing code.
+Complete [environment setup](setup.md), then follow the
+[first build](build.md#first-build) before starting the Python
+[build and deployment loop](build.md#update-changed-applications-automatically).
+Read the root [AGENTS.md](../AGENTS.md) and the owning component's instructions
+before changing code.
 
 ## Source ownership
 

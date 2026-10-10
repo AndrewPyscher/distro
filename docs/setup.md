@@ -1,17 +1,32 @@
-# Set up the development environment
+# Set up your development environment
 
-Use an x86_64 Linux host, or Ubuntu 24.04 under WSL2 with WSLg on Windows.
-Python 3.11 or newer is required. Allow at least 128 GiB of free disk and
-16 GiB of Linux-visible RAM for the full desktop build, matching the desktop
-CI worker requirement. Start with four compile jobs; use two if memory is tight.
-Build outputs and compiler caches can grow beyond the initial free-space budget.
+Complete this guide once, then continue to [your first build](build.md#first-build).
+This page prepares the host and workspace; the next guide builds the OS and VM.
+
+You need an **x86_64 Linux host**, or **Ubuntu 24.04 under WSL2 with WSLg** on
+Windows, Python 3.11 or newer, at least **16 GiB of Linux-visible RAM** and
+**128 GiB of free disk** for the full desktop build. Build outputs and caches can
+grow beyond that initial space budget. Internet access is needed for setup and
+the first source downloads.
+
+1. [Open a Linux terminal](#1-open-a-linux-terminal).
+2. [Install host tools and Rust](#2-install-host-tools-and-rust).
+3. [Create your workspace](#3-create-your-workspace).
+4. [Verify the environment](#4-verify-the-environment).
+5. Continue to [build and run](build.md#first-build).
 
 Run the builder and QEMU as your normal Linux user. Host packages and the Rust
-compiler below are declared development seeds; the distro's runtime is built
-from source. Setup instructions describe actions for you to perform; the build
-pipeline does not install host packages or change Windows configuration.
+compiler are declared development seeds; the distro's runtime is built from
+source. The build pipeline does not install host packages automatically.
 
-## Windows and WSL2
+## 1. Open a Linux terminal
+
+### On Linux
+
+Open a terminal on your x86_64 Linux host. The package commands below target
+Ubuntu 24.04; other Linux distributions need equivalent tools. Continue to step 2.
+
+### On Windows (WSL2)
 
 In **Windows PowerShell as Administrator**, install WSL and Ubuntu if needed:
 
@@ -19,8 +34,11 @@ In **Windows PowerShell as Administrator**, install WSL and Ubuntu if needed:
 wsl --install -d Ubuntu-24.04
 ```
 
-Restart Windows if requested and complete Ubuntu's first-run user setup.
-For an existing installation, run in **Windows PowerShell**:
+Restart Windows if requested, open **Ubuntu**, and complete its first-run Linux
+user setup. Use the Ubuntu terminal for the Linux commands in the rest of this
+guide.
+
+For an existing WSL installation, check it in **Windows PowerShell**:
 
 ```powershell
 wsl --update
@@ -30,14 +48,149 @@ wsl --list --verbose
 
 Ubuntu must show version `2`. If necessary, convert it with
 `wsl --set-version Ubuntu-24.04 2`, using the name from the list. WSLg supplies
-the GUI connection used by Linux QEMU; follow Microsoft's
+the GUI connection used by Linux QEMU; Microsoft's
 [WSL installation](https://learn.microsoft.com/en-us/windows/wsl/install) and
 [GUI application setup](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps)
-for Windows and graphics-driver prerequisites.
+cover Windows and graphics-driver prerequisites.
 
-Keep the checkout and `out/` in the **Linux filesystem**, for example
-`~/wip-os/distro`. Run build commands in Ubuntu, rather than PowerShell or a
-checkout under `/mnt/c`.
+Keep the workspace and `out/` in the **Linux filesystem**, such as `~/wip-os`,
+rather than under `/mnt/c`. Check the resources visible to Linux:
+
+```sh
+free -h
+df -h ~
+```
+
+If WSL has too little memory, follow [WSL memory and virtualization](#wsl-memory-and-virtualization)
+before continuing.
+
+## 2. Install host tools and Rust
+
+In your **Ubuntu/Linux terminal**, install the complete host package list:
+
+```sh
+sudo apt update
+sudo apt install -y build-essential bison bc m4 perl autoconf automake \
+  libtool pkg-config meson ninja-build fakeroot zlib1g-dev xz-utils bzip2 \
+  e2fsprogs gnupg python3 python3-venv python3-jinja2 cmake clang libclang-dev \
+  curl ca-certificates git gh qemu-system-x86 qemu-system-gui ovmf
+```
+
+This includes GCC/G++, Meson/Ninja, Python virtual-environment support,
+Clang/libclang for Rust bindings, the QEMU emulator and GUI, and OVMF firmware.
+`gh` is the GitHub CLI used by the contributor workspace helper. The bootstrap
+builds its pinned private Meson and additional generators under `out/`.
+
+### Rustup and Rust toolchain
+
+Install Rustup as your normal Linux user. Skip the installer if `rustup` is
+already available. The [official Rustup instructions](https://rust-lang.github.io/rustup/installation/index.html)
+allow installing the manager before selecting a compiler:
+
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+. "$HOME/.cargo/env"
+rustup --version
+```
+
+Loading `$HOME/.cargo/env` makes a standard user installation available in the
+current shell. Open a new terminal to pick up the installer's PATH changes in
+later sessions. If an existing installation already provides `rustup` and
+`cargo` on PATH, keep that installation.
+
+Install the project-selected Rust compiler and both required targets:
+
+```sh
+rustup toolchain install nightly-2026-10-06 --profile minimal \
+  --target x86_64-unknown-uefi --target x86_64-unknown-linux-gnu
+```
+
+Rustup supplies Cargo and Rust for the bootloader and desktop applications.
+The build selects this toolchain explicitly; its bootloader pin is defined in
+[`src/distro_build/boot.py`](../src/distro_build/boot.py).
+
+## 3. Create your workspace
+
+### Contributor workspace
+
+For a new workspace, run in your **Linux terminal**:
+
+```sh
+mkdir -p ~/wip-os
+git clone https://github.com/WIPOperatingSystemName/.github.git ~/wip-os/.github
+python3 ~/wip-os/.github/setup.py
+```
+
+The helper clones `distro` and initializes its six pinned source components,
+asks you to sign in to GitHub if needed, and creates or reuses your personal
+forks for distro and those components. It sets `origin` to the organization and
+`fork` to your push destination. It preserves existing branches and local work;
+rerunning it does not synchronize or integrate upstream changes.
+
+If `~/wip-os/.github` already exists, skip the clone and rerun its `setup.py`.
+Open **`~/wip-os`** in your editor or coding agent so the organization docs and
+component repositories are available together. The build checkout is
+`~/wip-os/distro`, and application/framework source lives under its `sources/`.
+
+Under WSL, the helper also offers to match WSLg's presentation rate to a selected
+Windows display. Choose the display where you will use QEMU, or press Enter to
+keep an existing setting or skip. It preserves other settings and backs up the
+configuration before changes. If it requests a WSL restart, save work in every
+WSL session, run `wsl --shutdown` in **Windows PowerShell**, and reopen Ubuntu.
+This stops every WSL distribution; the helper never shuts it down automatically.
+See [WSLg frame rate](#wslg-frame-rate) for verification and manual configuration.
+
+### Build without a GitHub account
+
+If you only want to build and run the distro, use this checkout **instead of**
+the contributor helper:
+
+```sh
+mkdir -p ~/wip-os
+git clone --recurse-submodules https://github.com/WIPOperatingSystemName/distro.git ~/wip-os/distro
+```
+
+For an existing checkout, inspect `git status` and `git submodule status` first.
+Initialize missing submodules only when doing so preserves component work.
+Do not restore or advance existing source checkouts just to make a build run.
+See [source modules](sources.md) and [contributing](contributing.md) before
+synchronizing branches or changing pins.
+
+## 4. Verify the environment
+
+Run these checks in your **Linux terminal**, from the distro directory:
+
+```sh
+cd ~/wip-os/distro
+python3 --version
+python3 build.py doctor
+cargo +nightly-2026-10-06 --version
+rustc +nightly-2026-10-06 --version
+rustup target list --installed --toolchain nightly-2026-10-06
+qemu-system-x86_64 --version
+qemu-system-x86_64 -display help
+ls /usr/share/OVMF/OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_VARS_4M.fd
+```
+
+You are ready to build when:
+
+- Python is version 3.11 or newer and `doctor` finishes without an error.
+- Cargo and Rust print their versions, and the target list contains
+  `x86_64-unknown-linux-gnu` and `x86_64-unknown-uefi`.
+- QEMU prints its version, its display list includes `gtk`, and both OVMF
+  firmware files are present (the paths above are for Ubuntu).
+- On WSL, `DISPLAY` or `WAYLAND_DISPLAY` is set by WSLg. You can check with
+  `printenv DISPLAY WAYLAND_DISPLAY`; preserve the environment WSLg supplies.
+
+`doctor` checks the declared host seeds and QEMU Guest Agent's Python venv
+support. It does not check Rustup/Cargo, QEMU or firmware, so complete the
+separate checks above. [KVM and firmware](#kvm-and-firmware) covers firmware
+overrides and optional hardware acceleration on other hosts. Host systemd is not
+required for the guest's systemd desktop session.
+
+**Next: [build and open your first VM](build.md#first-build).**
+
+## Optional host configuration
 
 ### WSL memory and virtualization
 
@@ -60,6 +213,22 @@ Save work and stop running guest VMs before applying changes with
 `wsl --shutdown` in PowerShell; it stops every WSL distribution. Reopen Ubuntu.
 
 ### WSLg frame rate
+
+If you used the workspace helper, verify its setting after restarting WSL:
+
+```sh
+python3 ~/wip-os/.github/setup.py --wslg-refresh-rate check
+```
+
+To configure a particular active display rate through the helper, pass
+`--wslg-refresh-rate 144` (replace 144 with your display's active rate).
+`--wslg-refresh-rate skip` leaves it unchanged. Without an interactive terminal,
+the default skips configuration. Verification checks Weston's configured rate;
+visible FPS also depends on the guest and Windows display.
+
+For manual configuration, follow the steps below. Legacy inbox WSL may require
+an elevated Windows terminal to edit its system-wide configuration; the helper
+reports a permissions failure rather than requesting elevation.
 
 For high-refresh testing, configure WSLg's presentation rate before measuring
 the VM. Microsoft's [frame-rate explanation](https://github.com/microsoft/wslg/wiki/Controlling-WSLg-frame-rate)
@@ -94,157 +263,12 @@ If `rg` is not installed, use `grep` for this check. For 144 Hz, the log should
 report `rdp_monitor_refresh_rate: 144000` (millihertz). If it does not, check the
 file location, section name and that WSL fully restarted.
 
-Then reopen the saved development VM:
-
-```sh
-cd ~/wip-os/distro
-python3 build.py vm --use --development --name dev
-```
-
-On the first build, follow the checkout and build steps below instead.
+For a first build, continue with [build and run](build.md#first-build). To reopen
+an existing development VM, follow [saved VMs](build.md#reopen-a-saved-vm).
 The WSLg setting needs no distro image rebuild. Use QEMU on the intended Windows
 monitor and check the guest display mode too: its refresh rate is a separate
 limit. Guest FPS and renderer CPU timings do not prove the rate visible on the
 Windows monitor. Remove the entry and restart WSL to restore its default.
-
-## Host setup
-
-In an **Ubuntu/Linux terminal**, install the declared seeds and emulator tools.
-On Ubuntu 24.04:
-
-```sh
-sudo apt update
-sudo apt install -y build-essential bison bc m4 perl autoconf automake \
-  libtool pkg-config meson ninja-build fakeroot zlib1g-dev xz-utils \
-  e2fsprogs gnupg python3 python3-venv python3-jinja2 cmake clang libclang-dev \
-  curl ca-certificates git qemu-system-x86 qemu-system-gui ovmf
-```
-
-Other Linux hosts need equivalent tools. The bootstrap builds its pinned private
-Meson and additional generators under `out/`.
-
-### Rustup and Rust toolchain
-
-Install Rustup as your normal Linux user. It supplies Cargo and the Rust
-compiler used by the bootloader and desktop applications. For a standard
-installation, the [official Rustup instructions](https://rust-lang.github.io/rustup/installation/index.html)
-support installing Rustup first and selecting the required toolchain separately:
-
-```sh
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
-. "$HOME/.cargo/env"
-rustup --version
-```
-
-If Rustup is already installed, skip the installer. Loading
-`$HOME/.cargo/env` makes its commands available in the current shell; open a new
-terminal to pick up the installer's PATH changes in later sessions. If `rustup`
-or `cargo` reports `command not found`, load that environment file and retry.
-
-Then install and verify the project-selected toolchain and targets:
-
-```sh
-rustup toolchain install nightly-2026-10-06 --profile minimal \
-  --target x86_64-unknown-uefi --target x86_64-unknown-linux-gnu
-cargo +nightly-2026-10-06 --version
-rustc +nightly-2026-10-06 --version
-```
-
-The build selects this pinned toolchain explicitly. Complete these Rustup/Cargo
-checks even if `python3 build.py doctor` succeeds; that host audit does not check
-Rustup or Cargo availability.
-
-### Check host prerequisites
-
-After checking out the repository, run the host audit from the distro root:
-
-```sh
-python3 build.py doctor
-```
-
-If `./run` reports `doctor failed; build-and-run stopped`, this command shows
-the underlying prerequisite error. For example:
-
-```text
-{"error": "missing host seed tool: gcc", "command": "doctor"}
-```
-
-The host GCC/G++ compilers and Make are needed to bootstrap the source-built
-toolchain. On Ubuntu, including Ubuntu under WSL, `build-essential` supplies
-these tools and development headers. It is included in the full host setup
-command above; to fix a missing compiler on an otherwise configured host:
-
-```sh
-sudo apt update
-sudo apt install build-essential
-gcc --version
-g++ --version
-make --version
-```
-
-If the next error is `missing host seed tool: meson`, install the native build
-tools from the full host setup command:
-
-```sh
-sudo apt install meson ninja-build pkg-config
-meson --version
-ninja --version
-pkg-config --version
-```
-
-QEMU Guest Agent's build creates a private Python virtual environment. On
-Ubuntu/Debian, `python3-venv` supplies the `ensurepip` support it needs; having
-`python3` alone is insufficient. If the build reports `Python's ensurepip module
-is not found` or `python venv creation failed`, install the missing prerequisite:
-
-```sh
-sudo apt install python3-venv
-python3 build.py doctor
-./run
-```
-
-The host audit checks this support using the `/usr/bin/python3` interpreter used
-by package builds. It accepts either `ensurepip` or an existing system pip and
-setuptools. Retry without cleaning; matching completed build outputs are reused.
-
-Rerun `python3 build.py doctor` after installation. It stops at the first missing
-required tool; if another is reported, complete the full host setup above and
-check again. Retry `./run` once the host audit succeeds. The build pipeline
-does not install these host prerequisites automatically.
-
-### QEMU availability
-
-`./run` builds the guest OS image and starts a VM using QEMU on your Linux host.
-QEMU and the OVMF firmware must already be installed; the build pipeline does
-not install them. If you see
-`QEMU is missing; set QEMU_SYSTEM_X86_64 to an existing host tool`, the launcher
-cannot find the emulator executable.
-
-On Ubuntu, including Ubuntu under WSL, install the emulator packages from the
-host setup above and verify that QEMU runs:
-
-```sh
-sudo apt update
-sudo apt install qemu-system-x86 qemu-system-gui ovmf
-qemu-system-x86_64 --version
-qemu-system-x86_64 -display help
-```
-
-The QEMU display list must include `gtk`. Under WSLg, `DISPLAY` or
-`WAYLAND_DISPLAY` should already be set; preserve the environment WSLg supplies.
-Host systemd is not required for the guest's systemd desktop session.
-
-If QEMU is installed in a custom location, point to its existing executable:
-
-```sh
-export QEMU_SYSTEM_X86_64=/absolute/path/to/qemu-system-x86_64
-"$QEMU_SYSTEM_X86_64" --version
-```
-
-An incorrect `QEMU_SYSTEM_X86_64` override also causes the missing-QEMU error.
-Use `unset QEMU_SYSTEM_X86_64` to return to automatic discovery of the installed
-system executable. After fixing QEMU, retry `./run` from your checkout in the
-same terminal.
 
 ### KVM and firmware
 
@@ -273,27 +297,102 @@ export OVMF_VARS=/usr/share/OVMF/OVMF_VARS_4M.fd
 Use code and variables from the same build and size, without Secure Boot
 enforcement. QEMU copies variables into its private VM directory.
 
-## Checkout and first run
+## Troubleshooting setup
 
-For a new workspace:
+### Check host prerequisites
+
+If `./run` reports `doctor failed; build-and-run stopped`, show the underlying
+prerequisite error from `~/wip-os/distro`:
 
 ```sh
-mkdir -p ~/wip-os
-git clone --recurse-submodules https://github.com/WIPOperatingSystemName/distro.git ~/wip-os/distro
-cd ~/wip-os/distro
 python3 build.py doctor
-python3 build.py validate
-./run --profile desktop-dev --name dev --jobs 4
 ```
 
-The first run downloads verified archives, builds the toolchain and runtime,
-builds Telorgon, composes the development image and opens QEMU. It can take
-substantially longer than later builds. No separate manual bootstrap sequence
-is needed. See [build and run](build.md) for the daily source/deploy loop.
+For example:
 
-For an existing workspace, inspect `git status` and `git submodule status` first.
-Initialize missing submodules with `git submodule update --init --recursive`
-only when doing so will preserve component work. Builds include uncommitted
-source edits; do not restore or advance a checkout just to make a build run.
-See [source modules](sources.md) and [contributing](contributing.md) before
-synchronizing branches or changing pins.
+```text
+{"error": "missing host seed tool: gcc", "command": "doctor"}
+```
+
+The host GCC/G++ compilers and Make are needed to bootstrap the source-built
+toolchain. On Ubuntu, including Ubuntu under WSL, `build-essential` supplies
+these tools and development headers. It is included in the installation
+command in step 2; to fix a missing compiler on an otherwise configured host:
+
+```sh
+sudo apt update
+sudo apt install build-essential
+gcc --version
+g++ --version
+make --version
+```
+
+If the next error is `missing host seed tool: meson`, install the native build
+tools from the installation command in step 2:
+
+```sh
+sudo apt install meson ninja-build pkg-config
+meson --version
+ninja --version
+pkg-config --version
+```
+
+QEMU Guest Agent's build creates a private Python virtual environment. On
+Ubuntu/Debian, `python3-venv` supplies the `ensurepip` support it needs; having
+`python3` alone is insufficient. If the build reports `Python's ensurepip module
+is not found` or `python venv creation failed`, install the missing prerequisite:
+
+```sh
+sudo apt install python3-venv
+python3 build.py doctor
+```
+
+The host audit checks this support using the `/usr/bin/python3` interpreter used
+by package builds. It accepts either `ensurepip` or an existing system pip and
+setuptools. Retry your original build command without cleaning; matching
+completed build outputs are reused.
+
+Rerun `python3 build.py doctor` after installation. It stops at the first missing
+required tool; if another is reported, complete the installation command in
+step 2 and check again. Retry `./run` once the host audit succeeds. The build pipeline
+does not install these host prerequisites automatically.
+
+### QEMU availability
+
+`./run` builds the guest OS image and starts a VM using QEMU on your Linux host.
+QEMU and the OVMF firmware must already be installed; the build pipeline does
+not install them. If you see
+`QEMU is missing; set QEMU_SYSTEM_X86_64 to an existing host tool`, the launcher
+cannot find the emulator executable.
+
+On Ubuntu, including Ubuntu under WSL, install the emulator packages from the
+installation command in step 2 and verify that QEMU runs:
+
+```sh
+sudo apt update
+sudo apt install qemu-system-x86 qemu-system-gui ovmf
+qemu-system-x86_64 --version
+qemu-system-x86_64 -display help
+```
+
+The QEMU display list must include `gtk`. Under WSLg, `DISPLAY` or
+`WAYLAND_DISPLAY` should already be set; preserve the environment WSLg supplies.
+Host systemd is not required for the guest's systemd desktop session.
+
+If QEMU is installed in a custom location, point to its existing executable:
+
+```sh
+export QEMU_SYSTEM_X86_64=/absolute/path/to/qemu-system-x86_64
+"$QEMU_SYSTEM_X86_64" --version
+```
+
+An incorrect `QEMU_SYSTEM_X86_64` override also causes the missing-QEMU error.
+Use `unset QEMU_SYSTEM_X86_64` to return to automatic discovery of the installed
+system executable. After fixing QEMU, retry `./run` from your checkout in the
+same terminal.
+
+If a source download reports `Network is unreachable`, check internet access
+inside the same Linux/WSL terminal. Installing more build tools will not repair
+network routing. After restoring connectivity, retry the build; do not clean
+completed outputs. For build-stage logs and other errors, use
+[build troubleshooting](build.md#troubleshooting).
