@@ -13,6 +13,8 @@ import time
 
 from .model import BuildError, Recipe
 from .sources import extract, fetch, sha256
+from .build_inputs import recipe_inputs
+from . import compiler_cache
 
 
 def run(arguments: list[str], cwd: Path, env: dict[str, str], log: Path) -> None:
@@ -39,6 +41,7 @@ def seed_report(project: Path | None = None) -> dict:
     project = Path(project or Path(__file__).resolve().parents[2])
     native_meson = project / "out/bootstrap/root/tools/native/bin/meson"
     report = {"kind": "declared-native-inputs", "tools": {}}
+    report["compiler_cache"] = compiler_cache.seed_input()
     for command in ("python3", "gcc", "g++", "ld", "make", "bash", "tar", "xz", "perl", "meson", "ninja", "pkg-config"):
         executable = str(native_meson) if command == "meson" and native_meson.is_file() else shutil.which(command)
         if not executable:
@@ -79,12 +82,17 @@ def build_identity(project: Path, recipe: Recipe, seed: dict, dependencies: list
     digest = hashlib.sha256()
     digest.update(json.dumps(seed, sort_keys=True).encode())
     digest.update(b"host-seed" if seed_build else b"target-bootstrap")
-    excluded_modules = {"cli.py", "boot.py", "media.py", "vm.py", "apps.py", "compose.py", "source_bundle.py", "guest_test.py", "signed_test.py", "bootstrap_toolkit.py", "vm_session.py", "deploy.py", "guest_agent.py", "incremental.py"}
-    for tree in (recipe.path.parent, project / "src/distro_build"):
-        for path in sorted(tree.rglob("*")):
-            if path.is_file() and "__pycache__" not in path.parts and (tree == recipe.path.parent or path.name not in excluded_modules):
-                digest.update(str(path.relative_to(tree)).encode())
-                digest.update(path.read_bytes())
+    for tree in recipe_inputs(project, recipe):
+        for path in sorted(tree.rglob("*")) if tree.is_dir() else [tree]:
+            if "__pycache__" in path.parts or path.suffix == ".pyc":
+                continue
+            digest.update(str(path.relative_to(project)).encode())
+            if not path.exists():
+                digest.update(b"missing")
+            else:
+                digest.update(str(path.lstat().st_mode).encode())
+                if path.is_file():
+                    digest.update(path.read_bytes())
     for source in recipe.sources:
         digest.update(source.sha256.encode())
     for name in ("run-stage.py", "integrity.py"):
@@ -197,6 +205,26 @@ def _build_package(project: Path, recipe: Recipe, *, jobs: int, seed_build: bool
            "CD_COMPILER_TOOLS": str(compiler_tools),
            "CD_CXX": "/usr/bin/g++" if seed_build else str(compiler_tools / "bin" / f"{target}-g++"),
            "CD_CC": "/usr/bin/gcc" if seed_build else str(compiler), "CD_BUILD_MODE": "seed" if seed_build else "target"}
+    cache = compiler_cache.executable()
+    real_compiler = env["CD_CC"]
+    if cache:
+        if seed.get("compiler_cache") != compiler_cache.seed_input():
+            raise BuildError("compiler cache input changed during build preparation")
+        # Include toolchain receipts and dependency bytes, independently of this
+        # recipe's changing sources. The real compiler and headers are hashed by ccache.
+        toolchain = {}
+        for stamp in sorted((output / "bootstrap/work/stamps").glob("*.json")):
+            record = json.loads(stamp.read_text())
+            toolchain[stamp.name] = {key: value for key, value in record.items()
+                                    if key not in {"seconds", "elapsed_seconds", "log"}}
+        env.update(compiler_cache.environment(project, work, {"seed": seed, "bootstrap": toolchain,
+            "dependencies": [sha256(path) for path in dependencies or []]}))
+        env["CD_CCACHE"] = str(cache)
+        env["CD_REAL_CC"] = real_compiler
+        env["CD_CC"] = str(compiler_cache.wrapper(work / "cached-cc", Path(real_compiler), cache))
+        env["CD_CXX"] = str(compiler_cache.wrapper(work / "cached-cxx", Path(env["CD_CXX"]), cache))
+    env["CC"] = env["CD_CC"]
+    env["CXX"] = env["CD_CXX"]
     for key, value in recipe.build.get("environment", {}).items():
         if not isinstance(key, str) or not isinstance(value, str) or key in {"HOME", "CODEX_HOME"}:
             raise BuildError(f"{recipe.path}: invalid build environment override")
@@ -221,7 +249,7 @@ def _build_package(project: Path, recipe: Recipe, *, jobs: int, seed_build: bool
                 "licenses": [recipe.package["license"]]}
     provenance = {"build_identity": identity, "seed": seed, "build_mode": env["CD_BUILD_MODE"],
                   "sources": [source.__dict__ for source in recipe.sources], "log": str(log),
-                  "supplied_compiler": {"path": env["CD_CC"], "sha256": sha256(Path(env["CD_CC"]))},
+                  "supplied_compiler": {"path": real_compiler, "sha256": sha256(Path(real_compiler))},
                   "frozen_inputs": str(inputs)}
     artifact = export_package(stage, output / "packages" / recipe.name / identity, metadata, source_date_epoch=int(env["SOURCE_DATE_EPOCH"]), provenance=provenance)
     result = {"package": recipe.name, "build_identity": identity, "path": str(artifact.path),

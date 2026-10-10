@@ -14,7 +14,7 @@ high-refresh testing. Run the pipeline as your normal user.
 For source development, create a named development VM:
 
 ```sh
-./run --profile desktop-dev --name dev --jobs 4
+./run --profile desktop-dev --name dev
 ```
 
 The pipeline audits the host, validates recipes, downloads verified sources,
@@ -207,10 +207,63 @@ valid lower-level compiler caches. Use `--jobs 2` for less compile parallelism.
 There is no fixed compilation-time guarantee. Do not edit caches or receipts to
 force reuse; inspect the failing inputs/log and retry after fixing the cause.
 
+## Build speed and parallelism
+
+Build commands choose a CPU/memory-aware job count by default, capped at eight.
+The policy respects Linux CPU affinity and cgroup v2 CPU/memory limits and budgets
+roughly 1.5 GiB per compiler job with 512 MiB left for coordination. Override it
+explicitly for your machine:
+
+```sh
+./run --profile desktop-dev --name dev --jobs 8 --package-workers 2
+python3 build.py build busybox zlib --jobs 8 --package-workers 2
+```
+
+`--jobs` is the total compiler budget. `--package-workers` limits simultaneous
+native package builds, defaulting to two. Ready packages share that budget;
+a lone ready package gets all available jobs. Target dependencies finish before
+their consumers start. Runtime-only cycles do not serialize compilation. Use
+`--package-workers 1` for sequential packages, or `--jobs 2` on a small machine.
+Bootstrap, loader and app stages retain their existing ordering; this scheduler
+parallelizes native packages, not independent Rust applications.
+
+Native package cache keys follow each recipe's Python imports and their local
+helpers, package resources, source pins, seed tools, bootstrap receipts and
+native dependency archives. Computed Python imports use a conservative dependency
+boundary for their consumer. Stage receipts track their own build code and inputs.
+Adding an app or editing deployment/VM helpers does not invalidate native OS
+packages. Timestamps or an identical file replacement alone do not invalidate a
+stage; content, modes, ownership and symlink changes still do. The cache policy
+upgrade requires one rebuild of existing native packages and stage receipts.
+
+For optional C/C++ object reuse, the native package builder detects an existing
+host `ccache`, or accepts an explicit executable:
+
+```sh
+DISTRO_CCACHE=/path/to/ccache python3 build.py build busybox zlib --jobs 8
+DISTRO_CCACHE=0 ./run                         # Disable compiler caching
+CCACHE_DIR="$PWD/out/compiler-cache" ccache --show-stats
+```
+
+The executable hash is recorded as a declared host seed. Objects stay in
+`out/compiler-cache/` with a 5 GB limit. Builds hash the real compiler, toolchain
+receipts and dependency bytes, use preprocessor mode, and exclude inherited
+ccache configuration. They keep target sysroot checks in front of cache dispatch.
+No host software is installed automatically. Without ccache, compilation runs
+normally; Rust continues using its existing Cargo workspaces. Object-cache hits
+also depend on compiler arguments and source paths; there is no promised speedup
+for a first build. See the [ccache manual](https://ccache.dev/manual/latest.html)
+for its cache behavior and statistics.
+
+Keep build outputs between normal iterations. Use `dev` for app-only updates,
+`vm --use` for reopening a VM, and `clean` when you need a full rebuild. A fresh
+source build still compiles the bootstrap and kernel; these changes do not replace
+source builds with prebuilt OS packages.
+
 ## Clean for a fresh build
 
 Preview cleanup, then remove the generated toolchain, SDK, packages, application
-compiler caches, images, staging trees, logs and build receipts:
+compiler caches (including `out/compiler-cache/`), images, staging trees, logs and build receipts:
 
 ```sh
 ./clean --dry-run

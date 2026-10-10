@@ -18,6 +18,8 @@ from .graph import plan, affected
 from .model import BuildError, Source, catalog
 from .sources import fetch_all
 from .packaging import PackageError, ToolkitError
+from .build_inputs import engine_inputs, recipe_inputs
+from .build_resources import default_jobs
 
 
 def project_root() -> Path:
@@ -67,7 +69,7 @@ def clean_outputs(project: Path, *, downloads: bool = False, vms: bool = False,
             if parent.is_symlink():
                 raise BuildError(f"Refusing to clean through a symlink: {parent}")
 
-    names = ("apps", "boot", "bootstrap", "esp", "images", "loader", "logs",
+    names = ("apps", "boot", "bootstrap", "compiler-cache", "esp", "images", "loader", "logs",
              "native-toolkit", "packages", "qualification", "repository", "roots", "sdk", "work")
     selected = [output / name for name in names if (output / name).exists() or (output / name).is_symlink()]
     for directory, retained in [(output / "state", {"run.lock", "locks"}),
@@ -132,7 +134,7 @@ class DevelopmentCache:
     """Reuse completed local stages after checking input and output contents.
 
     Only completed actions are recorded. Inventories cover file hashes,
-    replacements, modes, symlink targets and directory membership.
+    modes, ownership, symlink targets and directory membership.
     The caller serializes preparation with run.lock, releasing it before QEMU.
     """
 
@@ -156,11 +158,11 @@ class DevelopmentCache:
             except FileNotFoundError:
                 digest.update(json.dumps([str(path), "missing"]).encode())
                 return
-            row = [str(path), info.st_dev, info.st_ino, info.st_mode, info.st_uid, info.st_gid]
+            row = [str(path), info.st_mode, info.st_uid, info.st_gid]
             if path.is_symlink():
                 row.append(os.readlink(path))
             elif not path.is_dir():
-                row.extend([info.st_size, info.st_mtime_ns, info.st_ctime_ns])
+                row.append(info.st_size)
                 if path.is_file():
                     from .sources import sha256
                     row.append(sha256(path))
@@ -182,16 +184,21 @@ class DevelopmentCache:
         environment = {key: os.environ.get(key) for key in (
             "PATH", "CC", "CXX", "AR", "AS", "LD", "CFLAGS", "CXXFLAGS", "CPPFLAGS", "LDFLAGS",
             "PKG_CONFIG_PATH", "PKG_CONFIG_SYSROOT_DIR", "PKG_CONFIG_LIBDIR", "RUSTUP_HOME", "CARGO_HOME",
-            "RUSTFLAGS", "CARGO_ENCODED_RUSTFLAGS", "RUSTC", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER", "SOURCE_DATE_EPOCH")}
-        identity = hashlib.sha256(json.dumps({"schema": 1, "inputs": self.inventory(inputs()),
+            "RUSTFLAGS", "CARGO_ENCODED_RUSTFLAGS", "RUSTC", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER", "SOURCE_DATE_EPOCH", "DISTRO_CCACHE")}
+        identity = hashlib.sha256(json.dumps({"schema": 2, "inputs": self.inventory(inputs()),
             "options": options, "environment": environment}, sort_keys=True).encode()).hexdigest()
         record = self.directory / f"{name}.json"
         prior = None
+        reason = "missing-receipt"
         if record.is_file():
             try:
                 prior = json.loads(record.read_text())
             except (ValueError, OSError):
-                pass
+                reason = "invalid-receipt"
+        if self.verify:
+            reason = "verification-requested"
+        elif isinstance(prior, dict):
+            reason = "inputs-changed" if prior.get("identity") != identity else "outputs-changed"
         if not self.verify and isinstance(prior, dict) and prior.get("identity") == identity:
             paths = outputs(prior.get("result"))
             if paths and all(path.exists() for path in paths) and prior.get("outputs") == self.inventory(paths):
@@ -199,9 +206,9 @@ class DevelopmentCache:
                 return prior.get("result")
         # A failed or interrupted action must not leave an older success reusable.
         record.unlink(missing_ok=True)
-        emit({"event": "stage-start", "stage": name})
+        emit({"event": "stage-start", "stage": name, "reason": reason})
         result = action()
-        current = hashlib.sha256(json.dumps({"schema": 1, "inputs": self.inventory(inputs()),
+        current = hashlib.sha256(json.dumps({"schema": 2, "inputs": self.inventory(inputs()),
             "options": options, "environment": environment}, sort_keys=True).encode()).hexdigest()
         if current != identity:
             raise BuildError(f"{name} inputs changed during preparation; rerun before testing")
@@ -304,10 +311,11 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
     sources = ["--source-root", str(source_root)]
     cache = DevelopmentCache(project, args.profile, verify=args.verify)
     output = project / "out"
-    engine = [project / "src/distro_build", project / "build.py"]
     recipes = catalog(project)
     ordered = plan(recipes, packages or sorted(recipes)) if recipes else []
     names = [recipe.name for recipe in ordered]
+    native_inputs = sorted({path for recipe in ordered for path in recipe_inputs(project, recipe)})
+    native_inputs += engine_inputs(project, ["model", "graph", "packaging.bootstrap_toolkit"])
     bootstrap = [output / "bootstrap/root", output / "bootstrap/work/stamps"]
     prefix = output / "native-toolkit/prefix"
     toolkit = [prefix / name for name in ("bin", "lib", "include", "share", "toolkit.json", ".development-dependencies.json")]
@@ -317,6 +325,9 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
     seeds += [Path(path) for command in ("gcc", "g++", "ld", "make", "bash", "tar", "xz", "perl", "meson",
         "ninja", "pkg-config", "cmake", "autoconf", "automake", "libtoolize", "bison", "m4", "bc")
         if (path := shutil.which(command))]
+    from .compiler_cache import executable as cache_executable
+    if executable := cache_executable():
+        seeds.append(executable)
 
     def essentials():
         step("doctor")
@@ -326,7 +337,7 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
         step("bootstrap", "--check")
         step("native-toolkit", "--jobs", jobs, *([] if args.offline else ["--fetch"]))
         if not reuse_package_set(project, recipes, ordered):
-            step("build", *packages, "--jobs", jobs)
+            step("build", *packages, "--jobs", jobs, "--package-workers", str(args.package_workers))
 
     def essential_outputs(_=None):
         return bootstrap + toolkit + [output / "sources/downloads", output / "native-toolkit/sources"] + package_outputs(project, names)
@@ -342,9 +353,9 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
     # Serialize preparation, but release the lock before an interactive VM opens.
     with (output / "state/run.lock").open("a") as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-        cache.run("essentials", lambda: engine + [project / "packages", project / "bootstrap", project / "profiles" / f"{args.profile}.toml"] + seeds,
+        cache.run("essentials", lambda: native_inputs + [project / "bootstrap", project / "profiles" / f"{args.profile}.toml"] + seeds,
                   essential_outputs, essentials)
-        cache.run("loader", lambda: engine + [source_root / name for name in ("telorgon", "telorgon-bootloader")] + rust_seeds,
+        cache.run("loader", lambda: engine_inputs(project, ["boot"]) + [source_root / name for name in ("telorgon", "telorgon-bootloader")] + rust_seeds,
                   lambda _: loader, lambda: step("loader", *sources, *online),
                   options={name: _git_metadata(source_root / name) for name in ("telorgon", "telorgon-bootloader")})
         if desktop:
@@ -353,7 +364,7 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
             def sdk_outputs(_):
                 return [sdk_record, Path(json.loads(sdk_record.read_text())["sysroot"])] if sdk_record.is_file() else [sdk_record]
 
-            cache.run("sdk", lambda: engine + [project / "tools/compose-desktop-sdk.py"] + essential_outputs(),
+            cache.run("sdk", lambda: engine_inputs(project, [], [project / "tools/compose-desktop-sdk.py"]) + essential_outputs(),
                       sdk_outputs, lambda: run([sys.executable, str(project / "tools/compose-desktop-sdk.py")], project,
                                               os.environ.copy(), output / "logs/desktop-sdk.log"))
             sdk = json.loads(sdk_record.read_text())
@@ -366,7 +377,7 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
                     raise BuildError("desktop SDK preflight failed; see missing inputs above")
                 step("apps", "build", "--sysroot", sdk["sysroot"], "--jobs", jobs, *online)
 
-            cache.run("apps", lambda: engine + [project / "packages", project / "source-projects.toml"] + rust_seeds + sdk_outputs(None)
+            cache.run("apps", lambda: engine_inputs(project, ["apps", "source_bundle"]) + list((project / "packages").glob("*/application.toml")) + [project / "source-projects.toml"] + rust_seeds + sdk_outputs(None)
                       + [source_root / name for name in apps.source_inputs(project)],
                       lambda _: package_outputs(project, list(apps.catalog(project)), applications=True), applications,
                       options={name: _git_metadata(source_root / name) for name in apps.source_inputs(project)})
@@ -375,7 +386,7 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
             emit({"event": "stage", "command": ["image", "--profile", args.profile]})
             return console_image(project, profile_name=args.profile)
 
-        cache_inputs = lambda: engine + [project / "system", project / "profiles" / f"{args.profile}.toml"] + loader + package_outputs(project, names) + (
+        cache_inputs = lambda: engine_inputs(project, ["compose"]) + [project / "system", project / "profiles" / f"{args.profile}.toml"] + loader + package_outputs(project, names) + (
             package_outputs(project, list(apps.catalog(project)), applications=True) if desktop else [])
         report = cache.run("image", cache_inputs,
                           lambda result: [Path(result["image"]["path"])] if result else [], image)
@@ -403,6 +414,7 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
 
 
 def parser() -> argparse.ArgumentParser:
+    jobs_default = default_jobs()
     command = argparse.ArgumentParser(description="Build Custom Distro from source")
     command.add_argument("--project", type=Path, default=project_root())
     actions = command.add_subparsers(dest="command", required=True)
@@ -412,7 +424,8 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("--vms", action="store_true", help="Also delete saved VM disks and firmware variables")
     action = actions.add_parser("run", help="Build the OS image from source and run it in QEMU")
     action.add_argument("--profile", choices=("desktop-use", "desktop-dev", "systemd", "console"), default="desktop-use")
-    action.add_argument("--jobs", type=positive_integer, default=4)
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default, help="Compiler job budget (default: CPU/memory aware, up to 8)")
+    action.add_argument("--package-workers", type=positive_integer, default=2, help="Concurrent ready native packages sharing --jobs (default: 2)")
     action.add_argument("--offline", action="store_true", help="Require verified cached sources and Cargo inputs")
     action.add_argument("--verify", action="store_true", help="Run full build/input integrity checks instead of trusting local development stage receipts")
     action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ submodules)")
@@ -435,13 +448,14 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("--check", action="store_true", help="Verify completed bootstrap inputs/artifacts without compiling or changing stamps")
     action.add_argument("--upgrade-stamps", action="store_true", help="Explicitly record current-baseline receipts for legacy bootstrap artifacts")
     action.add_argument("--stage")
-    action.add_argument("--jobs", type=int, default=min(os.cpu_count() or 1, 12))
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action = actions.add_parser("native-toolkit", help="Build the private source-built assembly package manager")
     action.add_argument("--fetch", action="store_true")
-    action.add_argument("--jobs", type=int, default=4)
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action = actions.add_parser("build", help="Build packages from verified cached sources")
     action.add_argument("packages", nargs="*")
-    action.add_argument("--jobs", type=int, default=min(os.cpu_count() or 1, 12))
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
+    action.add_argument("--package-workers", type=positive_integer, default=2, help="Concurrent ready packages sharing --jobs; 1 for serial builds")
     action.add_argument("--seed", action="store_true", help="Explicit development build using host compiler")
     action = actions.add_parser("loader", help="Build a recorded snapshot of the Telorgon EFI application")
     action.add_argument("--online", action="store_true")
@@ -477,11 +491,11 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("--tools", type=Path)
     action.add_argument("--online", action="store_true")
     action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ submodules)")
-    action.add_argument("--jobs", type=int, default=4)
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action = actions.add_parser("dev", help="Plan and deploy changed registered apps to a running development VM")
     action.add_argument("--name", required=True, help="Running development VM name")
     action.add_argument("--source-root", type=Path)
-    action.add_argument("--jobs", type=positive_integer, default=4)
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action.add_argument("--offline", action="store_true", help="Use cached upstream references and Cargo inputs; upstream freshness is not network verified")
     action.add_argument("--build-profile", choices=("dev", "release"), default="dev")
     action.add_argument("--plan", action="store_true", help="Inspect package and compatibility decisions without compiling, fetching or installing")
@@ -492,7 +506,7 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("names", nargs="+")
     action.add_argument("--name", required=True, help="Running development VM name")
     action.add_argument("--source-root", type=Path)
-    action.add_argument("--jobs", type=positive_integer, default=4)
+    action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action.add_argument("--online", action="store_true", help="Allow fetching locked Cargo dependencies")
     action.add_argument("--build-profile", choices=("dev", "release"), default="dev")
     action.add_argument("--no-restart", action="store_true", help="Install packages without restarting the desktop; reopen updated apps manually")
@@ -540,15 +554,18 @@ def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
                 if not args.seed:
                     check_bootstrap(project, project / "out/bootstrap/root/tools")
                 seed = seed_report(project)
-                artifacts = {}
-                for recipe in ordered:
+                from .build_resources import build_packages
+
+                def build_one(recipe, artifacts, budget):
                     dependencies = package_dependencies(recipes, recipe, artifacts)
                     prior = cached_package(project, recipe, seed, dependencies, seed_build=args.seed)
                     if prior is not None:
                         emit({"event": "cache-hit", "package": recipe.name, "path": prior["path"]})
-                        artifacts[recipe.name] = prior
-                    else:
-                        artifacts[recipe.name] = build_package(project, recipe, jobs=args.jobs, seed_build=args.seed, dependencies=dependencies)
+                        return prior
+                    emit({"event": "package-start", "package": recipe.name, "jobs": budget})
+                    return build_package(project, recipe, jobs=budget, seed_build=args.seed, dependencies=dependencies)
+
+                artifacts = build_packages(ordered, jobs=args.jobs, workers=args.package_workers, action=build_one)
                 report({"artifacts": artifacts})
         elif args.command == "bootstrap":
             from .runner import run

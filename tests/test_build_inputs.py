@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import hashlib
 import json
+import os
 import sys
 import tarfile
 import tempfile
@@ -18,6 +19,11 @@ from distro_build import cli
 
 
 class BuildInputsTests(unittest.TestCase):
+    def setUp(self):
+        context = patch.dict(os.environ, {"DISTRO_CCACHE": "0"})
+        context.start()
+        self.addCleanup(context.stop)
+
     def fixture(self, root):
         source = root / "source"
         source.mkdir()
@@ -91,6 +97,33 @@ stage=Path(os.environ['CD_STAGE_DIR'])
             self.assertEqual((root / "out/calls").read_text(), "build\n")
             state = json.loads((root / "out/state/packages/example.json").read_text())
             self.assertEqual(state["sha256"], results[0]["sha256"])
+
+    def test_compiler_cache_dispatch_is_used_and_recorded_by_package_builder(self):
+        from distro_build.compiler_cache import seed_input
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            recipe, _ = self.fixture(root)
+            cache = root / "ccache"
+            dispatch = root / "dispatch"
+            cache.write_text("#!/usr/bin/python3\nimport os,sys\n"
+                             f"open({str(dispatch)!r},'w').write(sys.argv[1])\n"
+                             "os.execv(sys.argv[1],sys.argv[1:])\n")
+            cache.chmod(0o755)
+            (recipe.path.parent / "build.py").write_text('''from pathlib import Path
+import os,subprocess
+source = Path(os.environ['CD_SOURCE_DIR']) / 'tiny.c'
+source.write_text('int value(void) { return 42; }\\n')
+subprocess.run([os.environ['CD_CC'], '-c', str(source), '-o',
+                str(Path(os.environ['CD_STAGE_DIR']) / 'value.o')], check=True)
+''')
+            with patch.dict(os.environ, {"DISTRO_CCACHE": str(cache)}):
+                seed = {"kind": "test-seed", "compiler_cache": seed_input()}
+                with patch("distro_build.runner.seed_report", return_value=seed):
+                    result = build_package(root, recipe, jobs=1, seed_build=True)
+            self.assertEqual(dispatch.read_text(), "/usr/bin/gcc")
+            self.assertEqual(result["provenance"]["seed"]["compiler_cache"], seed["compiler_cache"])
+            self.assertEqual(result["provenance"]["supplied_compiler"]["path"], "/usr/bin/gcc")
+            self.assertTrue((Path(result["stage"]) / "value.o").read_bytes().startswith(b"\x7fELF"))
 
     def test_run_reuses_verified_packages_but_rejects_changed_inputs_or_bytes(self):
         with tempfile.TemporaryDirectory() as directory:

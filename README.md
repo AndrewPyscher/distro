@@ -13,7 +13,7 @@ Set up [Linux or WSL2/WSLg](docs/setup.md) first, including the
 Run from the checkout in a Linux terminal:
 
 ```sh
-./run --profile desktop-dev --name dev --jobs 4
+./run --profile desktop-dev --name dev
 ```
 
 This builds the development image and opens a saved VM. Open File Explorer and
@@ -58,6 +58,11 @@ For a bounded base-system boot check, use:
 See [build and run](docs/build.md) for saved-disk behavior, cache reuse, profiles,
 audio/camera controls and troubleshooting. Rebuilding an image does not upgrade
 an existing named VM's disk; deploy apps or use a new VM name for a fresh base.
+
+Build commands automatically choose a CPU/memory-aware job count. Native packages
+share that budget across ready builds; `--jobs` and `--package-workers` override
+the defaults. Optional ccache support keeps C/C++ objects under `out/`. See
+[build speed](docs/build.md#build-speed-and-parallelism) for cache behavior and controls.
 
 For a fresh source build, preview with `./clean --dry-run`, then run `./clean`.
 It keeps saved VM disks and downloaded archives; `--vms` and `--downloads`

@@ -21,7 +21,7 @@ class CleanTests(unittest.TestCase):
         self.output = self.project / "out"
         self.artifacts = ["bootstrap/root/compiler", "work/package/object", "apps/incremental/object",
                           "sdk/root/library", "images/base.img", "state/run/desktop-dev/apps.json",
-                          "sources/extracted/source", "qualification/probe"]
+                          "sources/extracted/source", "qualification/probe", "compiler-cache/object"]
         self.saved = ["sources/downloads/archive", "vms/dev/disk.img", "vms/dev/OVMF_VARS.fd",
                       "verification/results.json", "contribution/app/.git", "bundles/source.tar.xz",
                       "tools/rustfmt", "custom-workspace/local-change"]
