@@ -21,27 +21,23 @@ import tempfile
 import tomllib
 
 from .boot import EFI_TOOLCHAIN, _git_metadata, sha256
+from .source_projects import DEFAULT_PROJECT, catalog as source_catalog, inputs as source_inputs, relative_path
 
 
 RUST_TARGET = "x86_64-unknown-linux-gnu"
 GNU_TARGET = "x86_64-custom-linux-gnu"
-INPUTS = {
-    "telorgon": ("Cargo.toml", "Cargo.lock", "LICENSE", "README.md", "crates", "third_party", "packaging"),
-    "test-shell": ("Cargo.toml", "Cargo.lock", "src", "assets", "licenses", "tests"),
-    "telorgon-file-explorer": ("Cargo.toml", "Cargo.lock", "src", "assets", "licenses", "packaging"),
-    "telorgon-settings-app": ("Cargo.toml", "Cargo.lock", "src", "assets"),
-    "telorgon-portal-picker": ("Cargo.toml", "Cargo.lock", "src", "assets", "licenses"),
-}
+
+# Compatibility exports for consumers constructing small source fixtures.
+INPUTS = source_inputs(DEFAULT_PROJECT)
 EXCLUDED = {".git", "target", "vendor", "out", "__pycache__", ".cache"}
-APP_DIRECTORIES = ("telorgon-shell", "file-explorer", "settings-app", "portal-picker")
 
 
 def catalog(project: Path) -> dict[str, dict]:
     """Read actual app manifests without manufacturing remote source identities."""
     project = Path(project).resolve()
     result = {}
-    for directory in APP_DIRECTORIES:
-        path = project / "packages" / directory / "application.toml"
+    inputs = source_inputs(project)
+    for path in sorted((project / "packages").glob("*/application.toml")):
         document = tomllib.loads(path.read_text())
         if document.get("schema") != 1:
             raise RuntimeError(f"Unsupported application catalog schema: {path}")
@@ -50,12 +46,22 @@ def catalog(project: Path) -> dict[str, dict]:
         if not re.fullmatch(r"[a-z0-9][a-z0-9+_.-]*", name) or name in result:
             raise RuntimeError(f"Invalid or duplicate application package name: {path}")
         source = document["source"]
-        if (source.get("kind") != "local-content-snapshot" or source["primary"] not in INPUTS
-                or not set(source["projects"]).issubset(INPUTS)
+        if (source.get("kind") != "local-content-snapshot" or source["primary"] not in inputs
+                or not set(source["projects"]).issubset(inputs)
                 or source["primary"] not in source["projects"]):
             raise RuntimeError(f"Application source inputs must name known real projects: {path}")
         if document["build"].get("adapter") != "target-cargo":
             raise RuntimeError(f"Unsupported application adapter: {path}")
+        development = document.get("development", {})
+        if development.get("restart", "reopen") not in {"reopen", "desktop", "services"}:
+            raise RuntimeError(f"Unsupported restart policy: {path}")
+        services = development.get("services", [])
+        if (development.get("restart") == "services" and not services) or any(
+                not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.@-]*\.service", unit) for unit in services):
+            raise RuntimeError(f"Invalid development service units: {path}")
+        for item in document.get("install", {}).get("files", []):
+            relative_path(item["source"])
+            relative_path(item["destination"])
         result[name] = {**document, "recipe": str(path)}
     return result
 
@@ -158,7 +164,7 @@ def prepare(project: Path, output: Path | None = None, *, source_root: Path | No
     if (source_root / "source-manifest.json").exists():
         # Import locally: source_bundle imports the source allowlist above.
         from .source_bundle import verify_workspace
-        portable = verify_workspace(source_root)
+        portable = verify_workspace(source_root, projects=source_inputs(project, include_base=True))
         origin = {"kind": "verified-portable-source-bundle", "root": str(source_root),
                   "identity": portable["identity"],
                   "manifest_sha256": sha256(source_root / "source-manifest.json")}
@@ -168,15 +174,20 @@ def prepare(project: Path, output: Path | None = None, *, source_root: Path | No
     temporary = Path(tempfile.mkdtemp(prefix="prepare-", dir=snapshots))
     try:
         sources = {name: _copy_inputs(source_root / name, temporary / name, inputs)
-                   for name, inputs in INPUTS.items()}
+                   for name, inputs in source_inputs(project).items()}
         if portable is not None:
-            verify_workspace(source_root)
+            verify_workspace(source_root, projects=source_inputs(project, include_base=True))
             for name, record in sources.items():
                 record["origin"] = {"kind": origin["kind"], "identity": portable["sources"][name]["identity"]}
                 for key in ("git_head", "git_dirty"):
                     if key in portable["sources"][name]:
                         record[key] = portable["sources"][name][key]
-        overlays = _shell_overlays(temporary)
+        overlays = []
+        for name, record in source_catalog(project).items():
+            if record.get("overlay") == "telorgon-shell":
+                if name != "test-shell":
+                    raise RuntimeError("Telorgon shell overlay requires test-shell source layout")
+                overlays.extend(_shell_overlays(temporary))
         identity = hashlib.sha256(json.dumps({"sources": {k: v["identity"] for k, v in sources.items()},
                                              "overlays": overlays}, sort_keys=True).encode()).hexdigest()
         workspace = snapshots / identity
@@ -388,7 +399,11 @@ def _install(app: dict, workspace: Path, binary: Path, stage: Path,
     destination.chmod(0o755)
     licenses = stage / "usr/share/licenses" / name
     licenses.mkdir(parents=True)
-    shutil.copy2(workspace / "telorgon/LICENSE", licenses / "GPL-3.0-or-later.txt")
+    for project_name in app["source"]["projects"]:
+        license_file = workspace / project_name / "LICENSE"
+        if license_file.is_file():
+            filename = "GPL-3.0-or-later.txt" if project_name == "telorgon" else f"{project_name}-LICENSE"
+            shutil.copy2(license_file, licenses / filename)
     source = workspace / app["source"]["primary"]
     if (source / "licenses").is_dir():
         shutil.copytree(source / "licenses", licenses / "assets", dirs_exist_ok=True)
@@ -453,6 +468,13 @@ def _install(app: dict, workspace: Path, binary: Path, stage: Path,
             "profile": "desktop", "renderer": "Auto", "screen_cast": capture,
             "capture_backends": ["Vulkan", "Software"] if capture else [],
             "file_chooser_portal": "telorgon-file-explorer", "portal_picker_packaged": True}, indent=2) + "\n")
+    for item in app.get("install", {}).get("files", []):
+        origin = source / item["source"]
+        if origin.is_symlink() or not origin.is_file() or not origin.resolve().is_relative_to(source):
+            raise RuntimeError(f"Invalid application install input: {origin}")
+        target = stage / item["destination"]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(origin, target)
     inventory = {"scope": "embedded fonts, recorded source patches, cached locked Rust crate notices and declared Rust seed library notices",
                  "files": notices}
     _write(stage, f"usr/share/licenses/{name}/notices.json", json.dumps(inventory, indent=2) + "\n")
@@ -462,7 +484,7 @@ def _install(app: dict, workspace: Path, binary: Path, stage: Path,
 def build_app(project: Path, name: str, sysroot: Path | None = None, tools: Path | None = None,
               output: Path | None = None, *, offline: bool = True, jobs: int = 4,
               toolchain: str = EFI_TOOLCHAIN, manifest: Path | None = None,
-              profile: str = "release", development: bool = False) -> dict:
+              profile: str = "release", development: bool = False, plan_only: bool = False) -> dict:
     if name not in catalog(project):
         raise RuntimeError(f"Unknown application package: {name}")
     if profile not in {"dev", "release"}:
@@ -472,13 +494,13 @@ def build_app(project: Path, name: str, sysroot: Path | None = None, tools: Path
     with (locks / f"app-{name}.lock").open("a") as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
         return _build_app(project, name, sysroot, tools, output, offline=offline, jobs=jobs,
-                          toolchain=toolchain, manifest=manifest, profile=profile, development=development)
+                          toolchain=toolchain, manifest=manifest, profile=profile, development=development, plan_only=plan_only)
 
 
 def _build_app(project: Path, name: str, sysroot: Path | None = None, tools: Path | None = None,
               output: Path | None = None, *, offline: bool = True, jobs: int = 4,
               toolchain: str = EFI_TOOLCHAIN, manifest: Path | None = None,
-              profile: str = "release", development: bool = False) -> dict:
+              profile: str = "release", development: bool = False, plan_only: bool = False) -> dict:
     """Build a native ALPM app package against the distro's source-built sysroot."""
     project = Path(project).resolve()
     sysroot = Path(sysroot or project / "out/bootstrap/root").resolve(strict=True)
@@ -519,6 +541,14 @@ def _build_app(project: Path, name: str, sysroot: Path | None = None, tools: Pat
                                         "profile": profile, "development": development,
                                         "incremental_adapter": sha256(Path(__file__).with_name("incremental.py"))}, sort_keys=True).encode()).hexdigest()
     work = output / "build" / name / identity
+    if plan_only:
+        receipt = work / "result.json"
+        cached = json.loads(receipt.read_text()) if receipt.is_file() else None
+        valid = bool(cached and cached.get("build_identity") == identity
+                     and Path(cached["path"]).is_file() and sha256(Path(cached["path"])) == cached.get("sha256"))
+        metadata = app["package"]
+        version = metadata["version"] + (".dev" + identity if development else "") + "-" + str(metadata["revision"])
+        return {"name": name, "version": version, "build_identity": identity, "cached": valid}
     work.mkdir(parents=True, exist_ok=True)
     state = project / "out/state" / ("apps-development" if development else "apps") / f"{name}.json"
     receipt = work / "result.json"

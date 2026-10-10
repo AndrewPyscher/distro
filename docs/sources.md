@@ -44,6 +44,45 @@ origin and source identity in test evidence. Use the
 [pacman deployment loop](build.md#deploy-applications-into-a-running-development-vm)
 for application iteration.
 
+## Register another application
+
+Application discovery uses `packages/*/application.toml`; source snapshot inputs
+come from `source-projects.toml`. Adding a Cargo app does not require editing a
+Python application list:
+
+1. Register its owning repository under `sources/` in `.gitmodules`, with a
+   reviewed immutable gitlink. Add its input paths to `source-projects.toml`,
+   including `Cargo.toml`, `Cargo.lock`, source, assets and packaging files.
+2. Add one package directory with `application.toml`. Follow an existing app's
+   package, source, target-Cargo build, requirements and runtime declarations.
+   List every source project affecting its build, including the framework.
+   This dependency list determines which apps rebuild after shared changes.
+3. Add the package to the intended profile or another package's runtime
+   dependencies. `dev` updates apps used by that VM profile and its dependency
+   closure, rather than every app in the organization.
+
+The default installer packages the declared binary and available license
+inputs. Optional source-owned launcher/service files can be declared as:
+
+```toml
+[install]
+files = [{ source = "packaging/org.example.terminal.desktop", destination = "usr/share/applications/org.example.terminal.desktop" }]
+
+[development]
+restart = "reopen"
+```
+
+Source/destination paths are relative to the primary source and package root.
+Use `restart = "desktop"` for a compositor, or `restart = "services"` with
+`services = ["example.service"]` for user services. Ordinary apps default to
+`reopen`. Source projects default to package updates; `update = "base"` marks
+loader/base inputs that require a fresh image. The current build adapter supports
+target Cargo applications; a new build system needs a corresponding adapter.
+
+Run `python3 build.py validate`, inspect `python3 build.py apps plan`, and test
+the [automatic update plan](build.md#update-changed-applications-automatically)
+before deployment. Keep immutable pins and package versions in their manifests.
+
 ## Portable source bundles
 
 To export the current source checkouts, including local edits:

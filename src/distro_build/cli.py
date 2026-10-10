@@ -287,10 +287,10 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
                     raise BuildError("desktop SDK preflight failed; see missing inputs above")
                 step("apps", "build", "--sysroot", sdk["sysroot"], "--jobs", jobs, *online)
 
-            cache.run("apps", lambda: engine + [project / "packages"] + rust_seeds + sdk_outputs(None)
-                      + [source_root / name for name in apps.INPUTS],
+            cache.run("apps", lambda: engine + [project / "packages", project / "source-projects.toml"] + rust_seeds + sdk_outputs(None)
+                      + [source_root / name for name in apps.source_inputs(project)],
                       lambda _: package_outputs(project, list(apps.catalog(project)), applications=True), applications,
-                      options={name: _git_metadata(source_root / name) for name in apps.INPUTS})
+                      options={name: _git_metadata(source_root / name) for name in apps.source_inputs(project)})
 
         def image():
             emit({"event": "stage", "command": ["image", "--profile", args.profile]})
@@ -395,6 +395,16 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("--online", action="store_true")
     action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ submodules)")
     action.add_argument("--jobs", type=int, default=4)
+    action = actions.add_parser("dev", help="Plan and deploy changed registered apps to a running development VM")
+    action.add_argument("--name", required=True, help="Running development VM name")
+    action.add_argument("--source-root", type=Path)
+    action.add_argument("--jobs", type=positive_integer, default=4)
+    action.add_argument("--offline", action="store_true", help="Use cached upstream references and Cargo inputs; upstream freshness is not network verified")
+    action.add_argument("--build-profile", choices=("dev", "release"), default="dev")
+    action.add_argument("--plan", action="store_true", help="Inspect package and compatibility decisions without compiling, fetching or installing")
+    action.add_argument("--adopt-base", action="store_true", help="Establish an older VM's first base-input baseline after compatibility checks")
+    action.add_argument("--no-restart", action="store_true", help="Leave updated apps/services running; reopen or restart them manually")
+    action.add_argument("--timeout", type=vm_timeout, default=120)
     action = actions.add_parser("deploy", help="Build and install applications into a running named desktop-dev VM")
     action.add_argument("names", nargs="+")
     action.add_argument("--name", required=True, help="Running development VM name")
@@ -512,6 +522,14 @@ def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
                 output = project / output
             result = run(args.image or project / "out/images/custom-distro.img", output, timeout=args.timeout, headless=not (args.window or args.interactive), expect=args.expect, project=project,
                          desktop_input=args.desktop_input, interactive=args.interactive)
+            report(result)
+            return 0 if result["success"] else 1
+        elif args.command == "dev":
+            from .development import develop
+            result = develop(project, name=args.name, source_root=args.source_root, jobs=args.jobs,
+                             profile=args.build_profile, offline=args.offline, plan_only=args.plan,
+                             adopt_base=args.adopt_base, restart=not args.no_restart,
+                             timeout=args.timeout, emit=emit)
             report(result)
             return 0 if result["success"] else 1
         elif args.command == "deploy":

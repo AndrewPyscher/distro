@@ -29,17 +29,24 @@ python3 build.py vm --use --development --name dev
 ## Change source and test it
 
 Edit the owning repository under `sources/`. Keep QEMU running, then use a second
-Linux terminal to build and install the affected apps through guest pacman:
+Linux terminal to discover, build and install changed apps through guest pacman:
 
 ```sh
-python3 build.py deploy telorgon-shell telorgon-file-explorer \
-  telorgon-settings-app telorgon-portal-picker --name dev --build-profile release
+python3 build.py dev --name dev --plan --adopt-base
+python3 build.py dev --name dev --adopt-base --build-profile release
 ```
 
-Deployment restarts the desktop and closes apps, so save work first. Test the
-actual interaction after installation. A framework renderer change requires
-rebuilding all four apps. Generated snapshots under `out/` are build outputs;
-the implementation belongs in the source checkout.
+Use `--adopt-base` only for the VM's first development update, after reviewing
+the plan and confirming its base matches your workspace. Later updates use
+`python3 build.py dev --name dev --build-profile release`.
+The command fetches canonical upstream references and stops if integration is
+needed; it preserves local edits and source pins. It rebuilds only changed app
+packages, including consumers of framework changes, and leaves the OS image
+alone. Shell updates restart the desktop and close apps, so save work first;
+ordinary apps need reopening. Test the actual interaction after installation.
+See the [automatic update workflow](docs/build.md#update-changed-applications-automatically)
+for base changes, offline work and new application registration.
+Generated snapshots under `out/` are build outputs; implement fixes in source.
 
 For a normal desktop image without the deployment channel, use `./run`.
 For a bounded base-system boot check, use:

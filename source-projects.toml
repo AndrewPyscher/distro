@@ -1,0 +1,22 @@
+schema = 1
+
+# Source pins remain in .gitmodules/gitlinks. This catalog declares build inputs.
+[projects.telorgon]
+inputs = ["Cargo.toml", "Cargo.lock", "LICENSE", "README.md", "crates", "third_party", "packaging"]
+
+[projects.test-shell]
+inputs = ["Cargo.toml", "Cargo.lock", "src", "assets", "licenses", "tests"]
+overlay = "telorgon-shell"
+
+[projects.telorgon-file-explorer]
+inputs = ["Cargo.toml", "Cargo.lock", "src", "assets", "licenses", "packaging"]
+
+[projects.telorgon-settings-app]
+inputs = ["Cargo.toml", "Cargo.lock", "src", "assets"]
+
+[projects.telorgon-portal-picker]
+inputs = ["Cargo.toml", "Cargo.lock", "src", "assets", "licenses"]
+
+[projects.telorgon-bootloader]
+inputs = ["Cargo.toml", "Cargo.lock", "LICENSE", "README.md", "crates", "configs", "tools"]
+update = "base"

@@ -8,12 +8,13 @@ import stat
 import tarfile
 import tempfile
 
-from .apps import INPUTS, _copy_inputs
+from .apps import _copy_inputs
+from .source_projects import DEFAULT_PROJECT, inputs as source_inputs
 from .model import BuildError
 from .sources import extract, sha256
 
 
-BUNDLE_INPUTS = {**INPUTS, "telorgon-bootloader": ("Cargo.toml", "Cargo.lock", "LICENSE", "README.md", "crates", "configs", "tools")}
+BUNDLE_INPUTS = source_inputs(DEFAULT_PROJECT, include_base=True)
 
 
 def export_bundle(project: Path, source_root: Path | None = None) -> dict:
@@ -24,7 +25,7 @@ def export_bundle(project: Path, source_root: Path | None = None) -> dict:
     with tempfile.TemporaryDirectory(prefix="export-", dir=output) as temporary:
         workspace = Path(temporary)
         sources = {}
-        for name, inputs in BUNDLE_INPUTS.items():
+        for name, inputs in source_inputs(project, include_base=True).items():
             record = _copy_inputs(source_root / name, workspace / name, inputs)
             # Match tarfile's data-filter mode policy, preserving source bytes
             # and owner execution while removing writable/SUID transport bits.
@@ -68,7 +69,7 @@ def export_bundle(project: Path, source_root: Path | None = None) -> dict:
     return result
 
 
-def verify_workspace(root: Path) -> dict:
+def verify_workspace(root: Path, *, projects: dict | None = None) -> dict:
     root = root.resolve(strict=True)
     document = root / "source-manifest.json"
     if document.stat().st_size > 16 * 1024 * 1024:
@@ -76,7 +77,7 @@ def verify_workspace(root: Path) -> dict:
     manifest = json.loads(document.read_text())
     if manifest.get("schema") != 1 or manifest.get("kind") != "telorgon-source-workspace":
         raise BuildError("unsupported workspace source manifest")
-    if set(manifest["sources"]) != set(BUNDLE_INPUTS):
+    if set(manifest["sources"]) != set(projects if projects is not None else BUNDLE_INPUTS):
         raise BuildError("workspace source project set differs from the catalog")
     body = {key: value for key, value in manifest.items() if key != "identity"}
     identity = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
@@ -119,11 +120,11 @@ def import_bundle(project: Path, archive: Path, expected_sha256: str) -> dict:
     output.mkdir(parents=True, exist_ok=True)
     destination = output / expected_sha256
     if destination.exists():
-        manifest = verify_workspace(destination)
+        manifest = verify_workspace(destination, projects=source_inputs(project, include_base=True))
     else:
         with tempfile.TemporaryDirectory(prefix="import-", dir=output) as temporary:
             root = extract(archive, Path(temporary) / "workspace")
-            manifest = verify_workspace(root)
+            manifest = verify_workspace(root, projects=source_inputs(project, include_base=True))
             root.rename(destination)
     result = {"schema": 1, "root": str(destination), "identity": manifest["identity"], "archive_sha256": expected_sha256,
               "origin": "verified-portable-source-bundle", "manifest": str(destination / "source-manifest.json")}
