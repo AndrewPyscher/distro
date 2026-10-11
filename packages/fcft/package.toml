@@ -1,0 +1,24 @@
+schema = 1
+
+[package]
+name = "fcft"
+version = "3.3.3"
+revision = 1
+arch = "x86_64"
+description = "Font loading and glyph rendering for Wayland clients"
+license = "MIT"
+
+[[sources]]
+name = "main"
+url = "https://codeberg.org/dnkl/fcft/archive/3.3.3.tar.gz"
+filename = "fcft-3.3.3.tar.gz"
+sha256 = "b0c0f4a599f43723736c8565b8b84337c4195077f07f1bb8bb3252bb13a2306a"
+
+[dependencies]
+native = []
+target = ["glibc", "fontconfig", "freetype", "pixman", "harfbuzz", "utf8proc", "tllist"]
+runtime = ["glibc", "fontconfig", "freetype", "pixman", "harfbuzz", "utf8proc"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]

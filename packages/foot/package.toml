@@ -1,0 +1,43 @@
+schema = 1
+
+[package]
+name = "foot"
+version = "1.28.0"
+revision = 1
+arch = "x86_64"
+description = "Wayland terminal emulator"
+license = "MIT"
+backup = ["etc/xdg/foot/foot.ini"]
+
+[[sources]]
+name = "main"
+url = "https://codeberg.org/dnkl/foot/archive/1.28.0.tar.gz"
+filename = "foot-1.28.0.tar.gz"
+sha256 = "4296be402b5684d049534598e69db92b918f92beac9dab76b585207045f0b037"
+
+[[sources]]
+name = "wayland"
+url = "https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.24.0/downloads/wayland-1.24.0.tar.xz"
+filename = "wayland-1.24.0.tar.xz"
+sha256 = "82892487a01ad67b334eca83b54317a7c86a03a89cfadacfef5211f11a5d0536"
+
+[[sources]]
+name = "expat"
+url = "https://github.com/libexpat/libexpat/releases/download/R_2_7_1/expat-2.7.1.tar.xz"
+filename = "expat-2.7.1.tar.xz"
+sha256 = "354552544b8f99012e5062f7d570ec77f14b412a3ff5c7d8d0dae62c0d217c30"
+
+[[sources]]
+name = "ncurses"
+url = "https://ftp.gnu.org/gnu/ncurses/ncurses-6.5.tar.gz"
+filename = "ncurses-6.5.tar.gz"
+sha256 = "136d91bc269a9a5785e5f9e980bc76ab57428f604ce3e5a5a90cebc767971cc6"
+
+[dependencies]
+native = []
+target = ["glibc", "wayland", "wayland-protocols", "libxkbcommon", "fontconfig", "pixman", "fcft", "utf8proc", "tllist"]
+runtime = ["glibc", "wayland", "libxkbcommon", "fontconfig", "pixman", "fcft", "utf8proc", "ncurses", "fonts-dejavu", "busybox", "xdg-utils"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]

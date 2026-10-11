@@ -1,0 +1,24 @@
+schema = 1
+
+[package]
+name = "pixman"
+version = "0.46.4"
+revision = 1
+arch = "x86_64"
+description = "Software pixel compositing library"
+license = "MIT"
+
+[[sources]]
+name = "main"
+url = "https://cairographics.org/releases/pixman-0.46.4.tar.gz"
+filename = "pixman-0.46.4.tar.gz"
+sha256 = "d09c44ebc3bd5bee7021c79f922fe8fb2fb57f7320f55e97ff9914d2346a591c"
+
+[dependencies]
+native = []
+target = ["glibc"]
+runtime = ["glibc"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]

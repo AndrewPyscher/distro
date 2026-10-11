@@ -1,0 +1,24 @@
+schema = 1
+
+[package]
+name = "freetype"
+version = "2.14.1"
+revision = 1
+arch = "x86_64"
+description = "FreeType font rasterization library"
+license = "FTL OR GPL-2.0-only"
+
+[[sources]]
+name = "main"
+url = "https://download.savannah.gnu.org/releases/freetype/freetype-2.14.1.tar.xz"
+filename = "freetype-2.14.1.tar.xz"
+sha256 = "32427e8c471ac095853212a37aef816c60b42052d4d9e48230bab3bdf2936ccc"
+
+[dependencies]
+native = []
+target = ["glibc", "zlib", "libpng"]
+runtime = ["glibc", "zlib", "libpng"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]

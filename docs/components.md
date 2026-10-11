@@ -8,7 +8,7 @@ first for the relationships between applications, the shell, services and Linux.
 For an explanation of each individual component, read the
 [component reference](architecture.md#component-reference).
 
-Coverage: **78 package recipes and 6 source projects**.
+Coverage: **88 package recipes and 6 source projects**.
 Kernel subsystems and transitive Cargo dependencies remain inside their owning
 components. Repository infrastructure is listed [below](#repository-infrastructure).
 
@@ -38,11 +38,12 @@ same grouping as text. **P** means a package recipe; **S** means a source reposi
 
 ### Applications
 
-Separate desktop processes with interfaces built using the Telorgon SDK.
+Installed desktop applications, including Telorgon SDK applications and native Wayland clients.
 
 | Function | Components | Responsibility |
 | --- | --- | --- |
 | Files and downloads | P: [`telorgon-file-explorer`](../packages/file-explorer/application.toml)<br>S: [`sources/telorgon-file-explorer`](https://github.com/WIPOperatingSystemName/file-explorer) | File manager, downloads and the FileChooser portal backend. |
+| Terminal | P: [`foot`](../packages/foot/package.toml) | Native Wayland command-line access. |
 | Desktop settings | P: [`telorgon-settings-app`](../packages/settings-app/application.toml)<br>S: [`sources/telorgon-settings-app`](https://github.com/WIPOperatingSystemName/settings) | Display, audio, network, power and personalization controls. |
 | Sharing consent | P: [`telorgon-portal-picker`](../packages/portal-picker/application.toml)<br>S: [`sources/telorgon-portal-picker`](https://github.com/WIPOperatingSystemName/portal-picker) | Screen-sharing selection UI; capture support depends on the packaged SDK capability. |
 
@@ -75,6 +76,7 @@ Libraries and data used by the compositor and services to work with kernel devic
 | Function | Components | Responsibility |
 | --- | --- | --- |
 | Display and window protocol | P: [`wayland`](../packages/wayland/package.toml)<br>P: [`libdrm`](../packages/libdrm/package.toml)<br>P: [`mesa-gbm`](../packages/mesa-gbm/package.toml) | Wayland client/server protocol, DRM/KMS access and GBM buffers; the distro uses CPU rendering. |
+| Fonts and software text rendering | P: [`fontconfig`](../packages/fontconfig/package.toml)<br>P: [`freetype`](../packages/freetype/package.toml)<br>P: [`harfbuzz`](../packages/harfbuzz/package.toml)<br>P: [`fcft`](../packages/fcft/package.toml)<br>P: [`pixman`](../packages/pixman/package.toml)<br>P: [`utf8proc`](../packages/utf8proc/package.toml)<br>P: [`fonts-dejavu`](../packages/fonts-dejavu/package.toml) | Font discovery, glyph rasterization, Unicode shaping and CPU pixel composition. |
 | Input and keyboard layouts | P: [`libinput`](../packages/libinput/package.toml)<br>P: [`libevdev`](../packages/libevdev/package.toml)<br>P: [`mtdev`](../packages/mtdev/package.toml)<br>P: [`libxkbcommon`](../packages/libxkbcommon/package.toml)<br>P: [`xkeyboard-config`](../packages/xkeyboard-config/package.toml) | Input event processing, multitouch, keyboard state and layout data. |
 | Seat and device access | P: [`libseat`](../packages/libseat/package.toml)<br>P: [`libgudev`](../packages/libgudev/package.toml) | libseat includes seatd; libgudev wraps the selected libudev provider for GLib clients. |
 
@@ -87,7 +89,7 @@ Shared foundations used across the upper layers; applications can call them dire
 | Language runtimes and isolation | P: [`glibc`](../packages/glibc/package.toml)<br>P: [`libgcc`](../packages/libgcc/package.toml)<br>P: [`libstdc++`](../packages/libstdc++/package.toml)<br>P: [`libcap`](../packages/libcap/package.toml)<br>P: [`libseccomp`](../packages/libseccomp/package.toml) | C and C++ runtimes, compiler support, capabilities and syscall filtering. |
 | Objects, parsing and images | P: [`glib`](../packages/glib/package.toml)<br>P: [`json-glib`](../packages/json-glib/package.toml)<br>P: [`libffi`](../packages/libffi/package.toml)<br>P: [`pcre2`](../packages/pcre2/package.toml)<br>P: [`expat`](../packages/expat/package.toml)<br>P: [`libxml2`](../packages/libxml2/package.toml)<br>P: [`libpng`](../packages/libpng/package.toml) | GLib/GObject/GIO, JSON, foreign calls, regular expressions, XML and PNG decoding. |
 | Archives and compression | P: [`libarchive`](../packages/libarchive/package.toml)<br>P: [`zlib`](../packages/zlib/package.toml)<br>P: [`xz`](../packages/xz/package.toml) | Archive handling and gzip/DEFLATE and XZ/LZMA compression. |
-| System and package tools | P: [`busybox`](../packages/busybox/package.toml)<br>P: [`util-linux`](../packages/util-linux/package.toml)<br>P: [`pacman`](../packages/pacman/package.toml) | Early userspace and repair tools, login and mount utilities, pacman and libalpm. |
+| System and package tools | P: [`busybox`](../packages/busybox/package.toml)<br>P: [`util-linux`](../packages/util-linux/package.toml)<br>P: [`pacman`](../packages/pacman/package.toml)<br>P: [`ncurses`](../packages/ncurses/package.toml) | Early userspace and repair tools, login and mount utilities, pacman and libalpm. |
 | Package signatures and crypto | P: [`gnupg`](../packages/gnupg/package.toml)<br>P: [`gpgme`](../packages/gpgme/package.toml)<br>P: [`libgpg-error`](../packages/libgpg-error/package.toml)<br>P: [`libgcrypt`](../packages/libgcrypt/package.toml)<br>P: [`libassuan`](../packages/libassuan/package.toml)<br>P: [`libksba`](../packages/libksba/package.toml)<br>P: [`npth`](../packages/npth/package.toml) | OpenPGP verification, cryptographic primitives, certificate structures and GnuPG support. |
 
 ### Linux kernel
@@ -113,7 +115,7 @@ Catalog components with special roles; these are not an additional layer below t
 | Function | Components | Responsibility |
 | --- | --- | --- |
 | Private VM deployment | P: [`qemu-guest-agent`](../packages/qemu-guest-agent/package.toml) | Development-only guest agent for package deployment into desktop-dev VMs. |
-| Translation and protocol inputs | P: [`gettext`](../packages/gettext/package.toml)<br>P: [`wayland-protocols`](../packages/wayland-protocols/package.toml) | Translation tooling and Wayland extension XML used during builds; not desktop daemons. |
+| Translation and protocol inputs | P: [`gettext`](../packages/gettext/package.toml)<br>P: [`wayland-protocols`](../packages/wayland-protocols/package.toml)<br>P: [`tllist`](../packages/tllist/package.toml) | Translation tooling and Wayland extension XML used during builds; not desktop daemons. |
 | Alternate device provider | P: [`libudev`](../packages/libudev/package.toml) | Standalone eudev recipe. Desktop images use systemd's udev/libudev provider instead. |
 
 ## Repository infrastructure

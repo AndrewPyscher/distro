@@ -3,7 +3,7 @@
 
 [[layers]]
 title = "Applications"
-description = "Separate desktop processes with interfaces built using the Telorgon SDK."
+description = "Installed desktop applications, including Telorgon SDK applications and native Wayland clients."
 color = "#2563eb"
 
 [[layers.groups]]
@@ -11,6 +11,11 @@ title = "Files and downloads"
 description = "File manager, downloads and the FileChooser portal backend."
 packages = ["telorgon-file-explorer"]
 projects = ["telorgon-file-explorer"]
+
+[[layers.groups]]
+title = "Terminal"
+description = "Native Wayland command-line access."
+packages = ["foot"]
 
 [[layers.groups]]
 title = "Desktop settings"
@@ -86,6 +91,11 @@ description = "Wayland client/server protocol, DRM/KMS access and GBM buffers; t
 packages = ["wayland", "libdrm", "mesa-gbm"]
 
 [[layers.groups]]
+title = "Fonts and software text rendering"
+description = "Font discovery, glyph rasterization, Unicode shaping and CPU pixel composition."
+packages = ["fontconfig", "freetype", "harfbuzz", "fcft", "pixman", "utf8proc", "fonts-dejavu"]
+
+[[layers.groups]]
 title = "Input and keyboard layouts"
 description = "Input event processing, multitouch, keyboard state and layout data."
 packages = ["libinput", "libevdev", "mtdev", "libxkbcommon", "xkeyboard-config"]
@@ -118,7 +128,7 @@ packages = ["libarchive", "zlib", "xz"]
 [[layers.groups]]
 title = "System and package tools"
 description = "Early userspace and repair tools, login and mount utilities, pacman and libalpm."
-packages = ["busybox", "util-linux", "pacman"]
+packages = ["busybox", "util-linux", "pacman", "ncurses"]
 
 [[layers.groups]]
 title = "Package signatures and crypto"
@@ -158,7 +168,7 @@ packages = ["qemu-guest-agent"]
 [[layers.groups]]
 title = "Translation and protocol inputs"
 description = "Translation tooling and Wayland extension XML used during builds; not desktop daemons."
-packages = ["gettext", "wayland-protocols"]
+packages = ["gettext", "wayland-protocols", "tllist"]
 
 [[layers.groups]]
 title = "Alternate device provider"

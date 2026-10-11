@@ -109,6 +109,10 @@ For a normal desktop without that channel:
 ./run
 ```
 
+The desktop includes the Foot terminal. Open **Foot** from the application launcher
+or press **Ctrl+Alt+T** with desktop focus. A terminal window with a shell prompt confirms
+that it launched. Fonts and terminal capability data are included in the image.
+
 This defaults to `desktop-use`. Framework, loader and apps must form a compatible
 source set. Before compiling, builds fetch organization `main` and fast-forward
 local component clones, including existing uncommitted edits in snapshots. If

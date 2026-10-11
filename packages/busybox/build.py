@@ -32,7 +32,7 @@ enabled = {
     "FEATURE_SH_MATH", "FEATURE_SH_MATH_64",
     "FEATURE_TAB_COMPLETION", "LONG_OPTS", "FEATURE_VERBOSE_USAGE", "FEATURE_DEVPTS",
     "LS", "CAT", "ENV", "PRINTF", "ECHO", "MOUNT", "UMOUNT", "MKDIR", "MKNOD",
-    "CTTYHACK", "SETSID", "SLEEP", "DMESG", "UNAME", "SYNC", "REBOOT", "POWEROFF",
+    "CTTYHACK", "SETSID", "SLEEP", "STTY", "TEE", "DMESG", "UNAME", "SYNC", "REBOOT", "POWEROFF",
     "HALT", "PS", "KILL", "TOUCH", "RM", "CP", "MV", "LN", "HEAD", "TAIL", "GREP",
     "SED", "FIND", "CHMOD", "CHOWN", "PWD", "TEST", "TRUE", "FALSE", "HEXDUMP",
     "STAT", "FEATURE_STAT_FORMAT", "ID", "WHOAMI", "TTY", "DF", "DU", "READLINK", "CUT", "WC", "SORT", "DATE", "DD", "CHROOT",
@@ -60,7 +60,7 @@ if missing_symbols:
 config.write_text("\n".join(result) + "\n")
 subprocess.run(base + ["oldconfig"], input="\n" * 1024, text=True, check=True)
 resolved = config.read_text()
-required = ["STATIC", "ASH", "SH_IS_ASH", "MOUNT", "FINDFS", "SWITCH_ROOT", "VOLUMEID", "FEATURE_VOLUMEID_EXT", "FEATURE_STAT_FORMAT", "ID"]
+required = ["STATIC", "ASH", "SH_IS_ASH", "MOUNT", "FINDFS", "SWITCH_ROOT", "VOLUMEID", "FEATURE_VOLUMEID_EXT", "FEATURE_STAT_FORMAT", "ID", "STTY", "TEE"]
 missing = [key for key in required if f"CONFIG_{key}=y\n" not in resolved]
 if missing:
     raise SystemExit(f"BusyBox configuration dropped required options: {missing}")

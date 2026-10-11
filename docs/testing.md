@@ -43,6 +43,13 @@ Use a new image and unused VM name for runtime libraries, kernel, loader or
 system policy. A saved disk keeps its installed state across image rebuilds.
 The private deploy command updates application packages only.
 
+For terminal changes, open Foot from the launcher and with **Ctrl+Alt+T** while
+the desktop has focus. In the terminal, run `tty`, `stty size`,
+`infocmp "$TERM"` and `tput colors`; confirm a PTY, valid terminal definitions
+and 256 colors. Resize the window and check that `stty size` changes and text
+remains readable. Check colored output and Unicode text with the packaged font,
+and confirm the launcher shows one Foot entry.
+
 ## Hover performance
 
 On WSL, verify the [WSLg frame-rate setting](setup.md#wslg-frame-rate), Windows

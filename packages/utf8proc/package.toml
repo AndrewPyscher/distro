@@ -1,0 +1,24 @@
+schema = 1
+
+[package]
+name = "utf8proc"
+version = "2.11.3"
+revision = 1
+arch = "x86_64"
+description = "Unicode normalization and grapheme processing"
+license = "MIT AND Unicode-3.0"
+
+[[sources]]
+name = "main"
+url = "https://github.com/JuliaStrings/utf8proc/archive/refs/tags/v2.11.3.tar.gz"
+filename = "utf8proc-2.11.3.tar.gz"
+sha256 = "abfed50b6d4da51345713661370290f4f4747263ee73dc90356299dfc7990c78"
+
+[dependencies]
+native = []
+target = ["glibc"]
+runtime = ["glibc"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]
