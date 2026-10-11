@@ -11,7 +11,7 @@ runtime packages or root filesystem.
 Follow these guides in order:
 
 1. **[Set up your environment](docs/setup.md)** — prepare Linux or WSL2, install
-   the host tools and Rustup, configure Git and desktop access, create your
+   the host tools and Rustup, configure Git, KVM and desktop access, create your
    workspace and verify prerequisites.
 2. **[Build and open your first VM](docs/build.md#first-build)** — choose a
    desktop profile, build the OS from source and check the running desktop.

@@ -100,6 +100,51 @@ Clang/libclang for Rust bindings, the QEMU emulator and GUI, and OVMF firmware.
 `gh` is the GitHub CLI used by the contributor workspace helper. The bootstrap
 builds its pinned private Meson and additional generators under `out/`.
 
+### KVM access
+
+Configure hardware-accelerated VM access before your first build. Without it,
+QEMU falls back to much slower TCG CPU emulation, including for Telorgon's CPU
+renderer.
+
+1. In your **Ubuntu/Linux terminal**, check that the QEMU installation created
+   the `kvm` group, then add your normal account while preserving its other groups:
+
+   ```sh
+   getent group kvm
+   sudo usermod -aG kvm "$USER"
+   ```
+
+   If the group is missing, check that the Ubuntu QEMU packages above were
+   installed before running `usermod`. Run the builder and workspace helper as
+   your normal user; only the `usermod` command needs `sudo`.
+
+2. **Start a new login session.** On native Ubuntu, log out of the desktop and
+   sign in again; opening another terminal in the old session is not sufficient.
+   On WSL, save your Ubuntu work and run in **Windows PowerShell**:
+
+   ```powershell
+   wsl --terminate Ubuntu-24.04
+   ```
+
+   Replace `Ubuntu-24.04` with the name from `wsl --list --verbose`, then reopen
+   Ubuntu. This stops the processes in that distribution. To activate the group
+   in just your current Linux terminal instead, run `newgrp kvm` and continue
+   from the new shell it opens.
+
+3. In the **new Linux session**, verify device access:
+
+   ```sh
+   id -nG
+   ls -l /dev/kvm
+   test -r /dev/kvm && test -w /dev/kvm && echo "KVM device access OK"
+   ```
+
+   The group list should include `kvm` and the access check should print success.
+   The first VM launch must also report **`VM acceleration: KVM`**; permissions
+   alone do not prove that KVM can initialize. If the device is missing or the
+   launcher still selects TCG, follow [KVM and firmware](#kvm-and-firmware).
+   Hosts without usable KVM can still build and run using slower TCG emulation.
+
 ### Rustup and Rust toolchain
 
 Install Rustup as your normal Linux user. Skip the installer if `rustup` is
@@ -172,6 +217,22 @@ forks for distro and those components. It sets `origin` to the organization and
 rerunning it fast-forwards component clones when safe and stops on conflicts.
 Older distro checkouts still use their legacy submodule setup until updated.
 
+On Linux, the helper also checks KVM access. In an interactive terminal, it runs
+`sudo usermod -aG kvm` for your account when the device belongs to `kvm` and your
+membership is missing. It asks you to start a new login session when membership
+is added or is already recorded but inactive. Reruns preserve existing groups
+and skip changes when device access works. Without an interactive terminal, it
+prints the required command instead of invoking `sudo`; `--kvm skip` skips this
+step explicitly. A missing KVM device or different device permissions need the
+[KVM troubleshooting checks](#kvm-and-firmware).
+
+After starting the new session, check access without cloning, GitHub setup or
+host changes:
+
+```sh
+python3 ~/wip-os/.github/setup.py --kvm check
+```
+
 If `~/wip-os/.github` already exists, skip the clone and rerun its `setup.py`.
 Open **`~/wip-os`** in your editor or coding agent so the organization docs and
 component repositories are available together. The build checkout is
@@ -226,6 +287,8 @@ You are ready to build when:
   `x86_64-unknown-linux-gnu` and `x86_64-unknown-uefi`.
 - QEMU prints its version, its display list includes `gtk`, and both OVMF
   firmware files are present (the paths above are for Ubuntu).
+- For hardware-accelerated VMs, the [KVM access check](#kvm-access) succeeds in
+  the session that will launch QEMU. Confirm `VM acceleration: KVM` at launch.
 - For a desktop VM, run from a working graphical session on native Linux or
   WSLg, with `DISPLAY` or `WAYLAND_DISPLAY` set. Check with
   `printenv DISPLAY WAYLAND_DISPLAY`. WSLg supplies these values under WSL;
@@ -246,7 +309,7 @@ a GitHub account does not require it.
 `doctor` checks the declared host seeds and QEMU Guest Agent's Python venv
 support. It does not check Rustup/Cargo, QEMU or firmware, so complete the
 separate checks above. [KVM and firmware](#kvm-and-firmware) covers firmware
-overrides and optional hardware acceleration on other hosts. Host systemd is not
+overrides and unavailable hardware acceleration. Host systemd is not
 required for the guest's systemd desktop session.
 
 **Next: [build and open your first VM](build.md#first-build).**
@@ -400,18 +463,23 @@ the Windows display bridge before rebuilding the OS:
 ### KVM and firmware
 
 The launcher probes KVM and otherwise uses slower TCG software emulation.
-Check device access as your normal user:
+Complete [KVM access](#kvm-access) during the normal Ubuntu setup, including
+starting a new login session after changing group membership. For troubleshooting,
+check access in the same Linux session that launches QEMU:
 
 ```sh
 ls -l /dev/kvm
 test -r /dev/kvm && test -w /dev/kvm
 ```
 
-If `/dev/kvm` exists and access is restricted to the `kvm` group, add your user
-to that group with `sudo usermod -aG kvm "$USER"`, then start a new login session.
-Do not run the whole builder as root. The launcher's `VM acceleration: KVM`
-message and VM report establish whether its initialization probe succeeded.
-On WSL, hardware/Windows/WSL support may still prevent nested KVM.
+If membership is recorded in `getent group kvm` but absent from `id -nG`, the
+current session still has the old groups. If `kvm` is active but access is denied,
+inspect device permissions rather than repeating `usermod`. A missing device
+requires checking host kernel and hardware virtualization support; adding a
+group cannot create it. On WSL, hardware/Windows/WSL support may still prevent
+nested KVM. Do not run the whole builder as root. The launcher's
+`VM acceleration: KVM` message and VM report establish whether its initialization
+probe succeeded.
 
 OVMF is detected from the installed firmware paths. For an explicit matching
 Ubuntu firmware pair:
