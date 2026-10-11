@@ -438,6 +438,7 @@ camera does not establish portal consent, capture or screen-sharing behavior.
 | Symptom | Check |
 | --- | --- |
 | QEMU window cannot open | Check GTK support and the WSLg display environment; see [setup](setup.md) |
+| Black QEMU window on WSL despite successful guest boot | Check `weston.log` for shared-memory transport errors; see [blank WSLg windows](setup.md#blank-or-black-wslg-windows) |
 | Low visible frame rate on WSL | Verify `.wslgconfig`, `weston.log`, Windows/guest display rates and KVM separately |
 | TCG instead of KVM | Read the launcher's probe failure and check `/dev/kvm` access; do not run the builder as root |
 | Rebuilt changes absent | Confirm the VM name and deployment receipt; a saved disk is not replaced by image composition |

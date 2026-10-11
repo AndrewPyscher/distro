@@ -353,6 +353,50 @@ monitor and check the guest display mode too: its refresh rate is a separate
 limit. Guest FPS and renderer CPU timings do not prove the rate visible on the
 Windows monitor. Remove the entry and restart WSL to restore its default.
 
+### Blank or black WSLg windows
+
+A black QEMU window can come from WSLg even when the guest has booted. Check
+the Windows display bridge before rebuilding the OS:
+
+1. In your **Linux terminal**, inspect the recent WSLg log:
+
+   ```sh
+   tail -n 100 /mnt/wslg/weston.log
+   ```
+
+   Repeated `rdp_allocate_shared_memory: Failed to open` messages with
+   `Input/output error` indicate a shared-memory transport failure. This
+   matches reports in [Microsoft's WSLg issue tracker](https://github.com/microsoft/wslg/issues/1456).
+   Guest boot logs and a QEMU screen capture can still show a running desktop;
+   they do not establish that Windows displays the window correctly.
+
+2. Back up **`%USERPROFILE%\.wslgconfig` on Windows** and merge the following
+   entry into its existing `[system-distro-env]` section. For inbox WSL, use
+   `C:\ProgramData\Microsoft\WSL\.wslgconfig`. Preserve other settings, including
+   `WESTON_RDP_MONITOR_REFRESH_RATE`:
+
+   ```ini
+   [system-distro-env]
+   WESTON_RDP_SHARED_MEMORY=false
+   ```
+
+   Microsoft's [WSLg configuration options](https://github.com/microsoft/wslg/wiki/WSLg-Configuration-Options-for-Debugging)
+   describe this switch and the configuration locations. It disables the shared
+   memory path and uses copied frames, which can affect display performance.
+   Apply this workaround when the log shows the failure above.
+
+3. Save work in every WSL session and stop guest VMs. In **Windows PowerShell**:
+
+   ```powershell
+   wsl --shutdown
+   ```
+
+   This stops every WSL distribution. Reopen Ubuntu and run `./run` from the
+   distro repository. Completion means the QEMU window visibly shows the
+   desktop and responds to input, with no new shared-memory allocation errors
+   in `weston.log`. The setting takes effect after restarting WSL and needs no
+   OS image rebuild. Remove the added entry and restart WSL to undo it.
+
 ### KVM and firmware
 
 The launcher probes KVM and otherwise uses slower TCG software emulation.
