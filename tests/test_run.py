@@ -36,7 +36,7 @@ class RunTests(unittest.TestCase):
         self.entry = cli.main
         self.events = []
 
-    def invoke(self, *arguments, fail_stage=None, sdk_ready=True, boot_ok=True, desktop_start=None, progress_events=False):
+    def invoke(self, *arguments, fail_stage=None, sync_error=None, sdk_ready=True, boot_ok=True, desktop_start=None, progress_events=False):
         def stage(argv, *, quiet):
             self.assertTrue(quiet)
             self.assertEqual(argv[:2], ["--project", str(self.project)])
@@ -49,6 +49,7 @@ class RunTests(unittest.TestCase):
 
         with ExitStack() as stack:
             stack.enter_context(patch.object(cli, "default_jobs", return_value=8))
+            self.sync = stack.enter_context(patch.object(cli.upstream, "synchronize", side_effect=sync_error))
             stack.enter_context(patch.object(cli, "main", side_effect=stage))
             stack.enter_context(patch.object(cli, "emit", wraps=cli.emit if progress_events else None))
             # These tests exercise orchestration; real inventories are covered in test_run_cache.
@@ -72,7 +73,7 @@ class RunTests(unittest.TestCase):
         self.assertIn(["bootstrap", "--jobs", "8"], self.events)
         self.assertIn(["native-toolkit", "--jobs", "8", "--fetch"], self.events)
         self.assertIn(["build", "--jobs", "8", "--package-workers", "2"], self.events)
-        self.assertIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "8", "--online"], self.events)
+        self.assertIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "8", "--source-root", str(self.project / "sources"), "--online"], self.events)
         self.desktop.assert_called_once_with(self.project, self.image, name="test-" + self.identity[:16])
         self.boot.assert_not_called()
 
@@ -87,10 +88,10 @@ class RunTests(unittest.TestCase):
         with patch("sys.stdout", new=io.StringIO()):
             self.assertEqual(self.invoke(progress_events=True), 0)
         output = self.stderr.getvalue()
-        for name in ("Host checks", "Source downloads", "Toolchain", "Package tools", "OS packages",
+        for name in ("Component updates", "Host checks", "Source downloads", "Toolchain", "Package tools", "OS packages",
                      "Bootloader", "Desktop SDK", "Desktop applications", "OS image", "VM preparation"):
             self.assertIn(name, output)
-        self.assertIn("100% 12/12 steps", output)
+        self.assertIn("100% 13/13 steps", output)
         self.assertIn("VM started", output)
 
     def test_progress_failure_does_not_claim_completion_or_launch_a_vm(self):
@@ -153,7 +154,9 @@ class RunTests(unittest.TestCase):
         (self.project / "sources").rename(source_root)
         self.assertEqual(self.invoke("--source-root", str(source_root)), 0)
         self.assertIn(["loader", "--source-root", str(source_root), "--online"], self.events)
-        self.assertIn(["apps", "prepare", "--source-root", str(source_root)], self.events)
+        self.assertIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "8", "--source-root", str(source_root), "--online"], self.events)
+        self.sync.assert_called_once()
+        self.assertEqual(self.sync.call_args.args[:2], (self.project, source_root))
 
     def test_offline_is_applied_to_download_toolkit_loader_and_apps(self):
         self.assertEqual(self.invoke("--offline", "--jobs", "2"), 0)
@@ -161,7 +164,7 @@ class RunTests(unittest.TestCase):
         self.assertIn(["bootstrap", "--jobs", "2"], self.events)
         self.assertIn(["native-toolkit", "--jobs", "2"], self.events)
         self.assertIn(["build", "--jobs", "2", "--package-workers", "2"], self.events)
-        self.assertIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "2"], self.events)
+        self.assertIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "2", "--source-root", str(self.project / "sources"), "--offline"], self.events)
         self.assertFalse(any("--online" in event or "--fetch" in event for event in self.events))
 
     def test_failed_stage_stops_before_composition_or_boot(self):
@@ -174,14 +177,14 @@ class RunTests(unittest.TestCase):
     def test_failed_sdk_preflight_stops_before_apps_or_image(self):
         self.assertEqual(self.invoke(sdk_ready=False), 1)
         self.assertNotIn("compose", [event[0] for event in self.events])
-        self.assertNotIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "8", "--online"], self.events)
+        self.assertNotIn(["apps", "build", "--sysroot", str(self.sysroot), "--jobs", "8", "--source-root", str(self.project / "sources"), "--online"], self.events)
         self.desktop.assert_not_called()
 
-    def test_missing_sources_fail_before_building(self):
-        (self.project / "sources/telorgon/Cargo.toml").unlink()
-        self.assertEqual(self.invoke(), 1)
+    def test_failed_source_update_stops_before_building(self):
+        self.assertEqual(self.invoke(sync_error=RuntimeError("local history diverges")), 1)
         self.assertEqual(self.events, [])
-        self.assertIn("initialize the pinned submodules", self.stderr.getvalue())
+        self.assertIn("local history diverges", self.stderr.getvalue())
+        self.desktop.assert_not_called()
 
     def test_systemd_headless_uses_runtime_closure_and_propagates_boot_failure(self):
         self.assertEqual(self.invoke("--profile", "systemd", "--headless", "--output", "out/check", boot_ok=False), 1)

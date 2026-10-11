@@ -28,7 +28,7 @@ or a new VM name when testing a new base.
 | --- | --- |
 | [Documentation index](docs/README.md) | All current guides and the recommended reading order |
 | [Architecture](docs/architecture.md) | Bootstrap, boot images, desktop services and runtime capabilities |
-| [Source modules](docs/sources.md) | Component ownership, pinned sources and portable source bundles |
+| [Source modules](docs/sources.md) | Component ownership, latest-main clones and portable source bundles |
 | [Contributing](docs/contributing.md) | Source changes, package recipes, checks and pull requests |
 | [Testing](docs/testing.md) | Reusable build, boot, installation and desktop test procedures |
 | [Release requirements](docs/release.md) | Gates for installer/recovery, public updates and physical hardware |

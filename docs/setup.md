@@ -121,11 +121,12 @@ git clone https://github.com/WIPOperatingSystemName/.github.git ~/wip-os/.github
 python3 ~/wip-os/.github/setup.py
 ```
 
-The helper clones `distro` and initializes its six pinned source components,
-asks you to sign in to GitHub if needed, and creates or reuses your personal
+The helper clones `distro`, synchronizes its six source components to organization
+`main`, asks you to sign in to GitHub if needed, and creates or reuses your personal
 forks for distro and those components. It sets `origin` to the organization and
 `fork` to your push destination. It preserves existing branches and local work;
-rerunning it does not synchronize or integrate upstream changes.
+rerunning it fast-forwards component clones when safe and stops on conflicts.
+Older distro checkouts still use their legacy submodule setup until updated.
 
 If `~/wip-os/.github` already exists, skip the clone and rerun its `setup.py`.
 Open **`~/wip-os`** in your editor or coding agent so the organization docs and
@@ -147,14 +148,16 @@ the contributor helper:
 
 ```sh
 mkdir -p ~/wip-os
-git clone --recurse-submodules https://github.com/WIPOperatingSystemName/distro.git ~/wip-os/distro
+git clone https://github.com/WIPOperatingSystemName/distro.git ~/wip-os/distro
+cd ~/wip-os/distro
+python3 build.py sources sync
 ```
 
-For an existing checkout, inspect `git status` and `git submodule status` first.
-Initialize missing submodules only when doing so preserves component work.
-Do not restore or advance existing source checkouts just to make a build run.
-See [source modules](sources.md) and [contributing](contributing.md) before
-synchronizing branches or changing pins.
+For an existing checkout, inspect `git status`, update distro while preserving
+local work, then run `python3 build.py sources sync`. Existing component clones
+are reused and safely fast-forwarded to organization `main`; conflicting local
+work requires deliberate integration. See [source modules](sources.md) for
+migration details and `--offline` source replay.
 
 ## 4. Verify the environment
 

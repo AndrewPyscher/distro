@@ -1,7 +1,8 @@
 # Source modules
 
 The distro repository owns recipes, build coordination, image profiles and
-system policy. Component source lives in these Git submodules:
+system policy. Component source lives in these local Git clones, declared in
+`source-projects.toml`:
 
 | Owning repository | Directory |
 | --- | --- |
@@ -12,17 +13,37 @@ system policy. Component source lives in these Git submodules:
 | [portal-picker](https://github.com/WIPOperatingSystemName/portal-picker) | `sources/telorgon-portal-picker` |
 | [shell](https://github.com/WIPOperatingSystemName/shell) | `sources/test-shell` |
 
-Each parent gitlink records an exact component commit. Inspect the selections:
+These components follow the organization's `main` branch. Initialize or update
+all registered clones with:
 
 ```sh
-git submodule status
-git ls-files --stage sources/
+python3 build.py sources sync
 ```
 
-Initialize a new checkout with `git submodule update --init --recursive`.
-On an existing workspace, inspect component work first; restoring the parent's
-pins can move a component checkout. Never use `submodule update --remote`, pull,
-reset or patch the component as incidental build setup.
+`run`, `loader`, `apps prepare/build`, `deploy`, `dev` and source-bundle export
+also synchronize components before snapshotting. The pipeline verifies canonical
+origins, fetches `main` and fast-forwards the current branch. Existing contribution
+branches, commits and uncommitted work stay intact when Git can apply that update
+safely. Diverged commits or overlapping edits stop with the affected repository;
+resolve them in that owning checkout, then retry. Nothing is reset or stashed.
+Network errors also stop online builds instead of silently using stale sources.
+Online builds can fetch the dependencies selected by each component's `Cargo.lock`;
+`--online` remains accepted explicitly, and `--offline` disables both Git and Cargo
+network access.
+
+Use `--offline` to build the current local files without fetching or advancing
+checkouts; required archives and Cargo dependencies must already be cached.
+Exact commits, dirty state and content hashes remain in build receipts so each
+build can be identified and replayed. Third-party OS archives and the Rust
+compiler retain their verified checksums/toolchain versions.
+
+### Existing submodule workspaces
+
+After updating distro to this workflow, run `python3 build.py sources sync`.
+Existing component directories, local edits, remotes and Git history are reused.
+Detached checkouts migrate to a local `main` when safe. Do not delete `sources/`
+or `.git/modules/`: existing clones may still use those Git object directories.
+Fresh distro clones need no recursive checkout or submodule commands.
 
 ## Edit source and snapshot it
 
@@ -50,9 +71,10 @@ Application discovery uses `packages/*/application.toml`; source snapshot inputs
 come from `source-projects.toml`. Adding a Cargo app does not require editing a
 Python application list:
 
-1. Register its owning repository under `sources/` in `.gitmodules`, with a
-   reviewed immutable gitlink. Add its input paths to `source-projects.toml`,
-   including `Cargo.toml`, `Cargo.lock`, source, assets and packaging files.
+1. Add a project to `source-projects.toml` with its canonical organization
+   `repository` URL, `branch = "main"` and input paths, including `Cargo.toml`,
+   `Cargo.lock`, source, assets and packaging files. Register the new repository
+   in the shared setup/checker catalogs before using it in distro CI.
 2. Add one package directory with `application.toml`. Follow an existing app's
    package, source, target-Cargo build, requirements and runtime declarations.
    List every source project affecting its build, including the framework.
@@ -81,16 +103,18 @@ target Cargo applications; a new build system needs a corresponding adapter.
 
 Run `python3 build.py validate`, inspect `python3 build.py apps plan`, and test
 the [automatic update plan](build.md#update-changed-applications-automatically)
-before deployment. Keep immutable pins and package versions in their manifests.
+before deployment. Keep repository declarations and package versions in their
+manifests.
 
 ## Portable source bundles
 
-To export the current source checkouts, including local edits:
+To synchronize and export source checkouts, including local edits:
 
 ```sh
 python3 build.py source-bundle export
 ```
 
+Add `--offline` to export the exact current files without synchronization.
 The command reports a deterministic archive and SHA256 under `out/bundles/`.
 On a clean worker, import that archive with its independently reviewed digest:
 
@@ -111,10 +135,10 @@ Bundles carry source, assets, license inputs and locks; they exclude credentials
 Git internals and build outputs. An imported bundle is a replay input. Implement
 subsequent fixes in the owning repository and export again.
 
-## Reviewed pin updates
+## Component changes
 
-A component commit/PR and a distro gitlink update are separate review steps.
-Pin updates require explicit authorization and a compatible reviewed component
-set. Keep corresponding package revisions and dependency changes with the
-integration, then rebuild and test affected behavior. Do not advance a detached
-source checkout just because its upstream branch has moved.
+Submit framework and application fixes to their owning repositories. Once merged,
+the next online build uses organization `main` without a separate distro pin PR.
+Rebuild affected consumers and test the behavior; a moving branch alone does not
+establish compatibility. Source bundles provide explicit replay inputs for CI or
+qualification; their contents are verified rather than synchronized with Git.

@@ -18,7 +18,7 @@ from .graph import plan, affected
 from .model import BuildError, Source, catalog
 from .sources import fetch_all
 from .packaging import PackageError, ToolkitError
-from . import progress
+from . import progress, upstream
 from .build_inputs import engine_inputs, recipe_inputs
 from .build_resources import default_jobs
 
@@ -30,6 +30,12 @@ def project_root() -> Path:
 def emit(value: object) -> None:
     if not progress.event(value):
         print(json.dumps(value, indent=2, default=str), flush=True)
+
+
+def source_status(value: dict) -> None:
+    """Keep synchronization diagnostics separate from command JSON receipts."""
+    if not progress.event(value):
+        print(json.dumps(value, default=str), file=sys.stderr, flush=True)
 
 
 def bootstrap_sources(project: Path) -> list[Source]:
@@ -308,10 +314,6 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
         raise BuildError("--name requires --profile desktop-use")
     vm.discover_runtime(project)
     source_root = (args.source_root or project / "sources").resolve()
-    for name in ("telorgon", "telorgon-bootloader"):
-        if not (source_root / name / "Cargo.toml").is_file():
-            raise BuildError(f"missing {name} sources in {source_root}; initialize the pinned submodules "
-                             "with git submodule update --init --recursive")
 
     def step(*arguments: str) -> None:
         key = "bootstrap-check" if arguments[0] == "bootstrap" and "--check" in arguments else arguments[0]
@@ -327,7 +329,7 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
     profile = tomllib.loads((project / f"profiles/{args.profile}.toml").read_text())
     packages = [] if desktop else runtime_packages(project, profile["packages"],
         providers={"libudev": "systemd"} if args.profile == "systemd" else {})
-    online = [] if args.offline else ["--online"]
+    online = ["--offline"] if args.offline else ["--online"]
     sources = ["--source-root", str(source_root)]
     cache = DevelopmentCache(project, args.profile, verify=args.verify)
     output = project / "out"
@@ -376,6 +378,13 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
     with (output / "state/run.lock").open("a") as lock:
         progress.detail("Waiting for build lock")
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        progress.stage("sources")
+        def source_event(value):
+            if value["event"] == "source-sync-start":
+                progress.detail(value["source"])
+            emit(value)
+        upstream.synchronize(project, source_root, offline=args.offline, emit=source_event)
+        progress.complete("sources")
         cache.run("essentials", lambda: native_inputs + [project / "bootstrap", project / "profiles" / f"{args.profile}.toml"] + seeds,
                   essential_outputs, essentials)
         cache.run("loader", lambda: engine_inputs(project, ["boot"]) + [source_root / name for name in ("telorgon", "telorgon-bootloader")] + rust_seeds,
@@ -393,12 +402,11 @@ def build_and_run(project: Path, args: argparse.Namespace) -> int:
             sdk = json.loads(sdk_record.read_text())
 
             def applications():
-                step("apps", "prepare", *sources)
                 readiness = apps.preflight(project, Path(sdk["sysroot"]))
                 if not readiness["ready_to_build"]:
                     emit(readiness)
                     raise BuildError("desktop SDK preflight failed; see missing inputs above")
-                step("apps", "build", "--sysroot", sdk["sysroot"], "--jobs", jobs, *online)
+                step("apps", "build", "--sysroot", sdk["sysroot"], "--jobs", jobs, *sources, *online)
 
             cache.run("apps", lambda: engine_inputs(project, ["apps", "source_bundle"]) + list((project / "packages").glob("*/application.toml")) + [project / "source-projects.toml"] + rust_seeds + sdk_outputs(None)
                       + [source_root / name for name in apps.source_inputs(project)],
@@ -457,13 +465,17 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("--no-progress", action="store_true", help="Disable the progress display and keep JSON event output")
     action.add_argument("--offline", action="store_true", help="Require verified cached sources and Cargo inputs")
     action.add_argument("--verify", action="store_true", help="Run full build/input integrity checks instead of trusting local development stage receipts")
-    action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ submodules)")
+    action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ local clones)")
     action.add_argument("--name", help="Resume a named desktop VM; default selects a VM for the newly built image")
     action.add_argument("--headless", action="store_true", help="Run a bounded console/systemd boot check without a window")
     action.add_argument("--timeout", type=vm_timeout, default=600, help="Console/systemd startup deadline (1–3600 seconds)")
     action.add_argument("--output", type=Path, help="Console/systemd boot evidence directory")
     actions.add_parser("doctor", help="Audit host seed tools and environment")
     actions.add_parser("validate", help="Validate package recipes and dependency graph")
+    action = actions.add_parser("sources", help="Clone or fast-forward registered component main branches")
+    action.add_argument("action", choices=("sync",))
+    action.add_argument("--source-root", type=Path)
+    action.add_argument("--offline", action="store_true", help="Use local checkouts without fetching or moving them")
     action = actions.add_parser("affected", help="List packages and dependents affected by recipe changes")
     action.add_argument("packages", nargs="+")
     action = actions.add_parser("plan", help="Print ordered package build plan")
@@ -487,13 +499,16 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("--package-workers", type=positive_integer, default=2, help="Concurrent ready packages sharing --jobs; 1 for serial builds")
     action.add_argument("--seed", action="store_true", help="Explicit development build using host compiler")
     action = actions.add_parser("loader", help="Build a recorded snapshot of the Telorgon EFI application")
-    action.add_argument("--online", action="store_true")
-    action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ submodules)")
+    network = action.add_mutually_exclusive_group()
+    network.add_argument("--online", action="store_true", help="Fetch locked Cargo dependencies (default)")
+    network.add_argument("--offline", action="store_true", help="Use local sources and cached Cargo inputs")
+    action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ local clones)")
     action = actions.add_parser("source-bundle", help="Export or verify portable Telorgon source inputs for CI")
     action.add_argument("action", choices=("export", "import"))
     action.add_argument("archive", nargs="?", type=Path)
     action.add_argument("--sha256")
-    action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ submodules)")
+    action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ local clones)")
+    action.add_argument("--offline", action="store_true", help="Export local sources without updating them")
     action = actions.add_parser("image", help="Compose a source-built system profile")
     action.add_argument("--profile", choices=("console", "systemd", "desktop", "desktop-use", "desktop-dev"), default="console")
     action.add_argument("--root", type=Path)
@@ -518,14 +533,16 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("names", nargs="*")
     action.add_argument("--sysroot", type=Path)
     action.add_argument("--tools", type=Path)
-    action.add_argument("--online", action="store_true")
-    action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ submodules)")
+    network = action.add_mutually_exclusive_group()
+    network.add_argument("--online", action="store_true", help="Fetch locked Cargo dependencies (default)")
+    network.add_argument("--offline", action="store_true", help="Use local sources and cached Cargo inputs")
+    action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ local clones)")
     action.add_argument("--jobs", type=positive_integer, default=jobs_default)
     action = actions.add_parser("dev", help="Plan and deploy changed registered apps to a running development VM")
     action.add_argument("--name", required=True, help="Running development VM name")
     action.add_argument("--source-root", type=Path)
     action.add_argument("--jobs", type=positive_integer, default=jobs_default)
-    action.add_argument("--offline", action="store_true", help="Use cached upstream references and Cargo inputs; upstream freshness is not network verified")
+    action.add_argument("--offline", action="store_true", help="Use local checkouts and cached Cargo inputs without fetching")
     action.add_argument("--build-profile", choices=("dev", "release"), default="dev")
     action.add_argument("--plan", action="store_true", help="Inspect package and compatibility decisions without compiling, fetching or installing")
     action.add_argument("--adopt-base", action="store_true", help="Establish an older VM's first base-input baseline after compatibility checks")
@@ -536,7 +553,9 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("--name", required=True, help="Running development VM name")
     action.add_argument("--source-root", type=Path)
     action.add_argument("--jobs", type=positive_integer, default=jobs_default)
-    action.add_argument("--online", action="store_true", help="Allow fetching locked Cargo dependencies")
+    network = action.add_mutually_exclusive_group()
+    network.add_argument("--online", action="store_true", help="Fetch locked Cargo dependencies (default)")
+    network.add_argument("--offline", action="store_true", help="Use local sources and cached Cargo inputs")
     action.add_argument("--build-profile", choices=("dev", "release"), default="dev")
     action.add_argument("--no-restart", action="store_true", help="Install packages without restarting the desktop; reopen updated apps manually")
     action.add_argument("--timeout", type=vm_timeout, default=120, help="Guest command deadline in seconds")
@@ -544,6 +563,11 @@ def parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
+    with upstream.session():
+        return _main(argv, quiet=quiet)
+
+
+def _main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
     report = (lambda value: None) if quiet else emit
     args = parser().parse_args(argv)
     project = args.project.resolve()
@@ -626,13 +650,17 @@ def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
             if args.upgrade_stamps:
                 arguments += ["--upgrade-stamps"]
             run(arguments, project, {"PATH": "/usr/bin:/bin", "LANG": "C", "LC_ALL": "C", "TZ": "UTC"}, output / "logs/bootstrap.log")
+        elif args.command == "sources":
+            report(upstream.synchronize(project, args.source_root, offline=args.offline, emit=source_status))
         elif args.command == "loader":
             from .boot import build_loader
             source_root = (args.source_root or project / "sources").resolve()
-            report(build_loader(source_root / "telorgon-bootloader", source_root / "telorgon", project / "out/loader", offline=not args.online))
+            upstream.synchronize(project, source_root, offline=args.offline, emit=source_status)
+            report(build_loader(source_root / "telorgon-bootloader", source_root / "telorgon", project / "out/loader", offline=args.offline))
         elif args.command == "source-bundle":
             from .source_bundle import export_bundle, import_bundle
             if args.action == "export":
+                upstream.synchronize(project, args.source_root, offline=args.offline, emit=source_status)
                 report({key: value for key, value in export_bundle(project, args.source_root).items() if key != "manifest"})
             else:
                 if not args.archive or not args.sha256:
@@ -681,23 +709,27 @@ def main(argv: list[str] | None = None, *, quiet: bool = False) -> int:
             return 0 if result["success"] else 1
         elif args.command == "deploy":
             from .deploy import deploy
+            upstream.synchronize(project, args.source_root, offline=args.offline, emit=source_status)
             report(deploy(project, args.names, name=args.name, source_root=args.source_root,
-                          jobs=args.jobs, offline=not args.online, profile=args.build_profile,
+                          jobs=args.jobs, offline=args.offline, profile=args.build_profile,
                           restart=not args.no_restart, timeout=args.timeout, emit=emit))
         elif args.command == "apps":
             from . import apps
             if args.action == "plan":
                 report(apps.plan(project, args.names))
             elif args.action == "prepare":
+                upstream.synchronize(project, args.source_root, offline=args.offline, emit=source_status)
                 report(apps.prepare(project, source_root=args.source_root))
             elif args.action == "check":
                 report(apps.preflight(project, args.sysroot, tools=args.tools, names=args.names))
             else:
                 names = args.names or list(apps.catalog(project))
+                upstream.synchronize(project, args.source_root, offline=args.offline, emit=source_status)
+                apps.prepare(project, source_root=args.source_root)
                 artifacts = []
                 for index, name in enumerate(names, 1):
                     progress.item(name, index, len(names))
-                    artifacts.append(apps.build_app(project, name, args.sysroot, args.tools, offline=not args.online, jobs=args.jobs))
+                    artifacts.append(apps.build_app(project, name, args.sysroot, args.tools, offline=args.offline, jobs=args.jobs))
                     progress.item(name, index, len(names), done=True)
                 report({"artifacts": artifacts})
         return 0

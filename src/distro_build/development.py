@@ -102,8 +102,9 @@ def develop(project: Path, *, name: str, source_root: Path | None = None, jobs: 
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
         try:
             if not plan_only:
-                report["upstream"] = upstream.check(project, source_root, set(source_catalog(project)), offline=offline)
-                if any(item["behind"] for item in report["upstream"]):
+                report["sources"] = upstream.synchronize(project, source_root, offline=offline, emit=emit)
+                report["upstream"] = upstream.check(project, source_root, set(), offline=offline)
+                if not offline and any(item["behind"] for item in report["upstream"]):
                     emit({"event": "upstream-integration-required", "repositories": report["upstream"]})
                     raise RuntimeError("Upstream integration required; preserve local work, integrate the reported commits and retry")
             else:

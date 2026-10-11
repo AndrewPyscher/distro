@@ -268,7 +268,7 @@ class VmSessionTests(unittest.TestCase):
                 progress.stage("vm")
                 self.start_fixture(progress_reporter=reporter)
         self.assertIn("Copying the OS image", output.getvalue())
-        self.assertIn("100% 12/12 steps", output.getvalue())
+        self.assertIn("100% 13/13 steps", output.getvalue())
         self.assertIn("VM started", output.getvalue())
 
     def test_missing_kvm_reports_emulation_and_group_refresh_hint(self):

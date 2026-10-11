@@ -182,6 +182,7 @@ class DevelopmentTests(unittest.TestCase):
                    patch.object(development, "GuestAgent", Agent),
                    patch.object(development, "source_catalog", return_value={"framework": {}}),
                    patch.object(development, "base_inputs", return_value="base-inputs"),
+                   patch.object(development.upstream, "synchronize", return_value={}),
                    patch.object(development.upstream, "check", return_value=[{"behind": 0}]),
                    patch.object(development.apps, "catalog", return_value=self.applications),
                    patch.object(development.apps, "prepare", return_value={"identity": "sources"}),
@@ -233,6 +234,7 @@ class DevelopmentTests(unittest.TestCase):
     def test_plan_does_not_fetch_build_install_or_adopt(self):
         report = self.run_dev(plan_only=True, adopt_base=True)
         development.upstream.check.assert_not_called()
+        development.upstream.synchronize.assert_not_called()
         self.install.assert_not_called()
         self.assertEqual(self.build_calls, [("one", True), ("two", True)])
         self.assertFalse((self.vm / "development.json").exists())
