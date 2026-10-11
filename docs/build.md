@@ -31,7 +31,8 @@ before starting the build.
 No separate bootstrap or manual package-build sequence is needed. The first
 build needs internet access and can take substantial time. The pipeline:
 
-1. Audits host tools, validates recipes and downloads verified sources.
+1. Updates component clones to organization `main`, audits host tools, validates
+   recipes and downloads verified sources.
 2. Builds and checks the bootstrap compiler and private package tools.
 3. Builds the OS runtime packages, Telorgon EFI, desktop SDK and applications.
 4. Composes the OS image, prepares a private VM disk and opens QEMU.
@@ -74,8 +75,8 @@ exercise the installed behavior.
 ## Build progress
 
 `./run` and `python3 build.py run` show progress automatically, including on a
-first build with no cached outputs. The display covers host/recipe checks,
-downloads, the bootstrap toolchain and its verification, package tools, OS
+first build with no cached outputs. The display covers component updates,
+host/recipe checks, downloads, the bootstrap toolchain and its verification, package tools, OS
 packages, Telorgon EFI, the desktop SDK and applications, OS image assembly,
 and private VM preparation/startup. Console/systemd builds omit desktop steps.
 
@@ -109,10 +110,12 @@ For a normal desktop without that channel:
 ```
 
 This defaults to `desktop-use`. Framework, loader and apps must form a compatible
-source set. Builds include existing uncommitted source edits and never pull,
-reset or advance submodules. A missing Rust feature/API requires a source fix
-or an explicitly reviewed compatible source set; removing a requested feature
-name does not supply its implementation.
+source set. Before compiling, builds fetch organization `main` and fast-forward
+local component clones, including existing uncommitted edits in snapshots. If
+local work conflicts with an update, the build stops for integration in the owning
+repository. `--offline` uses the current local files without fetching. A missing
+Rust feature/API still requires compatible implementations in the source set.
+See [source synchronization](sources.md) for details.
 
 Without `--name`, `run` chooses `test-<build-identity-prefix>`: the same image
 build reuses its disk, while a different build gets a separate VM. This identity
@@ -181,22 +184,18 @@ valid cached packages are reused. A shared framework change selects every app
 that declares it. All selected packages use one verified guest pacman transaction.
 No image composition or VM disk replacement occurs.
 
-Before deployment, `dev` verifies canonical `origin` URLs, discovers their default
-branches and fetches distro plus every registered source repository. If any
-checkout lacks upstream commits, it stops with repository paths and commit IDs.
-Have your coding agent integrate upstream in each owning contribution checkout,
-preserve local work, adapt the changes and rerun affected checks, then retry.
-Fetching updates remote references only: the builder never merges, stashes,
-resets, advances pinned checkouts or updates distro gitlinks. A detached pin
-behind upstream requires deliberate component integration, or an explicitly
-selected current source workspace with `--source-root`. Pin updates remain a
-separate authorized contribution. Other build commands retain their existing
-source replay behavior; the freshness gate applies to `dev`.
+Before deployment, `dev` verifies canonical component origins and fast-forwards
+the local clones to organization `main`, preserving local work. Conflicting edits
+or diverged history stop for deliberate integration in the owning repository.
+It also fetches distro's default branch and stops if the build coordinator itself
+needs updating; it never updates its own running code. `--plan` remains read-only.
 
-`--offline` uses cached upstream references and Cargo inputs. It still rejects
-known missing commits, but cannot establish network-verified freshness.
-Source bundles without Git metadata remain usable with explicit `deploy`;
-the `dev` upstream gate needs real repository checkouts.
+`--offline` uses current local source and cached Cargo inputs without fetching or
+advancing checkouts, even when a cached upstream reference is newer. Explicit
+portable source bundles replay their recorded contents instead of following Git.
+The same component synchronization applies to `run`, `loader`, `apps prepare/build`,
+`deploy` and source-bundle export. Use `python3 build.py sources sync` to update
+components without building anything.
 
 Native recipe/runtime, SDK, loader, system-policy and base-profile changes stop
 the app loop. Build a fresh image with `run` and use a new VM name, then inspect
@@ -250,7 +249,8 @@ Useful options:
 | Option | Behavior |
 | --- | --- |
 | `--build-profile dev` / `release` | Select debug iteration or optimized performance testing |
-| `--online` | Permit fetching locked Cargo dependencies; deployment is otherwise offline |
+| `--online` | Fetch component main branches and locked Cargo dependencies (the default) |
+| `--offline` | Keep current local source and use cached Cargo dependencies without fetching |
 | `--no-restart` | Keep the session; manually close/reopen updated applications to use new code |
 | `--source-root PATH` | Explicit compatible workspace override; use the same workspace throughout |
 | `--timeout SECONDS` | Guest command deadline, independent of compilation duration |
@@ -444,7 +444,7 @@ camera does not establish portal consent, capture or screen-sharing behavior.
 | Missing guest-agent socket | Boot a `desktop-dev` image with `--use --development` and the matching name |
 | Missing image | Use `run` to build it; `vm` only launches existing media |
 | QEMU Guest Agent cannot create its Python venv | Install `python3-venv` and rerun `doctor`; see [host prerequisites](setup.md#check-host-prerequisites) |
-| Cargo feature/API mismatch | Inspect actual framework/app sources and preserve local edits; review compatible changes together |
+| Cargo feature/API mismatch | Rerun online to synchronize component main branches; if it persists, inspect actual source compatibility and preserve local edits |
 | Guest install fails | Inspect `deployment.json`; failed transactions/restarts do not imply rollback |
 | Build fails | Read its reported log and fix the owning source/recipe, then retry |
 

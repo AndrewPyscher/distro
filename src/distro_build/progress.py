@@ -15,6 +15,7 @@ import tomllib
 
 _active: ContextVar[RunProgress | None] = ContextVar("run_progress", default=None)
 _stages = [
+    ("sources", "Component updates"),
     ("doctor", "Host checks"), ("validate", "Recipe validation"),
     ("fetch", "Source downloads"), ("bootstrap", "Toolchain"),
     ("bootstrap-check", "Toolchain verification"), ("native-toolkit", "Package tools"),
@@ -22,7 +23,7 @@ _stages = [
     ("sdk", "Desktop SDK"), ("apps", "Desktop applications"),
     ("image", "OS image"), ("vm", "VM preparation and startup"),
 ]
-_groups = {"essentials": [key for key, _ in _stages[:7]],
+_groups = {"essentials": [key for key, _ in _stages[1:8]],
            "loader": ["loader"], "sdk": ["sdk"], "apps": ["apps"], "image": ["image"]}
 
 
@@ -84,7 +85,7 @@ class RunProgress:
         self.completed: set[str] = set()
         self.packages_completed: set[str] = set()
         self.packages_active: set[str] = set()
-        self.key = "doctor"
+        self.key = self.stages[0][0]
         self.text = ""
         self.item_label = ""
         self.fraction = 0.0

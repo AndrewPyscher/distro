@@ -1,10 +1,12 @@
 # Custom Distro contribution rules
 
 This project builds an independent Linux system from source. Keep application
-source in the Telorgon submodules under sources/. Implement component changes in
-their owning source repository, including existing uncommitted work. Never pull,
-reset, patch, or advance those checkouts as incidental build setup. The default
-product uses the Telorgon bootloader and applications.
+source in the Telorgon clones under sources/. Implement component changes in
+their owning source repository, including existing uncommitted work. Online builds
+fetch canonical organization main and fast-forward these clones before snapshots.
+Preserve local work; stop for deliberate integration on conflicts or divergence.
+Never reset or silently stash checkouts. The default product uses the Telorgon
+bootloader and applications.
 
 ## Source changes and VM testing
 
@@ -21,10 +23,11 @@ product uses the Telorgon bootloader and applications.
   Never test by copying executables or libraries over package-owned guest files.
 - For automatic app selection, use `python3 build.py dev --name <vm>` after
   inspecting and adopting that VM's first base plan. It fetches canonical
-  upstream references and stops for deliberate integration when behind; it
-  never merges or moves source checkouts. Preserve local work, integrate in
-  owning contribution repositories and retry. Register future app/source inputs
-  in the catalogs; base changes need a fresh image and separate named VM.
+  upstream references and fast-forwards component main when safe; conflicting
+  local work requires deliberate integration in the owning repository and retry.
+  Use `--offline` for local source replay without fetching or moving checkouts.
+  Register future app/source inputs in the catalogs; base changes need a fresh
+  image and separate named VM.
 - Framework changes require rebuilding and deploying every affected application.
   Use `--build-profile release` for rendering/performance tests. Save work before
   a session restart; prefer a separate named test VM over disturbing a user's VM.
@@ -51,11 +54,13 @@ product uses the Telorgon bootloader and applications.
   in [testing](docs/testing.md); exact run hashes, timings and logs belong under
   `out/`, with their actual qualification scope.
 - When toolchain, profiles, deployment or VM options change, update the relevant
-  guide and README together. Keep source pins and package versions authoritative
-  in their manifests rather than copying dated inventories into prose.
+  guide and README together. Keep component origins, external archive pins and
+  package versions authoritative in their manifests rather than copying dated
+  inventories into prose.
 
 Use the Python CLI for local work and CI. Package changes belong in one recipe
-directory with immutable source pins, runtime dependencies, and package revisions.
+directory with verified external source pins, runtime dependencies and package
+revisions.
 Do not overwrite published package bytes under an existing version. Validate
 changed recipes and run checks that exercise the affected behavior.
 
@@ -90,7 +95,7 @@ minimum workflow:
   branch into the contribution checkout, preserving local work and history.
   In the standard setup, use `git pull --ff-only origin main` on a clean
   `main`; if branches diverge, inspect and merge instead of resetting or
-  force-pushing. Do not advance distro's pinned submodules as build setup.
+  force-pushing. Component synchronization uses the Python source-sync commands.
 - Fetch the organization again immediately before submission and require
   `git merge-base --is-ancestor origin/main HEAD` to pass, adapting remote and
   branch names to the verified setup. Integrate missing upstream changes and
@@ -101,4 +106,4 @@ minimum workflow:
   the same work. Push to the personal fork and target the organization's default
   branch. After a merge, synchronize from the organization before the next task.
   Keep component changes in their owning repository. Do not merge the PR
-  or update distro submodule pins without separate authorization.
+  without separate authorization.

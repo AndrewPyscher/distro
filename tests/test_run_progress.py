@@ -59,7 +59,7 @@ class RunProgressTests(unittest.TestCase):
             self.assertIn("busybox (2/2)", self.stream.getvalue())
             self.assertNotIn("100%", self.stream.getvalue())
             self.finish(reporter)
-        self.assertIn("100% 12/12 steps", self.stream.getvalue())
+        self.assertIn("100% 13/13 steps", self.stream.getvalue())
         self.assertFalse(reporter.thread.is_alive())
 
     def test_bootstrap_log_updates_include_real_stage_names_and_completions(self):
@@ -165,7 +165,7 @@ class RunProgressTests(unittest.TestCase):
             self.finish(reporter)
         self.assertNotIn("\r", self.stream.getvalue())
         self.assertNotIn("\033", self.stream.getvalue())
-        self.assertIn("100% 10/10 steps", self.stream.getvalue())
+        self.assertIn("100% 11/11 steps", self.stream.getvalue())
         self.assertTrue(any(row.get("argv") == ["make", "-j8"] for row in self.records(reporter)))
         self.assertTrue(any(row.get("detail") == "Writing bootable OS disk" for row in self.records(reporter)))
 

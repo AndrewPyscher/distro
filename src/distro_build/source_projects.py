@@ -28,6 +28,10 @@ def catalog(project: Path) -> dict:
             raise RuntimeError(f"Invalid source project: {name}")
         if record.get("update", "package") not in {"package", "base"}:
             raise RuntimeError(f"Invalid source update policy: {name}")
+        if "repository" in record or "branch" in record:
+            if (not re.fullmatch(r"https://github\.com/WIPOperatingSystemName/[a-zA-Z0-9_.-]+\.git",
+                                 record.get("repository", "")) or record.get("branch") != "main"):
+                raise RuntimeError(f"Source repositories must follow canonical organization main: {name}")
         inputs = record["inputs"]
         if not isinstance(inputs, list) or not {"Cargo.toml", "Cargo.lock"} <= set(inputs):
             raise RuntimeError(f"Missing Cargo source inputs: {name}")

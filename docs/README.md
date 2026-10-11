@@ -22,7 +22,7 @@ calls the Python CLI.
 | [Build and run](build.md) | Numbered first build, saved VMs, progress and logs, build speed, cleanup, troubleshooting and application deployment |
 | [Testing](testing.md) | Hover measurements, desktop input/presentation, boot, password and upgrade gates |
 | [Contributing](contributing.md) | Source changes, recipes, CI and commit/PR handoff |
-| [Source modules](sources.md) | Repository ownership, immutable pins and portable source bundles |
+| [Source modules](sources.md) | Repository ownership, main tracking and portable source bundles |
 | [Architecture](architecture.md) | Bootstrap, boot images, session services and supported runtime capabilities |
 | [Packages](packages.md) | Build dependencies, ALPM archives, trust and package provenance |
 | [Release requirements](release.md) | Qualification and signing requirements for a supported release |

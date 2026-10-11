@@ -1,3 +1,6 @@
+# Local component repositories; source-projects.toml declares their upstreams.
+/sources/
+
 # Generated build and package outputs.
 target/
 /out/

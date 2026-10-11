@@ -15,8 +15,9 @@ coordination. [Source modules](sources.md) maps those owners.
 Generated snapshots under `out/` are immutable build inputs, rather than an
 implementation workspace. Move a successful experiment into the actual source
 before rebuilding or declaring a fix complete. The pipeline includes existing
-uncommitted edits without changing submodule pins. Use `--source-root` only for
-an explicitly selected compatible workspace, and record that origin.
+uncommitted edits after safely fast-forwarding component clones to organization
+`main`. Use `--source-root` only for an explicitly selected compatible workspace,
+and record that origin.
 
 For application work, install the rebuilt packages through `build.py deploy` in
 a private named development VM. Rebuild every affected consumer of a framework
@@ -103,8 +104,8 @@ the existing contribution branch for the same work, normally the fork's `main`.
 Immediately before submission, fetch upstream again and require its default
 branch to be an ancestor of the submitted HEAD. Integrate missing changes and
 rerun affected checks. Record that verified commit or the concrete sync blocker.
-Commit/PR approval does not authorize merging, publishing a release or advancing
-distro submodule pins. Maintainers review and merge PRs manually; ordinary source
-and catalog/tooling checks remain in place. Component merges do not update distro
-pins. Propose those updates separately and record the relevant build and VM
-results. See the [maintainer guide](https://github.com/WIPOperatingSystemName/.github/tree/main/automation).
+Commit/PR approval does not authorize merging or publishing a release.
+Maintainers review and merge PRs manually; ordinary source and catalog/tooling
+checks remain in place. Component merges are picked up by the next online build;
+record the relevant build and VM results for the exact inputs used. See the
+[maintainer guide](https://github.com/WIPOperatingSystemName/.github/tree/main/automation).

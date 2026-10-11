@@ -20,7 +20,7 @@ on:
           - '4'
           - '8'
       source_bundle_url:
-        description: Optional HTTPS source bundle URL (default uses pinned submodules)
+        description: Optional HTTPS source bundle URL (default follows component main)
         required: false
         type: string
       source_bundle_sha256:
@@ -41,11 +41,10 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-          submodules: recursive
       - name: Prepare disposable worker seeds
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends build-essential bison bc m4 perl autoconf automake libtool pkg-config meson ninja-build fakeroot zlib1g-dev xz-utils qemu-system-x86 ovmf e2fsprogs gnupg python3-jinja2
+          sudo apt-get install --no-install-recommends build-essential bison bc m4 perl autoconf automake libtool pkg-config meson ninja-build fakeroot zlib1g-dev xz-utils qemu-system-x86 ovmf e2fsprogs gnupg python3-venv python3-jinja2
           rustup toolchain install nightly-2026-10-06 --profile minimal --target x86_64-unknown-uefi
       - name: Verify portable application source inputs
         run: |
@@ -114,7 +113,6 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-          submodules: recursive
       - name: Require an adequate disposable build worker
         run: |
           python3 - <<'PY'
@@ -130,7 +128,7 @@ jobs:
       - name: Prepare declared host seeds
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends build-essential bison bc m4 perl autoconf automake libtool pkg-config meson ninja-build fakeroot zlib1g-dev xz-utils qemu-system-x86 ovmf e2fsprogs gnupg python3-jinja2 cmake clang libclang-dev curl ca-certificates git
+          sudo apt-get install --no-install-recommends build-essential bison bc m4 perl autoconf automake libtool pkg-config meson ninja-build fakeroot zlib1g-dev xz-utils qemu-system-x86 ovmf e2fsprogs gnupg python3-venv python3-jinja2 cmake clang libclang-dev curl ca-certificates git
           rustup toolchain install nightly-2026-10-06 --profile minimal --target x86_64-unknown-uefi --target x86_64-unknown-linux-gnu
       - name: Verify exact portable application source inputs
         run: |
