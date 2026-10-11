@@ -18,7 +18,7 @@ calls the Python CLI.
 
 | Guide | Use it for |
 | --- | --- |
-| [Environment setup](setup.md) | Numbered Linux/WSL2 setup, host tools, Rustup, workspace creation, prerequisite checks, KVM and WSLg |
+| [Environment setup](setup.md) | Fresh Ubuntu/Linux/WSL2 setup, Universe, host tools, Rustup, Git identity, graphical sessions, workspace checks, KVM and WSLg |
 | [Build and run](build.md) | Numbered first build, saved VMs, progress and logs, build speed, cleanup, troubleshooting and application deployment |
 | [Testing](testing.md) | Hover measurements, desktop input/presentation, boot, password and upgrade gates |
 | [Contributing](contributing.md) | Source changes, recipes, CI and commit/PR handoff |

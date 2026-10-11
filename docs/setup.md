@@ -2,6 +2,8 @@
 
 Complete this guide once, then continue to [your first build](build.md#first-build).
 This page prepares the host and workspace; the next guide builds the OS and VM.
+The Ubuntu instructions start from a fresh Ubuntu 24.04 installation, with
+additional steps for server/minimal installations and WSL2.
 
 You need an **x86_64 Linux host**, or **Ubuntu 24.04 under WSL2 with WSLg** on
 Windows, Python 3.11 or newer, at least **16 GiB of Linux-visible RAM** and
@@ -24,7 +26,15 @@ source. The build pipeline does not install host packages automatically.
 ### On Linux
 
 Open a terminal on your x86_64 Linux host. The package commands below target
-Ubuntu 24.04; other Linux distributions need equivalent tools. Continue to step 2.
+Ubuntu 24.04; other Linux distributions need equivalent tools. Use a normal
+Linux account with `sudo` access for installing host packages.
+
+Ubuntu Desktop supplies the graphical session needed for QEMU's window. A
+text-only server/minimal installation can build the OS, but needs a graphical
+session before opening the first desktop VM. Follow
+[graphical session setup](#graphical-session-on-ubuntu-server-or-minimal-installations)
+after installing the host tools in step 2. A terminal connected only through
+SSH does not by itself supply a graphical session.
 
 ### On Windows (WSL2)
 
@@ -66,9 +76,18 @@ before continuing.
 
 ## 2. Install host tools and Rust
 
-In your **Ubuntu/Linux terminal**, install the complete host package list:
+In your **Ubuntu/Linux terminal**, enable Ubuntu's **Universe** repository and
+install the complete host package list. Universe supplies prerequisites such as
+[`gh`](https://packages.ubuntu.com/noble/gh) and
+[`python3-venv`](https://packages.ubuntu.com/noble/python3-venv). It is normally
+enabled already; the commands below also cover installations where it is disabled.
+`software-properties-common` supplies
+[`add-apt-repository`](https://manpages.ubuntu.com/manpages/noble/man1/add-apt-repository.1.html):
 
 ```sh
+sudo apt update
+sudo apt install -y software-properties-common
+sudo add-apt-repository -y universe
 sudo apt update
 sudo apt install -y build-essential bison bc m4 perl autoconf automake \
   libtool pkg-config meson ninja-build fakeroot zlib1g-dev xz-utils bzip2 \
@@ -112,6 +131,31 @@ The build selects this toolchain explicitly; its bootloader pin is defined in
 ## 3. Create your workspace
 
 ### Contributor workspace
+
+Before making commits, configure your Git author identity in your
+**Linux terminal**. Inspect existing settings first and keep them if correct:
+
+```sh
+git config --get user.name
+git config --get user.email
+```
+
+If either value is missing or incorrect, set it with your own details, replacing
+the example name and email below:
+
+```sh
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+These defaults apply to your Linux user's distro and component clones. Use an
+email associated with your GitHub account, or copy your GitHub-provided `noreply`
+address from your account's email settings; see
+[GitHub's commit email guide](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address).
+For different identities per repository, set repository-local values inside each
+checkout instead; [Git's first-time setup guide](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup)
+explains the configuration scopes. The workspace helper's GitHub login and fork
+creation do not configure the name and email attached to your commits.
 
 For a new workspace, run in your **Linux terminal**:
 
@@ -182,8 +226,22 @@ You are ready to build when:
   `x86_64-unknown-linux-gnu` and `x86_64-unknown-uefi`.
 - QEMU prints its version, its display list includes `gtk`, and both OVMF
   firmware files are present (the paths above are for Ubuntu).
-- On WSL, `DISPLAY` or `WAYLAND_DISPLAY` is set by WSLg. You can check with
-  `printenv DISPLAY WAYLAND_DISPLAY`; preserve the environment WSLg supplies.
+- For a desktop VM, run from a working graphical session on native Linux or
+  WSLg, with `DISPLAY` or `WAYLAND_DISPLAY` set. Check with
+  `printenv DISPLAY WAYLAND_DISPLAY`. WSLg supplies these values under WSL;
+  preserve the values supplied by your session rather than inventing a display.
+
+For contributors, also verify the effective Git identity from the distro checkout:
+
+```sh
+git var GIT_AUTHOR_IDENT
+```
+
+The result must show your intended name and commit email. If it reports that the
+author identity is unknown or shows an unexpected value, return to
+[contributor workspace setup](#contributor-workspace) and check any repository-local
+overrides. Git identity is needed for contributions; cloning and building without
+a GitHub account does not require it.
 
 `doctor` checks the declared host seeds and QEMU Guest Agent's Python venv
 support. It does not check Rustup/Cargo, QEMU or firmware, so complete the
@@ -194,6 +252,28 @@ required for the guest's systemd desktop session.
 **Next: [build and open your first VM](build.md#first-build).**
 
 ## Optional host configuration
+
+### Graphical session on Ubuntu Server or minimal installations
+
+For a native Ubuntu host without a desktop, install Ubuntu's
+[minimal desktop package](https://packages.ubuntu.com/en/noble/ubuntu-desktop-minimal)
+in your **Ubuntu terminal**, after step 2:
+
+```sh
+sudo apt update
+sudo apt install ubuntu-desktop-minimal
+```
+
+After installation, save your work, restart Ubuntu and sign in to the graphical
+desktop. Open a terminal there and continue the setup guide. This provides the
+desktop session and display server used by QEMU's GTK window; `qemu-system-gui`
+supplies QEMU's display modules. On WSL, use WSLg as described in step 1.
+
+Check `printenv DISPLAY WAYLAND_DISPLAY` from that terminal. At least one display
+value should be present, and QEMU must list `gtk` in `qemu-system-x86_64 -display help`.
+The first build's completion check is the actual guest desktop opening in QEMU.
+For work without a graphical display, use the
+[headless console/systemd checks](build.md#base-system-and-desktop-checks).
 
 ### WSL memory and virtualization
 
