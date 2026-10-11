@@ -5,6 +5,8 @@
 This map places every declared OS package and every registered source repository
 by its primary function. Read the [runtime overview](architecture.md#runtime-layers)
 first for the relationships between applications, the shell, services and Linux.
+For an explanation of each individual component, read the
+[component reference](architecture.md#component-reference).
 
 Coverage: **78 package recipes and 6 source projects**.
 Kernel subsystems and transitive Cargo dependencies remain inside their owning
@@ -139,7 +141,9 @@ placement. See [packages](packages.md) for dependency semantics and
 ## Updating the map
 
 When adding or renaming a package or registered source project, update its group
-in [`architecture-components.toml`](architecture-components.toml), then regenerate:
+in [`architecture-components.toml`](architecture-components.toml) and its explanation
+in [`component-details.toml`](component-details.toml). Guest policy changes also need
+an entry there. Then regenerate the map, index and architecture reference:
 
 ```sh
 python3 tools/render-architecture.py
@@ -147,4 +151,5 @@ python3 tools/render-architecture.py --check
 ```
 
 Run these commands from the distro root. The check rejects missing, unknown or
-multiply listed components and stale generated documentation. It runs in CI.
+multiply listed components, missing explanations and stale generated documentation.
+It runs in CI.

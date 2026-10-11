@@ -65,9 +65,11 @@ handoff. Some integration tests require built artifacts or private Unix sockets;
 report skips and environment blockers rather than claiming coverage.
 
 When adding or renaming a package or source project, assign it a functional
-group in the [component map](components.md#updating-the-map) and regenerate the
-documentation. The renderer checks complete catalog coverage; CI also rejects
-stale generated diagrams and component indexes.
+group in the [component map](components.md#updating-the-map), add its individual
+purpose and distro usage to `docs/component-details.toml`, and regenerate the
+documentation. Guest policy source files also need individual explanations.
+The renderer checks complete catalog and policy coverage; CI also rejects stale
+generated diagrams, indexes and architecture reference sections.
 
 The workflow definitions under [`.github/workflows`](../.github/workflows)
 include catalog/tooling checks and manually dispatched disk candidates. The
