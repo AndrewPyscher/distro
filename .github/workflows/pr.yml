@@ -12,4 +12,5 @@ jobs:
         with:
           persist-credentials: false
       - run: python3 build.py validate
+      - run: python3 tools/render-architecture.py --check
       - run: python3 -m unittest discover -s tests -v

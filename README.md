@@ -27,7 +27,8 @@ or a new VM name when testing a new base.
 | Guide | What you will find |
 | --- | --- |
 | [Documentation index](docs/README.md) | All current guides and the recommended reading order |
-| [Architecture](docs/architecture.md) | Bootstrap, boot images, desktop services and runtime capabilities |
+| [Architecture](docs/architecture.md) | Runtime layers from Linux to the desktop, boot and system services |
+| [Component map](docs/components.md) | Layered diagram of every declared package and source module, grouped by function |
 | [Source modules](docs/sources.md) | Component ownership, latest-main clones and portable source bundles |
 | [Contributing](docs/contributing.md) | Source changes, package recipes, checks and pull requests |
 | [Testing](docs/testing.md) | Reusable build, boot, installation and desktop test procedures |

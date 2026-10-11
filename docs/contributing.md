@@ -57,11 +57,17 @@ runtime checks; compilation alone does not qualify a service or desktop change.
 ```sh
 python3 -m unittest discover -s tests -v
 python3 build.py validate
+python3 tools/render-architecture.py --check
 ```
 
 Run focused checks during iteration and the required affected checks before
 handoff. Some integration tests require built artifacts or private Unix sockets;
 report skips and environment blockers rather than claiming coverage.
+
+When adding or renaming a package or source project, assign it a functional
+group in the [component map](components.md#updating-the-map) and regenerate the
+documentation. The renderer checks complete catalog coverage; CI also rejects
+stale generated diagrams and component indexes.
 
 The workflow definitions under [`.github/workflows`](../.github/workflows)
 include catalog/tooling checks and manually dispatched disk candidates. The
