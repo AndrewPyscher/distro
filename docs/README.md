@@ -23,7 +23,7 @@ calls the Python CLI.
 | [Testing](testing.md) | Hover measurements, desktop input/presentation, boot, password and upgrade gates |
 | [Contributing](contributing.md) | Source changes, recipes, CI and commit/PR handoff |
 | [Source modules](sources.md) | Repository ownership, main tracking and portable source bundles |
-| [Architecture](architecture.md) | Runtime layers from Linux to the desktop, boot, services and build architecture |
+| [Architecture](architecture.md) | Runtime layers and an individual explanation of every package, source module, bundled service, guest policy file and boot/assembly piece |
 | [Component map](components.md) | Every declared package and source module, grouped by function in a layered SVG and linked index |
 | [Packages](packages.md) | Build dependencies, ALPM archives, trust and package provenance |
 | [Release requirements](release.md) | Qualification and signing requirements for a supported release |

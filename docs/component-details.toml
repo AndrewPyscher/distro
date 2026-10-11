@@ -1,0 +1,504 @@
+# Explanations of named distro components. Versions, pins, dependencies and
+# profile selections remain authoritative in their existing manifests.
+
+[packages.alsa-lib]
+kind = "Library and configuration"
+purpose = "ALSA's userspace sound API, including PCM playback/capture, mixer controls and sound-card configuration."
+use = "PipeWire's ALSA backend uses it to communicate with the kernel's sound devices. Working playback still requires an exposed guest sound device and host audio endpoint."
+
+[packages.bubblewrap]
+kind = "Sandbox utility"
+purpose = "The bwrap program constructs a restricted filesystem and process environment using Linux namespaces."
+use = "The desktop portal uses it to isolate image and sound validators when inspecting supplied media."
+
+[packages.busybox]
+kind = "Static utility collection"
+purpose = "One executable supplies the shell and small Unix utilities needed for mounting filesystems, copying files, inspecting the system and powering off."
+use = "It makes the initramfs independent of shared libraries, performs the switch to the persistent root, and supplies the console profile's shell and repair tools."
+parts = { "sh" = "Runs early boot, console and lightweight system scripts.", "mount and switch_root" = "Mount kernel filesystems and hand execution to the installed root.", "findfs" = "Resolves the root partition's UUID or label during early boot.", "poweroff" = "Stops the private VM from the console." }
+
+[packages.ca-certificates]
+kind = "Trust data"
+purpose = "A public root-certificate bundle used to verify HTTPS server certificate chains."
+use = "curl and its consumers use the configured bundle for TLS verification. These public certificate authorities serve HTTPS trust; pacman's package-signing keyring is a separate trust mechanism."
+
+[packages.curl]
+kind = "Library and command-line client"
+purpose = "libcurl and the curl program transfer data over HTTP/HTTPS, using the packaged OpenSSL backend and CA bundle."
+use = "File Explorer invokes curl for downloads, and pacman links to libcurl for transport support. The package manager's configured repository policy decides which transport is actually used."
+
+[packages.dbus]
+kind = "Message-bus daemon, library and tools"
+purpose = "Routes named messages and method calls between processes, with separate system and per-user buses."
+use = "Network, power, authorization and portal services expose their APIs over D-Bus. The desktop also uses the user bus for activation and communication within its session."
+parts = { "System bus" = "Connects system services such as NetworkManager, logind, polkit and UPower.", "User bus" = "Connects desktop applications, settings services and portal backends for one user.", "dbus-daemon" = "Runs either bus; the distro provides systemd socket-activation policy.", "dbus-update-activation-environment" = "Publishes the actual Wayland display and desktop environment to subsequently activated user services." }
+
+[packages.dconf]
+kind = "Settings backend, service and tools"
+purpose = "Stores and updates settings for applications using GLib's GSettings API."
+use = "Supplies a standard settings database and backend for GSettings consumers. Telorgon's typed SDK settings and shell settings service remain their own components."
+
+[packages.desktop-file-utils]
+kind = "Desktop-entry tools"
+purpose = "Validates application desktop entries and builds the MIME-to-application handler cache."
+use = "Application launchers and xdg-utils use the registered desktop entries and their cache to find programs that can open a file type."
+
+[packages.duktape]
+kind = "JavaScript runtime library"
+purpose = "An embedded JavaScript engine for software that evaluates small scripts."
+use = "Provides the rule-evaluation runtime required by the packaged polkit authorization stack."
+
+[packages.expat]
+kind = "XML parser library"
+purpose = "Parses XML incrementally without requiring a full document tree."
+use = "Supports XML consumers in the D-Bus and Wayland dependency stack, including configuration and protocol-related processing."
+
+[packages.file]
+kind = "File-identification library, database and tool"
+purpose = "libmagic and the file command identify content by inspecting bytes and matching the magic database."
+use = "File integration tools use the result to determine MIME types even when a filename extension is missing or misleading."
+
+[packages.telorgon-file-explorer]
+kind = "Graphical application and portal backend"
+purpose = "The Telorgon file manager, download queue and graphical FileChooser portal backend."
+use = "Provides everyday file browsing and download UI, and supplies file-open/save dialogs requested through xdg-desktop-portal. Its package also installs application and D-Bus activation registrations."
+
+[packages.fuse3]
+kind = "Filesystem library and mount helper"
+purpose = "Lets a userspace process implement a filesystem through the kernel's FUSE interface; includes the constrained fusermount3 helper."
+use = "The document portal uses FUSE to expose controlled document access to applications. This is separate from the ext4 filesystem used for the OS root."
+
+[packages.gdk-pixbuf]
+kind = "Image-decoding library"
+purpose = "Loads image data into pixel buffers; this recipe enables its PNG loader."
+use = "The portal's sandboxed image validation uses it to inspect images."
+
+[packages.gettext]
+kind = "Translation and build tools"
+purpose = "GNU tools for compiling translation catalogs and merging translations into XML and desktop-entry templates."
+use = "Supplies genuine translation generators during package builds. It is available in the recipe catalog but is not selected into the current profile runtime closures."
+
+[packages.glib]
+kind = "Core library family and generators"
+purpose = "Shared data structures, event loops, object types, file/IPC APIs and settings support used by many Linux services."
+use = "NetworkManager, portals, power services and other dependencies use this foundation. Its generators also prepare schemas and module caches during image assembly and package transactions."
+parts = { "GLib" = "Core data structures, utilities and main-loop support.", "GObject" = "Object types, properties and signal dispatch for GLib-based libraries.", "GIO" = "File, D-Bus, module and GSettings APIs.", "glib-compile-schemas" = "Builds the binary GSettings schema cache.", "gio-querymodules" = "Refreshes the registry of installed GIO modules." }
+
+[packages.glibc]
+kind = "C runtime and dynamic loader"
+purpose = "The GNU C library, userspace system-call interfaces, name-service support and ELF shared-library loader."
+use = "Provides the common runtime used by dynamically linked system programs and libraries. The loader starts those programs and resolves their shared-library dependencies."
+parts = { "libc" = "C library operations and interfaces to kernel facilities.", "ld-linux-x86-64.so.2" = "Loads and links dynamically linked x86_64 ELF programs.", "Name-service support" = "Resolves users, groups and hostnames according to nsswitch.conf." }
+
+[packages.gnupg]
+kind = "OpenPGP tools and support processes"
+purpose = "Verifies OpenPGP signatures and performs local key and cryptographic operations."
+use = "Supplies the engine used through GPGME by pacman for package signature checks. The recipe selects local tools rather than adding network key discovery or a public distro keyring."
+parts = { "gpg" = "Performs OpenPGP operations using the selected keyring.", "gpgv" = "Verifies signatures against supplied trusted public keys.", "gpg-agent" = "Services supported local key operations for GnuPG clients." }
+
+[packages.gpgme]
+kind = "Cryptographic engine interface library"
+purpose = "Gives programs a library API for invoking GnuPG and collecting verification results."
+use = "pacman/libalpm uses it for OpenPGP signature verification instead of implementing its own OpenPGP engine."
+
+[packages.gsettings-desktop-schemas]
+kind = "Settings schema data"
+purpose = "Defines standard desktop GSettings keys, their types and defaults."
+use = "Makes those keys available to GSettings consumers. The schema cache is compiled when assembling the image and refreshed by the desktop cache policy."
+
+[packages.gst-plugins-base]
+kind = "Multimedia libraries, plugins and tools"
+purpose = "Adds GStreamer playback/discovery foundations, application integration, audio conversion, resampling, type detection and raw-data parsing."
+use = "Provides the base media processing needed by the portal's sound validators. The recipe selects specific plugins rather than the entire upstream multimedia stack."
+parts = { "app" = "Connects application-managed buffers to a pipeline.", "audioconvert and audioresample" = "Convert audio formats and sample rates.", "gio and pbtypes" = "Provide GIO integration and playback type definitions.", "playback and typefind" = "Discover media types and assemble playback processing.", "rawparse and volume" = "Interpret raw media and control audio gain." }
+
+[packages.gst-plugins-good]
+kind = "Multimedia plugins"
+purpose = "Adds the selected WAV and AU parsers, WAV encoder and basic audio parsers to GStreamer."
+use = "Enables the sound-format handling required by the packaged portal's sound-validation feature. The recipe does not enable every plugin in upstream's Good collection."
+parts = { "wavparse and wavenc" = "Read and write WAV containers.", "auparse" = "Read AU audio containers.", "audioparsers" = "Parse supported encoded audio streams." }
+
+[packages.gstreamer]
+kind = "Multimedia pipeline framework"
+purpose = "A core library and tools for connecting media sources, parsers, converters and sinks into processing pipelines."
+use = "The desktop portal uses the source-built GStreamer stack for sound validation, with gst-plugins-base and gst-plugins-good supplying the selected processing elements."
+
+[packages.json-glib]
+kind = "JSON library"
+purpose = "Parses and generates JSON using GLib's data and object conventions."
+use = "Supplies JSON handling required by GLib-based desktop dependencies, including xdg-desktop-portal."
+
+[packages.libarchive]
+kind = "Archive library"
+purpose = "Reads and writes archive formats and connects them to the packaged compression libraries."
+use = "pacman/libalpm uses it to inspect and unpack OS package archives. The distro's ALPM packages use XZ compression."
+
+[packages.libassuan]
+kind = "GnuPG IPC library"
+purpose = "Implements the Assuan protocol used to exchange commands with GnuPG helper processes."
+use = "Connects the GnuPG and GPGME parts of the package-signature stack to their local helpers."
+
+[packages.libcap]
+kind = "Linux capabilities libraries"
+purpose = "Inspects and changes fine-grained process capabilities and supplies related thread coordination support."
+use = "Provides the capability API used by the bubblewrap dependency stack and other capability-aware programs. Capabilities split privileged operations into narrower permissions."
+
+[packages.libdrm]
+kind = "Display-device interface library"
+purpose = "Userspace interfaces for Linux's Direct Rendering Manager, including access to display resources and modesetting facilities."
+use = "Supports the Telorgon compositor's path to kernel display devices. The distro's CPU renderer presents through DRM/KMS buffers."
+
+[packages.libevdev]
+kind = "Input-event library"
+purpose = "Wraps Linux evdev input-event device access and event decoding."
+use = "libinput uses it as part of reading keyboard, pointer and other input devices exposed by Linux."
+
+[packages.libffi]
+kind = "Foreign-function interface library"
+purpose = "Constructs native function calls when argument types and calling conventions are determined at runtime."
+use = "Supports dynamic call machinery in GLib/GObject and the packaged Wayland library dependency stack."
+
+[packages.libgcc]
+kind = "Compiler support runtime"
+purpose = "The shared GCC runtime supplies low-level compiler helpers, including exception-unwinding support."
+use = "Satisfies compiled programs and libraries that need those helpers, including declared Telorgon application runtime dependencies. The compiler itself stays outside the guest package."
+
+[packages.libgcrypt]
+kind = "Cryptographic primitive library"
+purpose = "Provides hashing, encryption and other low-level cryptographic operations for the GnuPG family."
+use = "GnuPG uses it underneath the package-signature engine. OpenSSL supplies the separate TLS stack used by HTTPS clients."
+
+[packages.libgpg-error]
+kind = "GnuPG support library"
+purpose = "Shared error codes and portable runtime helpers used across the GnuPG libraries."
+use = "Keeps error handling consistent between GnuPG, GPGME, libassuan, libgcrypt and libksba in the signature stack."
+
+[packages.libgudev]
+kind = "Device-discovery bindings"
+purpose = "GObject bindings around libudev device discovery and change notifications."
+use = "GLib-based services such as UPower and power-profiles-daemon use it to inspect devices. Desktop images satisfy its libudev dependency through systemd's provider."
+
+[packages.libinput]
+kind = "Input-processing library"
+purpose = "Processes input devices and turns their events into consistent keyboard, pointer, touch and related input behavior."
+use = "The Telorgon compositor uses this userspace input stack to handle devices supplied by the kernel. It builds on device discovery, libevdev and mtdev."
+
+[packages.libksba]
+kind = "Certificate-structure library"
+purpose = "Parses and creates X.509 and CMS certificate and message structures for the GnuPG family."
+use = "Supplies the certificate-format support required by the selected GnuPG build; it is part of that cryptographic dependency closure."
+
+[packages.libndp]
+kind = "IPv6 networking library"
+purpose = "Provides userspace support for IPv6 Neighbor Discovery messages and operations."
+use = "NetworkManager uses it for the IPv6 side of managing network interfaces and address configuration."
+
+[packages.libnl]
+kind = "Kernel networking interface libraries"
+purpose = "Wraps Linux Netlink communication for routing, interfaces and related network configuration."
+use = "The packaged WPA supplicant uses it to communicate with Linux's wireless interfaces; it is part of the broader network control stack."
+
+[packages.libpng]
+kind = "Image-format library"
+purpose = "Decodes and encodes PNG images using zlib for their compressed data."
+use = "Supplies PNG support to GdkPixbuf and therefore to the portal's sandboxed image validator."
+
+[packages.libseat]
+kind = "Seat-access library and daemon"
+purpose = "Coordinates access to display and input devices for the process owning a graphical seat."
+use = "The compositor uses the libseat API with the seatd backend. The distro also uses logind for login sessions, but this recipe selects seatd for compositor device access."
+parts = { "libseat" = "Client API through which the compositor requests device access.", "seatd" = "The server that brokers seat devices; distro policy controls its seat-group socket." }
+
+[packages.libseccomp]
+kind = "System-call filtering library"
+purpose = "Builds Linux seccomp filters that allow or reject selected system calls."
+use = "Supports systemd service sandboxing and the file-identification dependency stack. It supplies the API; each caller supplies its own filtering policy."
+
+[packages."libstdc++"]
+kind = "C++ runtime library"
+purpose = "The GNU C++ standard library and its runtime/development interfaces."
+use = "Satisfies the C++ dependencies of compiled libraries and declared application packages. It is exported from the source-built toolchain without installing GCC as a guest compiler."
+
+[packages.libsystemd]
+kind = "System-service API library"
+purpose = "Public APIs for systemd integration, including service notification, socket activation, event loops and D-Bus helpers."
+use = "The source-built D-Bus daemon uses it for systemd socket activation. It is packaged independently from the systemd service-manager payload."
+
+[packages.libudev]
+kind = "Alternate device daemon, library and rules"
+purpose = "The standalone eudev implementation of device enumeration and event handling."
+use = "Exists as an alternate recipe in the catalog. Current systemd-based images use systemd's conflicting libudev/udev provider, so both implementations are not installed together."
+
+[packages.libxcrypt]
+kind = "Password-hashing library"
+purpose = "Implements crypt-style password hashing and verification interfaces."
+use = "PAM, login utilities and systemd's authentication-related dependencies use it when working with local password hashes. It does not itself enroll a user or unlock an account."
+
+[packages.libxkbcommon]
+kind = "Keyboard layout and state library"
+purpose = "Compiles XKB keyboard descriptions and tracks keys, modifiers and layout state."
+use = "The compositor and Wayland application stack use it to interpret keyboard input, with layout definitions from xkeyboard-config."
+
+[packages.libxml2]
+kind = "XML library and tools"
+purpose = "Parses, validates and processes XML documents; includes genuine XML tooling used by the build."
+use = "Supports the shared MIME database stack and XML consumers/generators. It complements the smaller Expat parser rather than replacing all its users."
+
+[packages.linux]
+kind = "Kernel"
+purpose = "The core operating system: processes, scheduling, memory, system calls, networking, filesystems and device drivers."
+use = "Boots through its EFI stub and provides the mechanisms needed by all userspace. The recipe includes QEMU storage/network/display/input paths, desktop sound/camera interfaces and namespace/cgroup/FUSE support."
+parts = { "Process and memory management" = "Schedules tasks, maps memory and implements userspace execution.", "Filesystems and block devices" = "Provide the persistent ext4 root, EFI FAT filesystem support, virtual storage and kernel pseudo-filesystems.", "Networking" = "Implements sockets, IPv4/IPv6 and the selected virtual network device drivers.", "DRM/KMS and input" = "Expose display modes, buffers and input-event devices to the compositor.", "ALSA and V4L2" = "Expose selected sound and camera device interfaces to userspace media services.", "Namespaces, cgroups and seccomp" = "Supply isolation, resource-management and filtering primitives used by systemd and sandbox tools.", "FUSE" = "Connects a userspace filesystem such as the document portal to kernel filesystem operations." }
+
+[packages.lua]
+kind = "Interpreter and runtime library"
+purpose = "Embeds the Lua scripting language in applications and provides its command-line interpreter."
+use = "Supplies the system Lua runtime selected by the WirePlumber build for its media policy scripting."
+
+[packages.mesa-gbm]
+kind = "Graphics-buffer interface library"
+purpose = "Mesa's Generic Buffer Management interface for managing buffers associated with DRM devices."
+use = "Supports the compositor's CPU/KMS buffer path. This recipe selects GBM and does not include Mesa Vulkan or OpenGL drivers."
+
+[packages.mtdev]
+kind = "Multitouch input library"
+purpose = "Normalizes supported multitouch event streams for userspace consumers."
+use = "Provides a lower-level touch-event dependency of libinput, underneath the compositor's input processing."
+
+[packages.networkmanager]
+kind = "Network service, library and tools"
+purpose = "Manages interfaces, connections, addressing and Wi-Fi integration through a D-Bus API and libnm."
+use = "Telorgon network controls use its service API. The distro selects keyfile connection storage, internal DHCP and WPA supplicant for Wi-Fi, with configuration written inside the guest."
+parts = { "NetworkManager daemon" = "Owns connection and interface configuration.", "libnm" = "Provides a GLib client API to NetworkManager.", "Keyfile plugin" = "Stores connection profiles in files.", "Internal DHCP client" = "Obtains address configuration without another DHCP daemon." }
+
+[packages.npth]
+kind = "Threading adapter library"
+purpose = "Native POSIX thread support used by GnuPG components."
+use = "Satisfies the selected GnuPG engine's threading dependency in the package-verification stack."
+
+[packages.openssl]
+kind = "TLS and cryptographic libraries and tool"
+purpose = "libssl, libcrypto and the openssl program supply TLS connections, certificate handling, hashes and other cryptographic operations."
+use = "curl and WPA supplicant use the packaged TLS/crypto stack, and pacman/libarchive also declare it in their runtime closures."
+
+[packages.pacman]
+kind = "Package manager and transaction library"
+purpose = "Installs, removes, verifies and upgrades ALPM packages while tracking dependencies, file ownership and the installed database."
+use = "Owns package installation inside the guest, including development deployments. The distro builds its own pacman and dependencies; using ALPM archives does not import another distro's packages."
+parts = { "pacman" = "User-facing command for package queries and transactions.", "libalpm" = "Transaction engine for dependencies, ownership, signatures, extraction and hooks.", "pacman-conf" = "Queries parsed package-manager configuration.", "vercmp" = "Compares package version strings.", "Upstream archive checker" = "Checks package archive metadata and contents.", "local-fetch helper" = "Implements the explicitly selected local-development file repository transport.", "ALPM hook engine" = "Runs hooks supplied by MIME, desktop-entry, schema and module packages after relevant transactions." }
+
+[packages.pam]
+kind = "Authentication libraries, modules and helper"
+purpose = "Linux Pluggable Authentication Modules separates login/account/session policy from individual programs."
+use = "Login services, systemd sessions and polkit use explicitly configured PAM stacks. The distro's login stack also invokes systemd's PAM module to register the logind session."
+parts = { "libpam and modules" = "Run the authentication, account, password and session rules selected for each service.", "pam_unix" = "Checks local account/password information and applies Unix session rules.", "unix_chkpwd" = "Provides the constrained helper needed to check protected shadow-password data." }
+
+[packages.pcre2]
+kind = "Regular-expression library"
+purpose = "Matches Perl-compatible regular expressions."
+use = "Supplies the expression engine declared by GLib, underneath services and tools that depend on GLib's text-processing APIs."
+
+[packages.pipewire]
+kind = "Media server, client library and plugins"
+purpose = "Routes audio/video streams through a media graph and supplies the client API and SPA processing/device plugins."
+use = "Telorgon media controls and desktop services use it for session media. This recipe includes ALSA and V4L2 backends, while WirePlumber supplies device and session policy."
+parts = { "pipewire" = "Runs the user's media graph server.", "libpipewire" = "Connects applications and services to that graph.", "pipewire-pulse" = "Offers the PulseAudio protocol using PipeWire's graph.", "SPA support and conversion plugins" = "Supply graph support, media formats and audio/video processing.", "SPA ALSA backend" = "Connects the graph to kernel sound devices through alsa-lib.", "SPA V4L2 backend" = "Connects the graph to supported kernel camera devices.", "pw-cli" = "Inspects and interacts with the PipeWire graph." }
+
+[packages.polkit]
+kind = "Authorization service and helpers"
+purpose = "Decides whether a requesting process may perform a privileged action using policy, session identity and supported authentication."
+use = "Network and power services use it for authorization. The build integrates PAM and logind; a graphical authentication agent remains a separate component requirement."
+parts = { "polkitd" = "Evaluates system authorization requests and rules.", "pkcheck" = "Queries authorization for an action.", "pkexec and agent helper" = "Provide packaged privileged-execution and authentication helper mechanisms." }
+
+[packages.telorgon-portal-picker]
+kind = "Graphical consent application"
+purpose = "Presents the compositor's screen-sharing selection and consent interface."
+use = "The shell references this app when capture is supported. Packaging the picker alone does not enable ScreenCast; the selected SDK's software-capture capability controls the distro's portal registration."
+
+[packages.power-profiles-daemon]
+kind = "Power-policy service"
+purpose = "Exposes supported system power profiles through D-Bus."
+use = "Settings talks directly to this service to inspect or change available power modes. The optional upstream Python command-line client is not part of this recipe's payload."
+
+[packages.qemu-guest-agent]
+kind = "Development VM service"
+purpose = "The qemu-ga process exposes guest-management operations through a private virtio-serial channel."
+use = "The desktop-dev workflow uses it to transfer and verify packages and run a guest pacman transaction. Normal desktop-use images do not select this deployment channel."
+
+[packages.telorgon-settings-app]
+kind = "Graphical application"
+purpose = "Provides display, sound, networking, power and personalization settings using the Telorgon UI SDK."
+use = "Coordinates the shell's own settings/display services with system APIs such as NetworkManager, UPower, power-profiles-daemon and polkit. It does not replace those system services."
+
+[packages.shared-mime-info]
+kind = "File-type database and generator"
+purpose = "The freedesktop MIME type definitions and update-mime-database cache generator."
+use = "GIO, file integration and application dispatch use the compiled database to understand file types and associations. Desktop cache initialization and ALPM hooks keep it current."
+
+[packages.systemd]
+kind = "Service/session manager and device services"
+purpose = "Starts and supervises the system and user services, manages sessions and devices, and collects logs."
+use = "Acts as PID 1 in every non-console profile, starts the desktop's supporting services, and supplies the selected udev/libudev provider. The public libsystemd API is packaged separately."
+parts = { "systemd as PID 1" = "Orders and supervises boot and system services through units and targets.", "User service manager" = "Supervises each user's bus, media services, shell and graphical session.", "systemd-journald" = "Collects system and application logs in the journal.", "systemd-udevd and libudev" = "Discover devices, process device rules and provide device enumeration to clients.", "systemd-logind" = "Tracks login sessions, seats and user runtime-directory lifetimes.", "pam_systemd" = "Registers a PAM session with logind and connects it to the user manager.", "systemd-sysusers" = "Creates declared system users/groups and group memberships.", "systemd-tmpfiles" = "Creates and maintains declared runtime/state directories and files.", "systemctl and journalctl" = "Inspect/control units and read journal records.", "Hardware database" = "Supplies compiled device identification and properties used by udev." }
+
+[packages.telorgon-shell]
+kind = "Desktop shell and Wayland compositor"
+purpose = "Owns the desktop background, taskbar, application/window management, composition and routing of graphical input."
+use = "Uses Telorgon's compositor host to display Wayland clients and talks to audio, network, power, tray and settings services. Distro packaging supplies its session launcher, desktop entry and portal preferences."
+parts = { "telorgon-test-shell" = "The actual shell executable built from sources/test-shell.", "telorgon-session" = "Sets the desktop/session identity and executes the shell.", "Shell settings service" = "Exposes the shell-owned display and personalization controls used by Settings.", "Wayland session entry" = "Registers Telorgon as a graphical session.", "Portal preferences and capability record" = "Select File Explorer for FileChooser and record whether the packaged SDK enables ScreenCast." }
+
+[packages.upower]
+kind = "Power-device service and client API"
+purpose = "Reports batteries, power sources and their state through D-Bus."
+use = "The shell's battery display and Settings use its device/state information. Power-profile selection is handled by power-profiles-daemon instead."
+
+[packages.util-linux]
+kind = "System utilities and storage libraries"
+purpose = "Login/getty, mount, block-device and namespace tools together with supporting storage/identity libraries."
+use = "systemd and GLib use its libraries; login and console/session handling use its programs. The recipe explicitly selects a subset of upstream utilities."
+parts = { "libuuid" = "Creates and handles UUIDs.", "libblkid" = "Identifies block-device filesystem and partition metadata.", "libmount" = "Processes mount tables and mount operations.", "libfdisk" = "Provides partition-table handling APIs.", "libsmartcols" = "Formats structured command-line tables.", "agetty and login" = "Provide terminal login handling and the PAM-aware login program.", "su and sulogin" = "Provide user-switching and maintenance-login utilities.", "mount and swap tools" = "Manage filesystem mounts and swap activation.", "unshare and nsenter" = "Create or enter Linux namespaces.", "losetup and lsblk" = "Inspect/manage virtual block-device relationships and list block devices inside the guest." }
+
+[packages.wayland]
+kind = "Display-protocol libraries"
+purpose = "Client/server libraries for exchanging window surfaces, input events and other graphical protocol messages."
+use = "Connects applications to the Telorgon compositor. Wayland specifies the communication protocol; Telorgon supplies the compositor and desktop policy."
+
+[packages.wayland-protocols]
+kind = "Build-time protocol data"
+purpose = "XML definitions for standard Wayland extension protocols."
+use = "Generators use this data to create protocol bindings during builds. The generated bindings enter the relevant programs; the XML package is not a daemon or part of current profile runtime closures."
+
+[packages.wireplumber]
+kind = "Media-session policy service"
+purpose = "Manages PipeWire devices, routes and session policy."
+use = "Starts with the desktop's user media session and decides how available devices/streams are configured and connected. PipeWire supplies the graph; WirePlumber supplies its policy."
+
+[packages.wl-clipboard]
+kind = "Wayland clipboard tools"
+purpose = "The wl-copy and wl-paste programs read and write the Wayland clipboard."
+use = "Provides the command-line clipboard integration declared by File Explorer and usable by other programs in the graphical session."
+
+[packages.wpa-supplicant]
+kind = "Wireless authentication service"
+purpose = "Performs supported Wi-Fi association and WPA authentication, with a D-Bus control interface."
+use = "NetworkManager uses it as the selected Wi-Fi backend. The build connects to Linux wireless APIs through libnl and uses OpenSSL for its crypto/TLS requirements."
+
+[packages.xdg-desktop-portal]
+kind = "Desktop integration broker and helpers"
+purpose = "Provides standard application requests for controlled desktop integration, dispatching them to selected backends."
+use = "Routes FileChooser to File Explorer and, when supported by the packaged SDK, ScreenCast to Telorgon. Its dependency stack also supplies document sharing and sandboxed media validation."
+parts = { "xdg-desktop-portal" = "The user-session broker that dispatches portal requests to backends.", "Document portal" = "Exposes controlled document access through its FUSE filesystem.", "Permission store" = "Stores permissions used by the portal services.", "Image and sound validators" = "Inspect media through the packaged image/multimedia stack inside bubblewrap sandboxes.", "FileChooser backend" = "Provided by the separate File Explorer package.", "ScreenCast backend" = "Provided by the Telorgon compositor only when the packaged capture capability is enabled." }
+
+[packages.xdg-utils]
+kind = "Desktop integration scripts"
+purpose = "Shell utilities for opening resources and querying or changing MIME/application associations."
+use = "File Explorer and other callers use xdg-open/xdg-mime to dispatch resources through registered desktop handlers. The scripts run with the distro's packaged shell and file/database tools."
+
+[packages.xkeyboard-config]
+kind = "Keyboard layout data"
+purpose = "XKB layout, model, variant and rules definitions."
+use = "libxkbcommon consumes these definitions to turn configured keyboard layouts into the state used by the compositor and applications. Its historical name does not require an X server."
+
+[packages.xz]
+kind = "Compression library and tools"
+purpose = "liblzma and the XZ/LZMA compression programs."
+use = "Supports the distro's XZ-compressed ALPM archives through libarchive and supplies compression support to other declared consumers."
+
+[packages.zlib]
+kind = "Compression library"
+purpose = "Implements DEFLATE compression and decompression used by gzip and PNG formats, among others."
+use = "Supports archive, PNG, transfer and cryptographic-stack dependencies that need this compression format."
+
+[projects.telorgon]
+kind = "Shared Rust SDK source"
+purpose = "The shared implementation of UI authoring, rendering, application/embedded hosting, compositor support, media, system integration, settings and boot UI."
+use = "Linked into the shell and applications, and selected boot capabilities are used by the bootloader. Its workspace includes the public SDK, its procedural macro companion and a shader-maintenance tool."
+
+[projects.test-shell]
+kind = "Desktop shell source"
+purpose = "The shell application that assembles Telorgon's compositor host, taskbar, window chrome, background, settings service and system controls."
+use = "Produces the telorgon-shell package's telorgon-test-shell executable. The clone's historical test-shell directory name refers to the default Telorgon desktop source."
+
+[projects.telorgon-file-explorer]
+kind = "File application and portal source"
+purpose = "Owns file browsing, downloads and the FileChooser backend, together with desktop/D-Bus/portal registration templates."
+use = "Produces the telorgon-file-explorer package and its activation metadata, using the shared SDK for graphical UI."
+
+[projects.telorgon-settings-app]
+kind = "Settings application source"
+purpose = "Owns the settings UI and client-side interactions with shell and system settings services."
+use = "Produces the telorgon-settings-app package; system services continue to own network, power and authorization mechanisms."
+
+[projects.telorgon-portal-picker]
+kind = "Sharing consent application source"
+purpose = "Owns the graphical selection/consent interface used by Telorgon's capture integration."
+use = "Produces telorgon-portal-picker. Capture backend support and portal registration are determined separately by the SDK and shell packaging."
+
+[projects.telorgon-bootloader]
+kind = "EFI boot application source"
+purpose = "Owns the Telorgon UEFI bootloader and its kernel/initramfs handoff, using the SDK's shared boot UI."
+use = "Produces the EFI artifact placed on the image's EFI System Partition. It runs before Linux rather than as a desktop service."
+
+[sdk_crates]
+telorgon = "Public SDK linked into its consumers; its capabilities are selected through Cargo features."
+telorgon-macros = "Procedural macro companion used while compiling declarative UI components; its macros are re-exported by the SDK."
+telorgon-shader-build = "Maintainer tool that regenerates the SDK's checked-in Vulkan shader bundle; it is not an OS daemon."
+
+[sdk_modules]
+assets = "Typed embedded images, fonts, cursors and other application-owned media."
+authoring = "Declarative component authoring and composition APIs."
+boot = "Shared boot-selection and splash views, state and handoff models."
+components = "Reusable application widgets and desktop-shell components."
+data = "Typed settings registries, transactions, subscriptions and optional TOML persistence/autosave."
+foundation = "Shared geometry, color and time values."
+graphics = "Scenes, materials, rendering contracts and software/Vulkan renderer implementations."
+host = "Application, embedded, compositor, UEFI and boot-splash execution/hosting entry points."
+input = "Platform-neutral keyboard, pointer, focus, gesture, shortcut and input-routing values."
+integrations = "Adapters to external protocols/services such as Wayland, PipeWire, WirePlumber, portals and NetworkManager."
+media = "Audio, MIDI, video and timing facilities independent of a particular UI host."
+platform = "Native platform adapters and contracts for Linux, UEFI and managed window hosts."
+runtime = "Mounted-view state, composition, scheduling, transactions, tasks and input ownership."
+services = "Desktop audio, battery, clipboard, tray, brightness, network, display, settings and session integration."
+shell = "Protocol-neutral shell models, capabilities, requests and window-chrome contracts."
+theme = "Theme sources, compilation, catalogs, scope, resolution and motion definitions."
+ui = "Mounted UI, layout, text, overlays, accessibility semantics and presentation-facing UI state."
+
+[policy]
+"system/init" = "Early initramfs script: mounts devtmpfs/proc/sysfs/tmpfs, resolves and mounts the ext4 root, and executes the selected root init through switch_root."
+"system/runtime-init" = "Console-profile PID 1: validates root metadata, prints boot markers, runs selected package fixtures and keeps the console shell available."
+"system/init-command" = "Selects the console runtime init; image composition changes the installed policy to /sbin/init for systemd-based profiles."
+"system/os-release" = "Identifies the guest OS to programs and users; copied into the generated base package."
+"system/systemd/etc/profile" = "Sets the login shell's environment for packaged user commands."
+"system/systemd/etc/nsswitch.conf" = "Selects local files for account databases and files/DNS for host lookup."
+"system/systemd/etc/pam.d/login" = "Defines Unix account/password checks and the pam_systemd session registration used by login and the normal desktop service."
+"system/systemd/etc/pam.d/system-auth" = "Shared Unix authentication/account/password/session stack used by explicitly configured clients."
+"system/systemd/etc/systemd/system.conf.d/10-custom-distro.conf" = "Distro defaults for the system service manager."
+"system/systemd/etc/systemd/user.conf.d/10-custom-distro.conf" = "Distro defaults for each user's service manager."
+"system/systemd/etc/systemd/system/dbus.socket" = "Creates the system-bus socket before starting its message daemon."
+"system/systemd/etc/systemd/system/dbus.service" = "Starts the system dbus-daemon with systemd socket activation."
+"system/systemd/etc/systemd/system/custom-distro-session-check.service" = "Qualification-only PAM/logind session unit; omitted from normal desktop-use and desktop-dev payloads."
+"system/systemd/etc/systemd/system/custom-distro-system-check.service" = "Qualification-only system service check unit; omitted from normal desktop payloads."
+"system/systemd/usr/lib/custom-distro/check-user-session" = "Exercises a real unprivileged PAM/logind session and records qualification markers; removed from normal desktop payloads."
+"system/systemd/usr/lib/custom-distro/check-system-services" = "Checks the guest's selected service/session runtime during qualification; removed from normal desktop payloads."
+"system/desktop/etc/sysusers.d/custom-distro-seat.conf" = "Declares the seat group and grants the custom user access to the seatd socket."
+"system/desktop/etc/sysusers.d/custom-distro-media.conf" = "Adds the desktop user to the audio and video groups for the selected device-access policy."
+"system/desktop/etc/systemd/system/seatd.service" = "Starts seatd with the socket group used by the compositor's libseat backend."
+"system/desktop/etc/systemd/system/custom-distro-session-check.service.d/desktop.conf" = "Extends the disposable session-check unit for graphical qualification; removed from normal desktop payloads."
+"system/desktop/etc/systemd/system/custom-distro-system-check.service.d/desktop.conf" = "Extends disposable system checks with desktop service checks; removed from normal desktop payloads."
+"system/desktop/etc/systemd/user/dbus.socket" = "Creates the user's D-Bus socket in the runtime directory."
+"system/desktop/etc/systemd/user/dbus.service" = "Starts the user's dbus-daemon with systemd activation."
+"system/desktop/etc/systemd/user/pipewire.service" = "Starts and restarts the user's PipeWire media server."
+"system/desktop/etc/systemd/user/pipewire-pulse.service" = "Starts the PulseAudio protocol compatibility server after PipeWire."
+"system/desktop/etc/systemd/user/telorgon-shell.service" = "Starts the compositor after its bus/media dependencies and waits for its Wayland socket."
+"system/desktop/etc/systemd/user/telorgon-session.target" = "Groups the shell, media services and portals into one graphical session with a coordinated lifetime."
+"system/desktop/usr/lib/custom-distro/start-telorgon-shell" = "Qualification shell launcher: records the shell log and enables latency tracing; replaced by the normal-session overlay."
+"system/desktop/usr/lib/custom-distro/wait-telorgon-shell" = "Qualification readiness helper: checks that the compositor is alive and publishes its actual socket for probes; replaced for normal sessions."
+"system/desktop/usr/lib/custom-distro/check-desktop-session" = "Runs graphical-session qualification using the real Wayland probe; removed from normal desktop payloads."
+"system/desktop/usr/lib/custom-distro/check-desktop-services" = "Checks the selected desktop services during qualification; removed from normal desktop payloads."
+"system/desktop-use/etc/systemd/system/custom-distro-desktop-caches.service" = "Builds MIME, desktop-entry, schema and GIO-module caches before the normal desktop starts."
+"system/desktop-use/etc/systemd/system/custom-distro-desktop.service" = "Starts the custom user's desktop with PAM/logind on tty1 after the system bus, seatd and cache initialization."
+"system/desktop-use/etc/systemd/system/graphical.target.wants/custom-distro-desktop.service" = "Source-owned activation symlink that enables the normal desktop service at graphical.target."
+"system/desktop-use/etc/systemd/user/telorgon-shell.service.d/normal-session.conf" = "Removes stale shell logs and socket evidence before each normal compositor startup."
+"system/desktop-use/usr/lib/custom-distro/start-desktop-session" = "Keeps the PAM session open, imports its environment into the user manager and waits for the graphical session target."
+"system/desktop-use/usr/lib/custom-distro/start-telorgon-shell" = "Normal shell launcher: creates the per-user shell log and runs telorgon-session."
+"system/desktop-use/usr/lib/custom-distro/wait-telorgon-shell" = "Normal readiness helper: verifies the actual Wayland socket, updates activation environments and records the socket for clients."
