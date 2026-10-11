@@ -1,6 +1,56 @@
 # Explanations of named distro components. Versions, pins, dependencies and
 # profile selections remain authoritative in their existing manifests.
 
+[packages.foot]
+kind = "Wayland terminal emulator"
+purpose = "Runs interactive command-line programs in a native Wayland window."
+use = "The default desktop includes it, and the shell terminal shortcut launches it. Its terminfo describes the supported terminal control sequences."
+
+[packages.fontconfig]
+kind = "Font discovery library and tools"
+purpose = "Selects installed fonts and applies font fallback and rendering configuration."
+use = "Foot and fcft use it to locate the packaged fonts. Its cache is populated in the guest rather than on the build host."
+
+[packages.freetype]
+kind = "Font rasterization library"
+purpose = "Loads font files and rasterizes glyphs."
+use = "Provides glyph rendering for the terminal font stack, including PNG-backed color glyphs."
+
+[packages.harfbuzz]
+kind = "Text shaping library"
+purpose = "Maps Unicode text and grapheme clusters to positioned glyphs."
+use = "fcft uses it for terminal text shaping; FreeType is built first to avoid a circular build dependency."
+
+[packages.fcft]
+kind = "Font rendering library"
+purpose = "Combines Fontconfig, FreeType, HarfBuzz and Pixman for glyph loading and drawing."
+use = "Foot uses its glyph cache and Unicode shaping support."
+
+[packages.pixman]
+kind = "Software pixel compositing library"
+purpose = "Provides CPU image compositing and pixel manipulation."
+use = "Foot and fcft render without requiring an OpenGL context."
+
+[packages.utf8proc]
+kind = "Unicode processing library"
+purpose = "Provides Unicode normalization, character properties and grapheme boundaries."
+use = "Foot and fcft use it for combining characters and text shaping."
+
+[packages.fonts-dejavu]
+kind = "Font assets"
+purpose = "Provides the upstream DejaVu TrueType font collection and its license."
+use = "Supplies a default monospace font and fallback coverage for the terminal independently of host fonts."
+
+[packages.ncurses]
+kind = "Terminal libraries, tools and capability database"
+purpose = "Provides wide-character terminal APIs, terminfo data, tic, infocmp and terminal control utilities."
+use = "Terminal applications read its capability database. Foot also builds a private tic from the same source for generating its own terminfo."
+
+[packages.tllist]
+kind = "Build headers"
+purpose = "Provides a typed linked-list implementation for C."
+use = "Foot and fcft compile against these headers; this package has no runtime library."
+
 [packages.alsa-lib]
 kind = "Library and configuration"
 purpose = "ALSA's userspace sound API, including PCM playback/capture, mixer controls and sound-card configuration."
@@ -15,7 +65,7 @@ use = "The desktop portal uses it to isolate image and sound validators when ins
 kind = "Static utility collection"
 purpose = "One executable supplies the shell and small Unix utilities needed for mounting filesystems, copying files, inspecting the system and powering off."
 use = "It makes the initramfs independent of shared libraries, performs the switch to the persistent root, and supplies the console profile's shell and repair tools."
-parts = { "sh" = "Runs early boot, console and lightweight system scripts.", "mount and switch_root" = "Mount kernel filesystems and hand execution to the installed root.", "findfs" = "Resolves the root partition's UUID or label during early boot.", "poweroff" = "Stops the private VM from the console." }
+parts = { "sh" = "Runs early boot, interactive terminal sessions and lightweight system scripts.", "stty and tee" = "Inspect terminal modes and sizes, and capture command output.", "mount and switch_root" = "Mount kernel filesystems and hand execution to the installed root.", "findfs" = "Resolves the root partition's UUID or label during early boot.", "poweroff" = "Stops the private VM from the console." }
 
 [packages.ca-certificates]
 kind = "Trust data"
@@ -88,7 +138,7 @@ parts = { "GLib" = "Core data structures, utilities and main-loop support.", "GO
 kind = "C runtime and dynamic loader"
 purpose = "The GNU C library, userspace system-call interfaces, name-service support and ELF shared-library loader."
 use = "Provides the common runtime used by dynamically linked system programs and libraries. The loader starts those programs and resolves their shared-library dependencies."
-parts = { "libc" = "C library operations and interfaces to kernel facilities.", "ld-linux-x86-64.so.2" = "Loads and links dynamically linked x86_64 ELF programs.", "Name-service support" = "Resolves users, groups and hostnames according to nsswitch.conf." }
+parts = { "libc" = "C library operations and interfaces to kernel facilities.", "ld-linux-x86-64.so.2" = "Loads and links dynamically linked x86_64 ELF programs.", "Name-service support" = "Resolves users, groups and hostnames according to nsswitch.conf.", "C.UTF-8" = "Source-generated Unicode locale for the desktop and terminal." }
 
 [packages.gnupg]
 kind = "OpenPGP tools and support processes"
@@ -469,6 +519,7 @@ ui = "Mounted UI, layout, text, overlays, accessibility semantics and presentati
 "system/init-command" = "Selects the console runtime init; image composition changes the installed policy to /sbin/init for systemd-based profiles."
 "system/os-release" = "Identifies the guest OS to programs and users; copied into the generated base package."
 "system/systemd/etc/profile" = "Sets the login shell's environment for packaged user commands."
+"system/systemd/etc/locale.conf" = "Selects the source-generated C.UTF-8 locale for system and desktop services."
 "system/systemd/etc/nsswitch.conf" = "Selects local files for account databases and files/DNS for host lookup."
 "system/systemd/etc/pam.d/login" = "Defines Unix account/password checks and the pam_systemd session registration used by login and the normal desktop service."
 "system/systemd/etc/pam.d/system-auth" = "Shared Unix authentication/account/password/session stack used by explicitly configured clients."

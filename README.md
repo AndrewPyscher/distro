@@ -2,6 +2,7 @@
 
 Custom Distro builds an independent Linux system from source, with the Telorgon
 bootloader, desktop shell, framework, File Explorer, Settings and portal picker.
+The desktop also includes Foot for command-line access.
 Python coordinates the toolchain, packages, images and private QEMU VMs. The
 guest uses source-built pacman/libalpm; it does not import another distro's
 runtime packages or root filesystem.

@@ -86,8 +86,8 @@ SDK's major subsystems, and every distro-owned guest policy source file.
 The [boot and assembled system pieces](#boot-and-assembled-system-pieces)
 below cover firmware, disk layout and the generated base/session packages.
 
-Coverage: **78 package recipes, 6 source repositories and
-38 guest policy files**, plus the named pieces bundled inside them.
+Coverage: **88 package recipes, 6 source repositories and
+39 guest policy files**, plus the named pieces bundled inside them.
 Exact installed file lists, versions, source pins and transitive Cargo dependencies
 remain in package/image manifests, build receipts and the owning Cargo locks.
 This reference describes component responsibilities, not qualification of a
@@ -108,9 +108,9 @@ The systemd-based profiles select systemd as the libudev provider.
 | Profile | Catalog runtime packages | Purpose |
 | --- | --- | --- |
 | [`console`](../profiles/console.toml) | 17 | Source-built experimental console with Telorgon EFI and local pacman |
-| [`desktop-dev`](../profiles/desktop-dev.toml) | 75 | Telorgon development VM with private host package deployment |
-| [`desktop-use`](../profiles/desktop-use.toml) | 74 | Telorgon desktop for normal local VM use |
-| [`desktop`](../profiles/desktop.toml) | 74 | Experimental Telorgon software-rendered desktop and private VM qualification |
+| [`desktop-dev`](../profiles/desktop-dev.toml) | 84 | Telorgon development VM with private host package deployment |
+| [`desktop-use`](../profiles/desktop-use.toml) | 83 | Telorgon desktop for normal local VM use |
+| [`desktop`](../profiles/desktop.toml) | 83 | Experimental Telorgon software-rendered desktop and private VM qualification |
 | [`systemd`](../profiles/systemd.toml) | 30 | Experimental source-built systemd and regular-user PAM session qualification |
 
 In the package tables, **all desktop profiles** means `desktop`, `desktop-use`
@@ -127,6 +127,12 @@ original profile; the VM's deployment receipt records those updates.
 | Component and inclusion | What it provides | Role in this distro |
 | --- | --- | --- |
 | [`telorgon-file-explorer`](../packages/file-explorer/application.toml)<br>Graphical application and portal backend<br>**All desktop profiles** | The Telorgon file manager, download queue and graphical FileChooser portal backend. | Provides everyday file browsing and download UI, and supplies file-open/save dialogs requested through xdg-desktop-portal. Its package also installs application and D-Bus activation registrations. |
+
+#### Terminal
+
+| Component and inclusion | What it provides | Role in this distro |
+| --- | --- | --- |
+| [`foot`](../packages/foot/package.toml)<br>Wayland terminal emulator<br>**All desktop profiles** | Runs interactive command-line programs in a native Wayland window. | The default desktop includes it, and the shell terminal shortcut launches it. Its terminfo describes the supported terminal control sequences. |
 
 #### Desktop settings
 
@@ -224,6 +230,18 @@ original profile; the VM's deployment receipt records those updates.
 | [`libdrm`](../packages/libdrm/package.toml)<br>Display-device interface library<br>**All desktop profiles** | Userspace interfaces for Linux's Direct Rendering Manager, including access to display resources and modesetting facilities. | Supports the Telorgon compositor's path to kernel display devices. The distro's CPU renderer presents through DRM/KMS buffers. |
 | [`mesa-gbm`](../packages/mesa-gbm/package.toml)<br>Graphics-buffer interface library<br>**All desktop profiles** | Mesa's Generic Buffer Management interface for managing buffers associated with DRM devices. | Supports the compositor's CPU/KMS buffer path. This recipe selects GBM and does not include Mesa Vulkan or OpenGL drivers. |
 
+#### Fonts and software text rendering
+
+| Component and inclusion | What it provides | Role in this distro |
+| --- | --- | --- |
+| [`fontconfig`](../packages/fontconfig/package.toml)<br>Font discovery library and tools<br>**All desktop profiles** | Selects installed fonts and applies font fallback and rendering configuration. | Foot and fcft use it to locate the packaged fonts. Its cache is populated in the guest rather than on the build host. |
+| [`freetype`](../packages/freetype/package.toml)<br>Font rasterization library<br>**All desktop profiles** | Loads font files and rasterizes glyphs. | Provides glyph rendering for the terminal font stack, including PNG-backed color glyphs. |
+| [`harfbuzz`](../packages/harfbuzz/package.toml)<br>Text shaping library<br>**All desktop profiles** | Maps Unicode text and grapheme clusters to positioned glyphs. | fcft uses it for terminal text shaping; FreeType is built first to avoid a circular build dependency. |
+| [`fcft`](../packages/fcft/package.toml)<br>Font rendering library<br>**All desktop profiles** | Combines Fontconfig, FreeType, HarfBuzz and Pixman for glyph loading and drawing. | Foot uses its glyph cache and Unicode shaping support. |
+| [`pixman`](../packages/pixman/package.toml)<br>Software pixel compositing library<br>**All desktop profiles** | Provides CPU image compositing and pixel manipulation. | Foot and fcft render without requiring an OpenGL context. |
+| [`utf8proc`](../packages/utf8proc/package.toml)<br>Unicode processing library<br>**All desktop profiles** | Provides Unicode normalization, character properties and grapheme boundaries. | Foot and fcft use it for combining characters and text shaping. |
+| [`fonts-dejavu`](../packages/fonts-dejavu/package.toml)<br>Font assets<br>**All desktop profiles** | Provides the upstream DejaVu TrueType font collection and its license. | Supplies a default monospace font and fallback coverage for the terminal independently of host fonts. |
+
 #### Input and keyboard layouts
 
 | Component and inclusion | What it provides | Role in this distro |
@@ -280,6 +298,7 @@ original profile; the VM's deployment receipt records those updates.
 | [`busybox`](../packages/busybox/package.toml)<br>Static utility collection<br>**All profiles** | One executable supplies the shell and small Unix utilities needed for mounting filesystems, copying files, inspecting the system and powering off. | It makes the initramfs independent of shared libraries, performs the switch to the persistent root, and supplies the console profile's shell and repair tools. |
 | [`util-linux`](../packages/util-linux/package.toml)<br>System utilities and storage libraries<br>**All systemd-based profiles** | Login/getty, mount, block-device and namespace tools together with supporting storage/identity libraries. | systemd and GLib use its libraries; login and console/session handling use its programs. The recipe explicitly selects a subset of upstream utilities. |
 | [`pacman`](../packages/pacman/package.toml)<br>Package manager and transaction library<br>**All profiles** | Installs, removes, verifies and upgrades ALPM packages while tracking dependencies, file ownership and the installed database. | Owns package installation inside the guest, including development deployments. The distro builds its own pacman and dependencies; using ALPM archives does not import another distro's packages. |
+| [`ncurses`](../packages/ncurses/package.toml)<br>Terminal libraries, tools and capability database<br>**All desktop profiles** | Provides wide-character terminal APIs, terminfo data, tic, infocmp and terminal control utilities. | Terminal applications read its capability database. Foot also builds a private tic from the same source for generating its own terminfo. |
 
 #### Package signatures and crypto
 
@@ -315,6 +334,7 @@ original profile; the VM's deployment receipt records those updates.
 | --- | --- | --- |
 | [`gettext`](../packages/gettext/package.toml)<br>Translation and build tools<br>**Catalog only** | GNU tools for compiling translation catalogs and merging translations into XML and desktop-entry templates. | Supplies genuine translation generators during package builds. It is available in the recipe catalog but is not selected into the current profile runtime closures. |
 | [`wayland-protocols`](../packages/wayland-protocols/package.toml)<br>Build-time protocol data<br>**Catalog only** | XML definitions for standard Wayland extension protocols. | Generators use this data to create protocol bindings during builds. The generated bindings enter the relevant programs; the XML package is not a daemon or part of current profile runtime closures. |
+| [`tllist`](../packages/tllist/package.toml)<br>Build headers<br>**Catalog only** | Provides a typed linked-list implementation for C. | Foot and fcft compile against these headers; this package has no runtime library. |
 
 #### Alternate device provider
 
@@ -515,6 +535,7 @@ Owner: [`glibc`](../packages/glibc/package.toml).
 | libc | C library operations and interfaces to kernel facilities. |
 | ld-linux-x86-64.so.2 | Loads and links dynamically linked x86_64 ELF programs. |
 | Name-service support | Resolves users, groups and hostnames according to nsswitch.conf. |
+| C.UTF-8 | Source-generated Unicode locale for the desktop and terminal. |
 
 #### Pieces in glib
 
@@ -534,7 +555,8 @@ Owner: [`busybox`](../packages/busybox/package.toml).
 
 | Piece | Purpose |
 | --- | --- |
-| sh | Runs early boot, console and lightweight system scripts. |
+| sh | Runs early boot, interactive terminal sessions and lightweight system scripts. |
+| stty and tee | Inspect terminal modes and sizes, and capture command output. |
 | mount and switch_root | Mount kernel filesystems and hand execution to the installed root. |
 | findfs | Resolves the root partition's UUID or label during early boot. |
 | poweroff | Stops the private VM from the console. |
@@ -619,6 +641,7 @@ than services silently running in the normal desktop.
 
 | Policy source | Purpose |
 | --- | --- |
+| [`system/systemd/etc/locale.conf`](../system/systemd/etc/locale.conf) | Selects the source-generated C.UTF-8 locale for system and desktop services. |
 | [`system/systemd/etc/nsswitch.conf`](../system/systemd/etc/nsswitch.conf) | Selects local files for account databases and files/DNS for host lookup. |
 | [`system/systemd/etc/pam.d/login`](../system/systemd/etc/pam.d/login) | Defines Unix account/password checks and the pam_systemd session registration used by login and the normal desktop service. |
 | [`system/systemd/etc/pam.d/system-auth`](../system/systemd/etc/pam.d/system-auth) | Shared Unix authentication/account/password/session stack used by explicitly configured clients. |

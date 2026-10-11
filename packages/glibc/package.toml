@@ -3,7 +3,7 @@ schema = 1
 [package]
 name = "glibc"
 version = "2.42"
-revision = 1
+revision = 2
 arch = "x86_64"
 description = "Source-built GNU C library runtime from the verified cross bootstrap"
 license = "LGPL-2.1-or-later"

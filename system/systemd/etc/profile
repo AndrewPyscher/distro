@@ -1,2 +1,2 @@
 export PATH=/usr/bin:/bin
-export LANG=C
+export LANG=C.UTF-8

@@ -1,0 +1,24 @@
+schema = 1
+
+[package]
+name = "harfbuzz"
+version = "11.2.1"
+revision = 1
+arch = "x86_64"
+description = "Unicode text shaping library"
+license = "MIT"
+
+[[sources]]
+name = "main"
+url = "https://github.com/harfbuzz/harfbuzz/releases/download/11.2.1/harfbuzz-11.2.1.tar.xz"
+filename = "harfbuzz-11.2.1.tar.xz"
+sha256 = "093714c8548a285094685f0bdc999e202d666b59eeb3df2ff921ab68b8336a49"
+
+[dependencies]
+native = []
+target = ["glibc", "libstdc++", "freetype"]
+runtime = ["glibc", "freetype"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]

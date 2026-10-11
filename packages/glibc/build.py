@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import os
 import shutil
+import subprocess
 
 if os.environ.get("CD_BUILD_MODE") != "target":
     raise SystemExit("glibc runtime requires the source-built target bootstrap")
@@ -19,6 +20,14 @@ if report["libc"] != "2.42" or report["target"] != os.environ["CD_TARGET"]:
 if not (root / "usr/lib/libc.a").is_file():
     raise SystemExit("Bootstrap source-built static libc is absent")
 shutil.copytree(root / "usr/lib", stage / "usr/lib", symlinks=True)
+# Foot and other Unicode applications need an installed UTF-8 locale. Generate
+# it with the source-built target localedef and this recipe's pinned locale data.
+(stage / "usr/lib/locale").mkdir(parents=True, exist_ok=True)
+env = dict(os.environ, I18NPATH=str(source / "localedata"))
+subprocess.run([str(root / "usr/lib/ld-linux-x86-64.so.2"), "--library-path",
+                str(root / "usr/lib"), str(root / "usr/bin/localedef"),
+                "--no-archive", f"--prefix={stage}", "-i", "C", "-f", "UTF-8",
+                "C.UTF-8"], env=env, check=True)
 (stage / "lib").symlink_to("usr/lib")
 (stage / "lib64").mkdir()
 (stage / "lib64/ld-linux-x86-64.so.2").symlink_to("../usr/lib/ld-linux-x86-64.so.2")
