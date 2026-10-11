@@ -79,6 +79,8 @@ Python application list:
    package, source, target-Cargo build, requirements and runtime declarations.
    List every source project affecting its build, including the framework.
    This dependency list determines which apps rebuild after shared changes.
+   Assign the package and source project a functional group in the
+   [component map](components.md#updating-the-map) and regenerate its documentation.
 3. Add the package to the intended profile or another package's runtime
    dependencies. `dev` updates apps used by that VM profile and its dependency
    closure, rather than every app in the organization.

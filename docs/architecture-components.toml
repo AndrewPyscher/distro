@@ -1,0 +1,166 @@
+# Functional placement only. Package names, source origins and versions remain
+# authoritative in packages/*/*.toml and source-projects.toml.
+
+[[layers]]
+title = "Applications"
+description = "Separate desktop processes with interfaces built using the Telorgon SDK."
+color = "#2563eb"
+
+[[layers.groups]]
+title = "Files and downloads"
+description = "File manager, downloads and the FileChooser portal backend."
+packages = ["telorgon-file-explorer"]
+projects = ["telorgon-file-explorer"]
+
+[[layers.groups]]
+title = "Desktop settings"
+description = "Display, audio, network, power and personalization controls."
+packages = ["telorgon-settings-app"]
+projects = ["telorgon-settings-app"]
+
+[[layers.groups]]
+title = "Sharing consent"
+description = "Screen-sharing selection UI; capture support depends on the packaged SDK capability."
+packages = ["telorgon-portal-picker"]
+projects = ["telorgon-portal-picker"]
+
+[[layers]]
+title = "Desktop shell and shared SDK"
+description = "The shell and applications share SDK code; the SDK is not a separate background service."
+color = "#7c3aed"
+
+[[layers.groups]]
+title = "Shell and Wayland compositor"
+description = "Desktop, taskbar, window management, composition and input routing."
+packages = ["telorgon-shell"]
+projects = ["test-shell"]
+
+[[layers.groups]]
+title = "Telorgon SDK"
+description = "UI, rendering, hosting, media and service integration; also supplies boot UI support."
+projects = ["telorgon"]
+
+[[layers]]
+title = "System and desktop services"
+description = "Cooperating services and their supporting libraries, grouped by the capability they provide."
+color = "#0f766e"
+
+[[layers.groups]]
+title = "Sessions, devices and IPC"
+description = "systemd includes init, journald, udev, logind and user managers; D-Bus carries service messages."
+packages = ["systemd", "libsystemd", "dbus"]
+
+[[layers.groups]]
+title = "Audio and media routing"
+description = "PipeWire graph, session policy, ALSA access and Lua policy runtime."
+packages = ["pipewire", "wireplumber", "alsa-lib", "lua"]
+
+[[layers.groups]]
+title = "Networking and HTTPS"
+description = "Connection management, Wi-Fi authentication, kernel network APIs and verified downloads."
+packages = ["networkmanager", "wpa-supplicant", "libnl", "libndp", "curl", "openssl", "ca-certificates"]
+
+[[layers.groups]]
+title = "Authentication and power"
+description = "Login authentication, authorization rules, battery status and power profiles."
+packages = ["pam", "libxcrypt", "polkit", "duktape", "upower", "power-profiles-daemon"]
+
+[[layers.groups]]
+title = "Portals and media validation"
+description = "Portal broker, document access, sandboxing, image decoding and multimedia validators."
+packages = ["xdg-desktop-portal", "bubblewrap", "fuse3", "gdk-pixbuf", "gstreamer", "gst-plugins-base", "gst-plugins-good"]
+
+[[layers.groups]]
+title = "Settings and file integration"
+description = "Settings stores, MIME and application databases, file identification, opening and clipboard tools."
+packages = ["dconf", "gsettings-desktop-schemas", "shared-mime-info", "desktop-file-utils", "file", "xdg-utils", "wl-clipboard"]
+
+[[layers]]
+title = "Userspace display and device interfaces"
+description = "Libraries and data used by the compositor and services to work with kernel devices and clients."
+color = "#b45309"
+
+[[layers.groups]]
+title = "Display and window protocol"
+description = "Wayland client/server protocol, DRM/KMS access and GBM buffers; the distro uses CPU rendering."
+packages = ["wayland", "libdrm", "mesa-gbm"]
+
+[[layers.groups]]
+title = "Input and keyboard layouts"
+description = "Input event processing, multitouch, keyboard state and layout data."
+packages = ["libinput", "libevdev", "mtdev", "libxkbcommon", "xkeyboard-config"]
+
+[[layers.groups]]
+title = "Seat and device access"
+description = "libseat includes seatd; libgudev wraps the selected libudev provider for GLib clients."
+packages = ["libseat", "libgudev"]
+
+[[layers]]
+title = "Common runtimes and system utilities"
+description = "Shared foundations used across the upper layers; applications can call them directly."
+color = "#475569"
+
+[[layers.groups]]
+title = "Language runtimes and isolation"
+description = "C and C++ runtimes, compiler support, capabilities and syscall filtering."
+packages = ["glibc", "libgcc", "libstdc++", "libcap", "libseccomp"]
+
+[[layers.groups]]
+title = "Objects, parsing and images"
+description = "GLib/GObject/GIO, JSON, foreign calls, regular expressions, XML and PNG decoding."
+packages = ["glib", "json-glib", "libffi", "pcre2", "expat", "libxml2", "libpng"]
+
+[[layers.groups]]
+title = "Archives and compression"
+description = "Archive handling and gzip/DEFLATE and XZ/LZMA compression."
+packages = ["libarchive", "zlib", "xz"]
+
+[[layers.groups]]
+title = "System and package tools"
+description = "Early userspace and repair tools, login and mount utilities, pacman and libalpm."
+packages = ["busybox", "util-linux", "pacman"]
+
+[[layers.groups]]
+title = "Package signatures and crypto"
+description = "OpenPGP verification, cryptographic primitives, certificate structures and GnuPG support."
+packages = ["gnupg", "gpgme", "libgpg-error", "libgcrypt", "libassuan", "libksba", "npth"]
+
+[[layers]]
+title = "Linux kernel"
+description = "The boundary between userspace and hardware, including the virtual hardware exposed by QEMU."
+color = "#1d4ed8"
+
+[[layers.groups]]
+title = "Core operating system"
+description = "Scheduling, memory, filesystems, networking, drivers, DRM/KMS, input, ALSA, V4L2 and FUSE."
+packages = ["linux"]
+
+[[layers]]
+title = "Boot handoff — before the running desktop"
+description = "UEFI/OVMF → Telorgon EFI → Linux → BusyBox initramfs → root filesystem → profile-selected init."
+color = "#9333ea"
+
+[[layers.groups]]
+title = "Telorgon bootloader"
+description = "EFI application that selects and starts the kernel and initramfs; shares boot UI code from the SDK."
+projects = ["telorgon-bootloader"]
+
+[[layers]]
+title = "Development, build data and alternate providers"
+description = "Catalog components with special roles; these are not an additional layer below the kernel."
+color = "#64748b"
+
+[[layers.groups]]
+title = "Private VM deployment"
+description = "Development-only guest agent for package deployment into desktop-dev VMs."
+packages = ["qemu-guest-agent"]
+
+[[layers.groups]]
+title = "Translation and protocol inputs"
+description = "Translation tooling and Wayland extension XML used during builds; not desktop daemons."
+packages = ["gettext", "wayland-protocols"]
+
+[[layers.groups]]
+title = "Alternate device provider"
+description = "Standalone eudev recipe. Desktop images use systemd's udev/libudev provider instead."
+packages = ["libudev"]

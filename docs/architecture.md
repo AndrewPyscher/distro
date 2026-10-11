@@ -1,8 +1,73 @@
-# Build and runtime architecture
+# System architecture
 
 The default product uses the Telorgon bootloader, framework and applications.
 The distro owns package recipes, Python coordination, image profiles and guest
 system policy. [Source modules](sources.md) identifies the component repositories.
+
+## Runtime layers
+
+Linux supplies scheduling, memory, filesystems, networking and device drivers.
+The userspace above it supplies services, a graphical environment and applications.
+The desktop combines standard Linux services with the project's own Telorgon
+framework, shell and applications.
+
+```mermaid
+flowchart TB
+    apps["Applications<br/>File Explorer · Settings · Portal Picker"]
+    shell["Telorgon shell and Wayland compositor<br/>Desktop · windows · composition · input routing"]
+    sdk["Telorgon SDK<br/>UI · rendering · hosting · system integration"]
+    services["System and desktop services<br/>systemd · D-Bus · PipeWire · NetworkManager<br/>polkit · power services · portals · settings"]
+    devices["Userspace display and input interfaces<br/>Wayland · libdrm · GBM · libinput · libseat"]
+    libraries["Common runtime libraries and utilities<br/>glibc · compiler runtimes · GLib · system tools"]
+    linux["Linux kernel<br/>Processes · memory · filesystems · networking · device drivers"]
+    hardware["Hardware or QEMU virtual devices"]
+
+    sdk -. shared code .-> apps
+    sdk -. shared code .-> shell
+    apps -->|Wayland| shell
+    apps -->|Service APIs| services
+    shell -->|Service APIs| services
+    shell --> devices
+    apps --> libraries
+    services --> libraries
+    devices --> libraries
+    libraries -->|System calls and device interfaces| linux
+    linux --> hardware
+```
+
+Solid arrows show major runtime relationships; dotted arrows show shared SDK
+code. This is a structural overview, not a complete dependency graph or a rule
+that every operation passes through every layer. Applications and services also
+use kernel facilities directly.
+
+| Part | Responsibility |
+| --- | --- |
+| Linux | Owns hardware drivers and the core process, memory, storage and network mechanisms |
+| System foundation | glibc provides the C runtime; systemd starts services; udev discovers devices; logind manages sessions; D-Bus carries service messages |
+| Desktop services | Manage audio, network connections, power, authorization, portals and shared settings through service APIs |
+| Telorgon SDK | Shared Rust code for UI, rendering, application hosting, compositor support and system integration; also provides boot UI support |
+| Telorgon shell | Uses the SDK to implement the desktop and Wayland compositor, including window management and input routing |
+| Applications | Separate programs using the SDK for their interfaces, Wayland for windows and service APIs for system controls |
+
+The SDK is used by both the shell and applications; it is not a separate
+background process between them. The compositor implementation belongs to the
+SDK, while the shell supplies the desktop UI and behavior. For
+example, a network control in Settings uses NetworkManager's service API;
+NetworkManager configures networking through Linux's kernel interfaces.
+
+## Complete component map
+
+The [component architecture](components.md) expands this overview into every
+declared package recipe and every registered component repository, categorized
+by function. It includes a full-size SVG and a linked text index for libraries,
+services, tools and data. Boot, development and alternate-provider components
+have separate bands so their roles remain clear.
+
+[![All declared packages and source modules grouped into functional architecture layers](diagrams/components.svg)](components.md)
+
+Profiles select which catalog components enter an image. The map's coverage is
+checked against the package and source manifests; versions, source pins and
+dependency declarations remain authoritative there.
 
 ## Source bootstrap
 
