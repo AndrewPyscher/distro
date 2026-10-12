@@ -29,6 +29,13 @@ receive a private ALPM-composed compile sysroot and validated cross compiler.
 use declared seeds or private source builds and must not enter the target root.
 Image assembly selects systemd's libudev provider instead of conflicting eudev.
 
+Native recipes that need Rust declare `build.rust_toolchain` in their manifest.
+The builder includes that compiler, Cargo, standard libraries and the host
+Clang/libclang binding tools in the cache identity and provenance. `CD_RUST_SEED`
+points the recipe at their recorded paths and hashes. Extra upstream build
+tool archives belong in the recipe’s checksum-pinned sources and stay private
+to the build.
+
 ELF audits reject unintended host interpreters/library paths, missing target
 DSOs and unapproved RPATH/RUNPATH. Probes use the explicit target loader and
 libraries. API checks on the host kernel still require separate guest tests.

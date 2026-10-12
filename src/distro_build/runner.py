@@ -84,6 +84,8 @@ def seed_report(project: Path | None = None) -> dict:
 
 
 def build_identity(project: Path, recipe: Recipe, seed: dict, dependencies: list[Path], bootstrap: Path, *, seed_build: bool) -> str:
+    if recipe.build.get("rust_toolchain"):
+        seed = {**seed, "rust": rust_build_seed(recipe.build["rust_toolchain"])}
     digest = hashlib.sha256()
     digest.update(json.dumps(seed, sort_keys=True).encode())
     digest.update(b"host-seed" if seed_build else b"target-bootstrap")
@@ -115,6 +117,30 @@ def build_identity(project: Path, recipe: Recipe, seed: dict, dependencies: list
                 stable = {key: value for key, value in receipt.items() if key not in {"seconds", "elapsed_seconds", "log"}}
                 digest.update(json.dumps(stable, sort_keys=True).encode())
     return digest.hexdigest()
+
+
+def rust_build_seed(toolchain: str) -> dict:
+    """Record the compiler and standard library used by native Rust recipes."""
+    rustup = shutil.which("rustup")
+    if not rustup:
+        raise BuildError("Rust recipe requires the declared host Rustup seed")
+    root = Path(subprocess.check_output(
+        [rustup, "run", toolchain, "rustc", "--print", "sysroot"], text=True).strip())
+    files = [root / "bin/rustc", root / "bin/cargo"]
+    files += sorted(path for path in (root / "lib").rglob("*") if path.is_file())
+    clang = shutil.which("clang")
+    library_dir = Path(clang).resolve().parents[1] / "lib" if clang else Path("/nonexistent")
+    libraries = sorted(library_dir.glob("libclang.so*"))
+    if not clang or not libraries:
+        raise BuildError("Rust browser recipe requires declared host Clang/libclang for bindings")
+    resources = Path(subprocess.check_output([clang, "-print-resource-dir"], text=True).strip())
+    return {"kind": "declared-host-build-seeds", "toolchain": toolchain,
+            "rust_sysroot": str(root), "rust_files": {
+                str(path.relative_to(root)): sha256(path) for path in files},
+            "clang": {"path": clang, "sha256": sha256(Path(clang))},
+            "libclang": {"path": str(libraries[-1]), "sha256": sha256(libraries[-1])},
+            "clang_resources": {str(path.relative_to(resources)): sha256(path)
+                                for path in sorted(resources.rglob("*")) if path.is_file()}}
 
 
 def check_bootstrap(project: Path, tools: Path) -> None:
@@ -159,6 +185,8 @@ def _build_package(project: Path, recipe: Recipe, *, jobs: int, seed_build: bool
     if not seed_build:
         check_bootstrap(project, tools)
     seed = seed_report(project)
+    if recipe.build.get("rust_toolchain"):
+        seed = {**seed, "rust": rust_build_seed(recipe.build["rust_toolchain"])}
     identity = build_identity(project, recipe, seed, dependencies or [], output / "bootstrap/work/stamps", seed_build=seed_build)
     state = output / "state/packages" / f"{recipe.name}.json"
     if state.exists():
@@ -232,6 +260,10 @@ def _build_package(project: Path, recipe: Recipe, *, jobs: int, seed_build: bool
         env["CD_CXX"] = str(compiler_cache.wrapper(work / "cached-cxx", Path(env["CD_CXX"]), cache))
     env["CC"] = env["CD_CC"]
     env["CXX"] = env["CD_CXX"]
+    if "rust" in seed:
+        seed_file = work / "rust-seed.json"
+        seed_file.write_text(json.dumps(seed["rust"], indent=2) + "\n")
+        env["CD_RUST_SEED"] = str(seed_file)
     for key, value in recipe.build.get("environment", {}).items():
         if not isinstance(key, str) or not isinstance(value, str) or key in {"HOME", "CODEX_HOME"}:
             raise BuildError(f"{recipe.path}: invalid build environment override")
