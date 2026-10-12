@@ -1,0 +1,24 @@
+schema = 1
+
+[package]
+name = "mesa-headers"
+version = "24.3.4"
+revision = 1
+arch = "any"
+description = "EGL and Khronos development headers"
+license = "MIT"
+
+[[sources]]
+name = "main"
+url = "https://archive.mesa3d.org/mesa-24.3.4.tar.xz"
+filename = "mesa-24.3.4.tar.xz"
+sha256 = "e641ae27191d387599219694560d221b7feaa91c900bcec46bf444218ed66025"
+
+[dependencies]
+native = []
+target = []
+runtime = []
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]

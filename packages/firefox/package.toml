@@ -1,0 +1,487 @@
+schema = 1
+
+[package]
+name = "firefox"
+version = "157.0.1"
+revision = 1
+arch = "x86_64"
+description = "Firefox web browser for native Wayland desktops"
+license = "MPL-2.0"
+
+[[sources]]
+name = "main"
+url = "https://archive.mozilla.org/pub/firefox/releases/157.0.1/source/firefox-157.0.1.source.tar.xz"
+filename = "firefox-157.0.1.source.tar.xz"
+sha256 = "483bedee9059df2479e4531c443b1073c6ebaed3570bda0c164eb562ee241c4c"
+
+[[sources]]
+name = "node-seed"
+url = "https://nodejs.org/dist/v22.23.3/node-v22.23.3-linux-x64.tar.xz"
+filename = "node-v22.23.3-linux-x64.tar.xz"
+sha256 = "df450af89261115ef9f9e3830c3eeb2cc9213b63c720b1af623cb5dcbe2e02de"
+
+[[sources]]
+name = "nasm"
+url = "https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/nasm-2.16.03.tar.xz"
+filename = "nasm-2.16.03.tar.xz"
+sha256 = "1412a1c760bbd05db026b6c0d1657affd6631cd0a63cddb6f73cc6d4aa616148"
+
+[[sources]]
+name = "cbindgen"
+url = "https://static.crates.io/crates/cbindgen/cbindgen-0.29.4.crate"
+filename = "cbindgen-0.29.4.crate"
+sha256 = "2ecb53484c9c167ba674026b656d8a27d7657a58e6066aa902bfb1a4aa00ae20"
+
+[[sources]]
+name = "crate-anstream-0.6.19"
+url = "https://static.crates.io/crates/anstream/anstream-0.6.19.crate"
+filename = "anstream-0.6.19.crate"
+sha256 = "301af1932e46185686725e0fad2f8f2aa7da69dd70bf6ecc44d6b703844a3933"
+
+[[sources]]
+name = "crate-anstyle-1.0.11"
+url = "https://static.crates.io/crates/anstyle/anstyle-1.0.11.crate"
+filename = "anstyle-1.0.11.crate"
+sha256 = "862ed96ca487e809f1c8e5a8447f6ee2cf102f846893800b20cebdf541fc6bbd"
+
+[[sources]]
+name = "crate-anstyle-parse-0.2.7"
+url = "https://static.crates.io/crates/anstyle-parse/anstyle-parse-0.2.7.crate"
+filename = "anstyle-parse-0.2.7.crate"
+sha256 = "4e7644824f0aa2c7b9384579234ef10eb7efb6a0deb83f9630a49594dd9c15c2"
+
+[[sources]]
+name = "crate-anstyle-query-1.1.3"
+url = "https://static.crates.io/crates/anstyle-query/anstyle-query-1.1.3.crate"
+filename = "anstyle-query-1.1.3.crate"
+sha256 = "6c8bdeb6047d8983be085bab0ba1472e6dc604e7041dbf6fcd5e71523014fae9"
+
+[[sources]]
+name = "crate-anstyle-wincon-3.0.9"
+url = "https://static.crates.io/crates/anstyle-wincon/anstyle-wincon-3.0.9.crate"
+filename = "anstyle-wincon-3.0.9.crate"
+sha256 = "403f75924867bb1033c59fbf0797484329750cfbe3c4325cd33127941fabc882"
+
+[[sources]]
+name = "crate-autocfg-1.5.0"
+url = "https://static.crates.io/crates/autocfg/autocfg-1.5.0.crate"
+filename = "autocfg-1.5.0.crate"
+sha256 = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
+
+[[sources]]
+name = "crate-bitflags-2.9.1"
+url = "https://static.crates.io/crates/bitflags/bitflags-2.9.1.crate"
+filename = "bitflags-2.9.1.crate"
+sha256 = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
+
+[[sources]]
+name = "crate-cfg-if-1.0.1"
+url = "https://static.crates.io/crates/cfg-if/cfg-if-1.0.1.crate"
+filename = "cfg-if-1.0.1.crate"
+sha256 = "9555578bc9e57714c812a1f84e4fc5b4d21fcb063490c624de019f7464c91268"
+
+[[sources]]
+name = "crate-clap-4.5.41"
+url = "https://static.crates.io/crates/clap/clap-4.5.41.crate"
+filename = "clap-4.5.41.crate"
+sha256 = "be92d32e80243a54711e5d7ce823c35c41c9d929dc4ab58e1276f625841aadf9"
+
+[[sources]]
+name = "crate-clap_builder-4.5.41"
+url = "https://static.crates.io/crates/clap_builder/clap_builder-4.5.41.crate"
+filename = "clap_builder-4.5.41.crate"
+sha256 = "707eab41e9622f9139419d573eca0900137718000c517d47da73045f54331c3d"
+
+[[sources]]
+name = "crate-clap_lex-0.7.5"
+url = "https://static.crates.io/crates/clap_lex/clap_lex-0.7.5.crate"
+filename = "clap_lex-0.7.5.crate"
+sha256 = "b94f61472cee1439c0b966b47e3aca9ae07e45d070759512cd390ea2bebc6675"
+
+[[sources]]
+name = "crate-colorchoice-1.0.4"
+url = "https://static.crates.io/crates/colorchoice/colorchoice-1.0.4.crate"
+filename = "colorchoice-1.0.4.crate"
+sha256 = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
+
+[[sources]]
+name = "crate-dashmap-5.5.3"
+url = "https://static.crates.io/crates/dashmap/dashmap-5.5.3.crate"
+filename = "dashmap-5.5.3.crate"
+sha256 = "978747c1d849a7d2ee5e8adc0159961c48fb7e5db2f06af6723b80123bb53856"
+
+[[sources]]
+name = "crate-diff-0.1.13"
+url = "https://static.crates.io/crates/diff/diff-0.1.13.crate"
+filename = "diff-0.1.13.crate"
+sha256 = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
+
+[[sources]]
+name = "crate-equivalent-1.0.2"
+url = "https://static.crates.io/crates/equivalent/equivalent-1.0.2.crate"
+filename = "equivalent-1.0.2.crate"
+sha256 = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
+
+[[sources]]
+name = "crate-errno-0.3.13"
+url = "https://static.crates.io/crates/errno/errno-0.3.13.crate"
+filename = "errno-0.3.13.crate"
+sha256 = "778e2ac28f6c47af28e4907f13ffd1e1ddbd400980a9abd7c8df189bf578a5ad"
+
+[[sources]]
+name = "crate-fastrand-2.3.0"
+url = "https://static.crates.io/crates/fastrand/fastrand-2.3.0.crate"
+filename = "fastrand-2.3.0.crate"
+sha256 = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
+
+[[sources]]
+name = "crate-getrandom-0.3.3"
+url = "https://static.crates.io/crates/getrandom/getrandom-0.3.3.crate"
+filename = "getrandom-0.3.3.crate"
+sha256 = "26145e563e54f2cadc477553f1ec5ee650b00862f0a58bcd12cbdc5f0ea2d2f4"
+
+[[sources]]
+name = "crate-hashbrown-0.14.5"
+url = "https://static.crates.io/crates/hashbrown/hashbrown-0.14.5.crate"
+filename = "hashbrown-0.14.5.crate"
+sha256 = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
+
+[[sources]]
+name = "crate-heck-0.5.0"
+url = "https://static.crates.io/crates/heck/heck-0.5.0.crate"
+filename = "heck-0.5.0.crate"
+sha256 = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
+
+[[sources]]
+name = "crate-indexmap-2.5.0"
+url = "https://static.crates.io/crates/indexmap/indexmap-2.5.0.crate"
+filename = "indexmap-2.5.0.crate"
+sha256 = "68b900aa2f7301e21c36462b170ee99994de34dff39a4a6a528e80e7376d07e5"
+
+[[sources]]
+name = "crate-is_terminal_polyfill-1.70.1"
+url = "https://static.crates.io/crates/is_terminal_polyfill/is_terminal_polyfill-1.70.1.crate"
+filename = "is_terminal_polyfill-1.70.1.crate"
+sha256 = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
+
+[[sources]]
+name = "crate-itoa-1.0.15"
+url = "https://static.crates.io/crates/itoa/itoa-1.0.15.crate"
+filename = "itoa-1.0.15.crate"
+sha256 = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
+
+[[sources]]
+name = "crate-lazy_static-1.5.0"
+url = "https://static.crates.io/crates/lazy_static/lazy_static-1.5.0.crate"
+filename = "lazy_static-1.5.0.crate"
+sha256 = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+
+[[sources]]
+name = "crate-libc-0.2.174"
+url = "https://static.crates.io/crates/libc/libc-0.2.174.crate"
+filename = "libc-0.2.174.crate"
+sha256 = "1171693293099992e19cddea4e8b849964e9846f4acee11b3948bcc337be8776"
+
+[[sources]]
+name = "crate-linux-raw-sys-0.9.4"
+url = "https://static.crates.io/crates/linux-raw-sys/linux-raw-sys-0.9.4.crate"
+filename = "linux-raw-sys-0.9.4.crate"
+sha256 = "cd945864f07fe9f5371a27ad7b52a172b4b499999f1d97574c9fa68373937e12"
+
+[[sources]]
+name = "crate-lock_api-0.4.13"
+url = "https://static.crates.io/crates/lock_api/lock_api-0.4.13.crate"
+filename = "lock_api-0.4.13.crate"
+sha256 = "96936507f153605bddfcda068dd804796c84324ed2510809e5b2a624c81da765"
+
+[[sources]]
+name = "crate-log-0.4.27"
+url = "https://static.crates.io/crates/log/log-0.4.27.crate"
+filename = "log-0.4.27.crate"
+sha256 = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
+
+[[sources]]
+name = "crate-memchr-2.7.5"
+url = "https://static.crates.io/crates/memchr/memchr-2.7.5.crate"
+filename = "memchr-2.7.5.crate"
+sha256 = "32a282da65faaf38286cf3be983213fcf1d2e2a58700e808f83f4ea9a4804bc0"
+
+[[sources]]
+name = "crate-once_cell-1.21.3"
+url = "https://static.crates.io/crates/once_cell/once_cell-1.21.3.crate"
+filename = "once_cell-1.21.3.crate"
+sha256 = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
+
+[[sources]]
+name = "crate-once_cell_polyfill-1.70.1"
+url = "https://static.crates.io/crates/once_cell_polyfill/once_cell_polyfill-1.70.1.crate"
+filename = "once_cell_polyfill-1.70.1.crate"
+sha256 = "a4895175b425cb1f87721b59f0f286c2092bd4af812243672510e1ac53e2e0ad"
+
+[[sources]]
+name = "crate-parking_lot-0.12.4"
+url = "https://static.crates.io/crates/parking_lot/parking_lot-0.12.4.crate"
+filename = "parking_lot-0.12.4.crate"
+sha256 = "70d58bf43669b5795d1576d0641cfb6fbb2057bf629506267a92807158584a13"
+
+[[sources]]
+name = "crate-parking_lot_core-0.9.11"
+url = "https://static.crates.io/crates/parking_lot_core/parking_lot_core-0.9.11.crate"
+filename = "parking_lot_core-0.9.11.crate"
+sha256 = "bc838d2a56b5b1a6c25f55575dfc605fabb63bb2365f6c2353ef9159aa69e4a5"
+
+[[sources]]
+name = "crate-pretty_assertions-1.4.1"
+url = "https://static.crates.io/crates/pretty_assertions/pretty_assertions-1.4.1.crate"
+filename = "pretty_assertions-1.4.1.crate"
+sha256 = "3ae130e2f271fbc2ac3a40fb1d07180839cdbbe443c7a27e1e3c13c5cac0116d"
+
+[[sources]]
+name = "crate-proc-macro2-1.0.95"
+url = "https://static.crates.io/crates/proc-macro2/proc-macro2-1.0.95.crate"
+filename = "proc-macro2-1.0.95.crate"
+sha256 = "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
+
+[[sources]]
+name = "crate-quote-1.0.40"
+url = "https://static.crates.io/crates/quote/quote-1.0.40.crate"
+filename = "quote-1.0.40.crate"
+sha256 = "1885c039570dc00dcb4ff087a89e185fd56bae234ddc7f056a945bf36467248d"
+
+[[sources]]
+name = "crate-r-efi-5.3.0"
+url = "https://static.crates.io/crates/r-efi/r-efi-5.3.0.crate"
+filename = "r-efi-5.3.0.crate"
+sha256 = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
+
+[[sources]]
+name = "crate-redox_syscall-0.5.13"
+url = "https://static.crates.io/crates/redox_syscall/redox_syscall-0.5.13.crate"
+filename = "redox_syscall-0.5.13.crate"
+sha256 = "0d04b7d0ee6b4a0207a0a7adb104d23ecb0b47d6beae7152d0fa34b692b29fd6"
+
+[[sources]]
+name = "crate-rustix-1.0.8"
+url = "https://static.crates.io/crates/rustix/rustix-1.0.8.crate"
+filename = "rustix-1.0.8.crate"
+sha256 = "11181fbabf243db407ef8df94a6ce0b2f9a733bd8be4ad02b4eda9602296cac8"
+
+[[sources]]
+name = "crate-ryu-1.0.20"
+url = "https://static.crates.io/crates/ryu/ryu-1.0.20.crate"
+filename = "ryu-1.0.20.crate"
+sha256 = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
+
+[[sources]]
+name = "crate-scopeguard-1.2.0"
+url = "https://static.crates.io/crates/scopeguard/scopeguard-1.2.0.crate"
+filename = "scopeguard-1.2.0.crate"
+sha256 = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
+
+[[sources]]
+name = "crate-serde-1.0.228"
+url = "https://static.crates.io/crates/serde/serde-1.0.228.crate"
+filename = "serde-1.0.228.crate"
+sha256 = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
+
+[[sources]]
+name = "crate-serde_core-1.0.228"
+url = "https://static.crates.io/crates/serde_core/serde_core-1.0.228.crate"
+filename = "serde_core-1.0.228.crate"
+sha256 = "41d385c7d4ca58e59fc732af25c3983b67ac852c1a25000afe1175de458b67ad"
+
+[[sources]]
+name = "crate-serde_derive-1.0.228"
+url = "https://static.crates.io/crates/serde_derive/serde_derive-1.0.228.crate"
+filename = "serde_derive-1.0.228.crate"
+sha256 = "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79"
+
+[[sources]]
+name = "crate-serde_json-1.0.140"
+url = "https://static.crates.io/crates/serde_json/serde_json-1.0.140.crate"
+filename = "serde_json-1.0.140.crate"
+sha256 = "20068b6e96dc6c9bd23e01df8827e6c7e1f2fddd43c21810382803c136b99373"
+
+[[sources]]
+name = "crate-serde_spanned-1.0.0"
+url = "https://static.crates.io/crates/serde_spanned/serde_spanned-1.0.0.crate"
+filename = "serde_spanned-1.0.0.crate"
+sha256 = "40734c41988f7306bb04f0ecf60ec0f3f1caa34290e4e8ea471dcd3346483b83"
+
+[[sources]]
+name = "crate-serial_test-2.0.0"
+url = "https://static.crates.io/crates/serial_test/serial_test-2.0.0.crate"
+filename = "serial_test-2.0.0.crate"
+sha256 = "0e56dd856803e253c8f298af3f4d7eb0ae5e23a737252cd90bb4f3b435033b2d"
+
+[[sources]]
+name = "crate-serial_test_derive-2.0.0"
+url = "https://static.crates.io/crates/serial_test_derive/serial_test_derive-2.0.0.crate"
+filename = "serial_test_derive-2.0.0.crate"
+sha256 = "91d129178576168c589c9ec973feedf7d3126c01ac2bf08795109aa35b69fb8f"
+
+[[sources]]
+name = "crate-smallvec-1.15.1"
+url = "https://static.crates.io/crates/smallvec/smallvec-1.15.1.crate"
+filename = "smallvec-1.15.1.crate"
+sha256 = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
+
+[[sources]]
+name = "crate-strsim-0.11.1"
+url = "https://static.crates.io/crates/strsim/strsim-0.11.1.crate"
+filename = "strsim-0.11.1.crate"
+sha256 = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
+
+[[sources]]
+name = "crate-syn-2.0.104"
+url = "https://static.crates.io/crates/syn/syn-2.0.104.crate"
+filename = "syn-2.0.104.crate"
+sha256 = "17b6f705963418cdb9927482fa304bc562ece2fdd4f616084c50b7023b435a40"
+
+[[sources]]
+name = "crate-tempfile-3.20.0"
+url = "https://static.crates.io/crates/tempfile/tempfile-3.20.0.crate"
+filename = "tempfile-3.20.0.crate"
+sha256 = "e8a64e3985349f2441a1a9ef0b853f869006c3855f2cda6862a94d26ebb9d6a1"
+
+[[sources]]
+name = "crate-toml-0.9.2"
+url = "https://static.crates.io/crates/toml/toml-0.9.2.crate"
+filename = "toml-0.9.2.crate"
+sha256 = "ed0aee96c12fa71097902e0bb061a5e1ebd766a6636bb605ba401c45c1650eac"
+
+[[sources]]
+name = "crate-toml_datetime-0.7.0"
+url = "https://static.crates.io/crates/toml_datetime/toml_datetime-0.7.0.crate"
+filename = "toml_datetime-0.7.0.crate"
+sha256 = "bade1c3e902f58d73d3f294cd7f20391c1cb2fbcb643b73566bc773971df91e3"
+
+[[sources]]
+name = "crate-toml_parser-1.0.1"
+url = "https://static.crates.io/crates/toml_parser/toml_parser-1.0.1.crate"
+filename = "toml_parser-1.0.1.crate"
+sha256 = "97200572db069e74c512a14117b296ba0a80a30123fbbb5aa1f4a348f639ca30"
+
+[[sources]]
+name = "crate-toml_writer-1.0.2"
+url = "https://static.crates.io/crates/toml_writer/toml_writer-1.0.2.crate"
+filename = "toml_writer-1.0.2.crate"
+sha256 = "fcc842091f2def52017664b53082ecbbeb5c7731092bad69d2c63050401dfd64"
+
+[[sources]]
+name = "crate-unicode-ident-1.0.18"
+url = "https://static.crates.io/crates/unicode-ident/unicode-ident-1.0.18.crate"
+filename = "unicode-ident-1.0.18.crate"
+sha256 = "5a5f39404a5da50712a4c1eecf25e90dd62b613502b7e925fd4e4d19b5c96512"
+
+[[sources]]
+name = "crate-utf8parse-0.2.2"
+url = "https://static.crates.io/crates/utf8parse/utf8parse-0.2.2.crate"
+filename = "utf8parse-0.2.2.crate"
+sha256 = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
+
+[[sources]]
+name = "crate-wasi-0.14.2+wasi-0.2.4"
+url = "https://static.crates.io/crates/wasi/wasi-0.14.2+wasi-0.2.4.crate"
+filename = "wasi-0.14.2+wasi-0.2.4.crate"
+sha256 = "9683f9a5a998d873c0d21fcbe3c083009670149a8fab228644b8bd36b2c48cb3"
+
+[[sources]]
+name = "crate-windows-sys-0.59.0"
+url = "https://static.crates.io/crates/windows-sys/windows-sys-0.59.0.crate"
+filename = "windows-sys-0.59.0.crate"
+sha256 = "1e38bc4d79ed67fd075bcc251a1c39b32a1776bbe92e5bef1f0bf1f8c531853b"
+
+[[sources]]
+name = "crate-windows-targets-0.52.6"
+url = "https://static.crates.io/crates/windows-targets/windows-targets-0.52.6.crate"
+filename = "windows-targets-0.52.6.crate"
+sha256 = "9b724f72796e036ab90c1021d4780d4d3d648aca59e491e6b98e725b84e99973"
+
+[[sources]]
+name = "crate-windows_aarch64_gnullvm-0.52.6"
+url = "https://static.crates.io/crates/windows_aarch64_gnullvm/windows_aarch64_gnullvm-0.52.6.crate"
+filename = "windows_aarch64_gnullvm-0.52.6.crate"
+sha256 = "32a4622180e7a0ec044bb555404c800bc9fd9ec262ec147edd5989ccd0c02cd3"
+
+[[sources]]
+name = "crate-windows_aarch64_msvc-0.52.6"
+url = "https://static.crates.io/crates/windows_aarch64_msvc/windows_aarch64_msvc-0.52.6.crate"
+filename = "windows_aarch64_msvc-0.52.6.crate"
+sha256 = "09ec2a7bb152e2252b53fa7803150007879548bc709c039df7627cabbd05d469"
+
+[[sources]]
+name = "crate-windows_i686_gnu-0.52.6"
+url = "https://static.crates.io/crates/windows_i686_gnu/windows_i686_gnu-0.52.6.crate"
+filename = "windows_i686_gnu-0.52.6.crate"
+sha256 = "8e9b5ad5ab802e97eb8e295ac6720e509ee4c243f69d781394014ebfe8bbfa0b"
+
+[[sources]]
+name = "crate-windows_i686_gnullvm-0.52.6"
+url = "https://static.crates.io/crates/windows_i686_gnullvm/windows_i686_gnullvm-0.52.6.crate"
+filename = "windows_i686_gnullvm-0.52.6.crate"
+sha256 = "0eee52d38c090b3caa76c563b86c3a4bd71ef1a819287c19d586d7334ae8ed66"
+
+[[sources]]
+name = "crate-windows_i686_msvc-0.52.6"
+url = "https://static.crates.io/crates/windows_i686_msvc/windows_i686_msvc-0.52.6.crate"
+filename = "windows_i686_msvc-0.52.6.crate"
+sha256 = "240948bc05c5e7c6dabba28bf89d89ffce3e303022809e73deaefe4f6ec56c66"
+
+[[sources]]
+name = "crate-windows_x86_64_gnu-0.52.6"
+url = "https://static.crates.io/crates/windows_x86_64_gnu/windows_x86_64_gnu-0.52.6.crate"
+filename = "windows_x86_64_gnu-0.52.6.crate"
+sha256 = "147a5c80aabfbf0c7d901cb5895d1de30ef2907eb21fbbab29ca94c5b08b1a78"
+
+[[sources]]
+name = "crate-windows_x86_64_gnullvm-0.52.6"
+url = "https://static.crates.io/crates/windows_x86_64_gnullvm/windows_x86_64_gnullvm-0.52.6.crate"
+filename = "windows_x86_64_gnullvm-0.52.6.crate"
+sha256 = "24d5b23dc417412679681396f2b49f3de8c1473deb516bd34410872eff51ed0d"
+
+[[sources]]
+name = "crate-windows_x86_64_msvc-0.52.6"
+url = "https://static.crates.io/crates/windows_x86_64_msvc/windows_x86_64_msvc-0.52.6.crate"
+filename = "windows_x86_64_msvc-0.52.6.crate"
+sha256 = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
+
+[[sources]]
+name = "crate-winnow-0.7.12"
+url = "https://static.crates.io/crates/winnow/winnow-0.7.12.crate"
+filename = "winnow-0.7.12.crate"
+sha256 = "f3edebf492c8125044983378ecb5766203ad3b4c2f7a922bd7dd207f6d443e95"
+
+[[sources]]
+name = "crate-wit-bindgen-rt-0.39.0"
+url = "https://static.crates.io/crates/wit-bindgen-rt/wit-bindgen-rt-0.39.0.crate"
+filename = "wit-bindgen-rt-0.39.0.crate"
+sha256 = "6f42320e61fe2cfd34354ecb597f86f413484a798ba44a8ca1165c58d42da6c1"
+
+[[sources]]
+name = "crate-yansi-1.0.1"
+url = "https://static.crates.io/crates/yansi/yansi-1.0.1.crate"
+filename = "yansi-1.0.1.crate"
+sha256 = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
+
+[[sources]]
+name = "llvm-tools-seed"
+url = "https://static.rust-lang.org/dist/2026-10-06/llvm-tools-nightly-x86_64-unknown-linux-gnu.tar.xz"
+filename = "llvm-tools-nightly-x86_64-unknown-linux-gnu.tar.xz"
+sha256 = "fab58e3a4d614f560a7cbb99df17279c222bc0baa2695c85dc1647da5723d95d"
+
+[[sources]]
+name = "wasi-seed"
+url = "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-29/wasi-sdk-29.0-x86_64-linux.tar.gz"
+filename = "wasi-sdk-29.0-x86_64-linux.tar.gz"
+sha256 = "87d1d1a2879d139cdc624b968efad3d4a97b8078cdff95e63ac88ecafd1a0171"
+
+[dependencies]
+native = []
+target = ["gtk3", "glib", "dbus", "libstdc++", "libgcc", "alsa-lib", "libpulse", "libdrm", "wayland", "wayland-protocols", "libxkbcommon", "fontconfig", "freetype", "zlib"]
+runtime = ["gtk3", "glib", "dbus", "libstdc++", "libgcc", "alsa-lib", "libpulse", "libdrm", "wayland", "libxkbcommon", "fontconfig", "freetype", "zlib", "fonts-dejavu", "ca-certificates", "xdg-utils"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]
+rust_toolchain = "nightly-2026-10-06"

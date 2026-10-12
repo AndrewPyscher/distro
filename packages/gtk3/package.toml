@@ -1,0 +1,36 @@
+schema = 1
+
+[package]
+name = "gtk3"
+version = "3.24.52"
+revision = 1
+arch = "x86_64"
+description = "GTK 3 native Wayland widget toolkit"
+license = "LGPL-2.1-or-later"
+
+[[sources]]
+name = "main"
+url = "https://download.gnome.org/sources/gtk/3.24/gtk-3.24.52.tar.xz"
+filename = "gtk-3.24.52.tar.xz"
+sha256 = "80931fa472a77b9a164f6740e3c0b444fac6770054632d35a7ff9d679e5e7b9f"
+
+[[sources]]
+name = "wayland"
+url = "https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.24.0/downloads/wayland-1.24.0.tar.xz"
+filename = "wayland-1.24.0.tar.xz"
+sha256 = "82892487a01ad67b334eca83b54317a7c86a03a89cfadacfef5211f11a5d0536"
+
+[[sources]]
+name = "expat"
+url = "https://github.com/libexpat/libexpat/releases/download/R_2_7_1/expat-2.7.1.tar.xz"
+filename = "expat-2.7.1.tar.xz"
+sha256 = "354552544b8f99012e5062f7d570ec77f14b412a3ff5c7d8d0dae62c0d217c30"
+
+[dependencies]
+native = []
+target = ["glib", "cairo", "pango", "gdk-pixbuf", "at-spi2-core", "libepoxy", "wayland", "wayland-protocols", "libxkbcommon", "gettext"]
+runtime = ["glib", "cairo", "pango", "gdk-pixbuf", "at-spi2-core", "libepoxy", "wayland", "libxkbcommon", "dconf", "gsettings-desktop-schemas"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]

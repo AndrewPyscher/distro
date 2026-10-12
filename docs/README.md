@@ -20,12 +20,12 @@ calls the Python CLI.
 | --- | --- |
 | [Environment setup](setup.md) | Fresh Ubuntu/Linux/WSL2 setup, Universe, host tools, KVM group access and login activation, Rustup, Git identity, graphical sessions, workspace checks, WSLg frame rate and black-window troubleshooting |
 | [Build and run](build.md) | Numbered first build, saved VMs, progress and logs, build speed, cleanup, troubleshooting and application deployment |
-| [Testing](testing.md) | Hover measurements, desktop input/presentation, boot, password and upgrade gates |
+| [Testing](testing.md) | Browser and terminal checks, hover measurements, desktop input/presentation, boot, password and upgrade gates |
 | [Contributing](contributing.md) | Source changes, recipes, CI and commit/PR handoff |
 | [Source modules](sources.md) | Repository ownership, main tracking and portable source bundles |
 | [Architecture](architecture.md) | Runtime layers and an individual explanation of every package, source module, bundled service, guest policy file and boot/assembly piece |
 | [Component map](components.md) | Every declared package and source module, grouped by function in a layered SVG and linked index |
-| [Packages](packages.md) | Build dependencies, ALPM archives, trust and package provenance |
+| [Packages](packages.md) | Build dependencies, Rust seeds, ALPM archives, trust and package provenance |
 | [Release requirements](release.md) | Qualification and signing requirements for a supported release |
 
 Use these guides for current procedures. Per-run logs, hashes, screenshots and

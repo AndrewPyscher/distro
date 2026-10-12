@@ -109,6 +109,9 @@ For a normal desktop without that channel:
 ./run
 ```
 
+Open **Firefox** from the application launcher to browse the web. HTTP, HTTPS and HTML links use Firefox
+by default.
+
 The desktop includes the Foot terminal. Open **Foot** from the application launcher
 or press **Ctrl+Alt+T** with desktop focus. A terminal window with a shell prompt confirms
 that it launched. Fonts and terminal capability data are included in the image.

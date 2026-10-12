@@ -1,0 +1,24 @@
+schema = 1
+
+[package]
+name = "cairo"
+version = "1.18.4"
+revision = 1
+arch = "x86_64"
+description = "Software vector graphics and text rendering"
+license = "LGPL-2.1-only OR MPL-1.1"
+
+[[sources]]
+name = "main"
+url = "https://cairographics.org/releases/cairo-1.18.4.tar.xz"
+filename = "cairo-1.18.4.tar.xz"
+sha256 = "445ed8208a6e4823de1226a74ca319d3600e83f6369f99b14265006599c32ccb"
+
+[dependencies]
+native = []
+target = ["glibc", "pixman", "fontconfig", "freetype", "libpng", "zlib", "glib"]
+runtime = ["glibc", "pixman", "fontconfig", "freetype", "libpng", "zlib", "glib"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]

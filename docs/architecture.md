@@ -86,8 +86,8 @@ SDK's major subsystems, and every distro-owned guest policy source file.
 The [boot and assembled system pieces](#boot-and-assembled-system-pieces)
 below cover firmware, disk layout and the generated base/session packages.
 
-Coverage: **88 package recipes, 6 source repositories and
-39 guest policy files**, plus the named pieces bundled inside them.
+Coverage: **99 package recipes, 6 source repositories and
+40 guest policy files**, plus the named pieces bundled inside them.
 Exact installed file lists, versions, source pins and transitive Cargo dependencies
 remain in package/image manifests, build receipts and the owning Cargo locks.
 This reference describes component responsibilities, not qualification of a
@@ -108,9 +108,9 @@ The systemd-based profiles select systemd as the libudev provider.
 | Profile | Catalog runtime packages | Purpose |
 | --- | --- | --- |
 | [`console`](../profiles/console.toml) | 17 | Source-built experimental console with Telorgon EFI and local pacman |
-| [`desktop-dev`](../profiles/desktop-dev.toml) | 84 | Telorgon development VM with private host package deployment |
-| [`desktop-use`](../profiles/desktop-use.toml) | 83 | Telorgon desktop for normal local VM use |
-| [`desktop`](../profiles/desktop.toml) | 83 | Experimental Telorgon software-rendered desktop and private VM qualification |
+| [`desktop-dev`](../profiles/desktop-dev.toml) | 94 | Telorgon development VM with private host package deployment |
+| [`desktop-use`](../profiles/desktop-use.toml) | 93 | Telorgon desktop for normal local VM use |
+| [`desktop`](../profiles/desktop.toml) | 93 | Experimental Telorgon software-rendered desktop and private VM qualification |
 | [`systemd`](../profiles/systemd.toml) | 30 | Experimental source-built systemd and regular-user PAM session qualification |
 
 In the package tables, **all desktop profiles** means `desktop`, `desktop-use`
@@ -127,6 +127,12 @@ original profile; the VM's deployment receipt records those updates.
 | Component and inclusion | What it provides | Role in this distro |
 | --- | --- | --- |
 | [`telorgon-file-explorer`](../packages/file-explorer/application.toml)<br>Graphical application and portal backend<br>**All desktop profiles** | The Telorgon file manager, download queue and graphical FileChooser portal backend. | Provides everyday file browsing and download UI, and supplies file-open/save dialogs requested through xdg-desktop-portal. Its package also installs application and D-Bus activation registrations. |
+
+#### Web browser
+
+| Component and inclusion | What it provides | Role in this distro |
+| --- | --- | --- |
+| [`firefox`](../packages/firefox/package.toml)<br>Web browser<br>**All desktop profiles** | Displays web pages in a native Wayland window. | Included in desktop profiles and selected as the default HTTP, HTTPS and HTML handler. The recipe compiles the browser and bundled engines against the distro sysroot; Node, LLVM tools and the WASI SDK are pinned private upstream build seeds; cbindgen/NASM are source-built private tools. The WASI SDK supplies the compiler and sysroot for Firefox’s library sandboxes. Browser updates use distro packages. |
 
 #### Terminal
 
@@ -172,6 +178,8 @@ original profile; the VM's deployment receipt records those updates.
 | [`wireplumber`](../packages/wireplumber/package.toml)<br>Media-session policy service<br>**All desktop profiles** | Manages PipeWire devices, routes and session policy. | Starts with the desktop's user media session and decides how available devices/streams are configured and connected. PipeWire supplies the graph; WirePlumber supplies its policy. |
 | [`alsa-lib`](../packages/alsa-lib/package.toml)<br>Library and configuration<br>**All desktop profiles** | ALSA's userspace sound API, including PCM playback/capture, mixer controls and sound-card configuration. | PipeWire's ALSA backend uses it to communicate with the kernel's sound devices. Working playback still requires an exposed guest sound device and host audio endpoint. |
 | [`lua`](../packages/lua/package.toml)<br>Interpreter and runtime library<br>**All desktop profiles** | Embeds the Lua scripting language in applications and provides its command-line interpreter. | Supplies the system Lua runtime selected by the WirePlumber build for its media policy scripting. |
+| [`libpulse`](../packages/libpulse/package.toml)<br>Audio client library<br>**All desktop profiles** | Provides the PulseAudio client protocol and GLib integration. | Firefox uses it to send audio to the desktop's existing PipeWire PulseAudio service; a second audio daemon is not installed. |
+| [`libsndfile`](../packages/libsndfile/package.toml)<br>Audio file library<br>**All desktop profiles** | Reads and writes audio files for the PulseAudio client stack. | Built with its internal formats; Firefox supplies its own web media decoders. |
 
 #### Networking and HTTPS
 
@@ -219,6 +227,7 @@ original profile; the VM's deployment receipt records those updates.
 | [`file`](../packages/file/package.toml)<br>File-identification library, database and tool<br>**All desktop profiles** | libmagic and the file command identify content by inspecting bytes and matching the magic database. | File integration tools use the result to determine MIME types even when a filename extension is missing or misleading. |
 | [`xdg-utils`](../packages/xdg-utils/package.toml)<br>Desktop integration scripts<br>**All desktop profiles** | Shell utilities for opening resources and querying or changing MIME/application associations. | File Explorer and other callers use xdg-open/xdg-mime to dispatch resources through registered desktop handlers. The scripts run with the distro's packaged shell and file/database tools. |
 | [`wl-clipboard`](../packages/wl-clipboard/package.toml)<br>Wayland clipboard tools<br>**All desktop profiles** | The wl-copy and wl-paste programs read and write the Wayland clipboard. | Provides the command-line clipboard integration declared by File Explorer and usable by other programs in the graphical session. |
+| [`hicolor-icon-theme`](../packages/hicolor-icon-theme/package.toml)<br>Desktop icon metadata<br>**All desktop profiles** | Describes standard icon sizes and directories for the fallback hicolor theme. | Included in desktop profiles so the launcher and taskbar can resolve packaged application icons, including Firefox. Applications supply their own images under the indexed directories. |
 
 ### Userspace display and device interfaces
 
@@ -229,6 +238,17 @@ original profile; the VM's deployment receipt records those updates.
 | [`wayland`](../packages/wayland/package.toml)<br>Display-protocol libraries<br>**All desktop profiles** | Client/server libraries for exchanging window surfaces, input events and other graphical protocol messages. | Connects applications to the Telorgon compositor. Wayland specifies the communication protocol; Telorgon supplies the compositor and desktop policy. |
 | [`libdrm`](../packages/libdrm/package.toml)<br>Display-device interface library<br>**All desktop profiles** | Userspace interfaces for Linux's Direct Rendering Manager, including access to display resources and modesetting facilities. | Supports the Telorgon compositor's path to kernel display devices. The distro's CPU renderer presents through DRM/KMS buffers. |
 | [`mesa-gbm`](../packages/mesa-gbm/package.toml)<br>Graphics-buffer interface library<br>**All desktop profiles** | Mesa's Generic Buffer Management interface for managing buffers associated with DRM devices. | Supports the compositor's CPU/KMS buffer path. This recipe selects GBM and does not include Mesa Vulkan or OpenGL drivers. |
+
+#### Native desktop widgets
+
+| Component and inclusion | What it provides | Role in this distro |
+| --- | --- | --- |
+| [`gtk3`](../packages/gtk3/package.toml)<br>Native widget toolkit<br>**All desktop profiles** | Provides GTK widgets and the Wayland window backend. | Supplies Firefox's Linux interface without requiring an X11 server. GLib generators and the Wayland scanner stay private to the build. |
+| [`pango`](../packages/pango/package.toml)<br>Text layout library<br>**All desktop profiles** | Lays out and shapes Unicode text for GTK widgets. | Uses the packaged font stack and Cairo for native browser controls. |
+| [`cairo`](../packages/cairo/package.toml)<br>Vector graphics library<br>**All desktop profiles** | Renders paths, images and text using software pixel buffers. | Supports GTK and Pango without an X11 dependency. |
+| [`fribidi`](../packages/fribidi/package.toml)<br>Bidirectional text library<br>**All desktop profiles** | Orders mixed right-to-left and left-to-right Unicode text. | Pango uses it when laying out native widget text. |
+| [`at-spi2-core`](../packages/at-spi2-core/package.toml)<br>Accessibility libraries and bus<br>**All desktop profiles** | Provides ATK, the AT-SPI bridge and accessibility D-Bus services. | GTK and Firefox use these interfaces to expose native controls to assistive clients. |
+| [`libepoxy`](../packages/libepoxy/package.toml)<br>Graphics function dispatch library<br>**All desktop profiles** | Resolves OpenGL and EGL functions dynamically. | GTK uses its dispatch API. This library does not itself provide GPU drivers. |
 
 #### Fonts and software text rendering
 
@@ -335,6 +355,7 @@ original profile; the VM's deployment receipt records those updates.
 | [`gettext`](../packages/gettext/package.toml)<br>Translation and build tools<br>**Catalog only** | GNU tools for compiling translation catalogs and merging translations into XML and desktop-entry templates. | Supplies genuine translation generators during package builds. It is available in the recipe catalog but is not selected into the current profile runtime closures. |
 | [`wayland-protocols`](../packages/wayland-protocols/package.toml)<br>Build-time protocol data<br>**Catalog only** | XML definitions for standard Wayland extension protocols. | Generators use this data to create protocol bindings during builds. The generated bindings enter the relevant programs; the XML package is not a daemon or part of current profile runtime closures. |
 | [`tllist`](../packages/tllist/package.toml)<br>Build headers<br>**Catalog only** | Provides a typed linked-list implementation for C. | Foot and fcft compile against these headers; this package has no runtime library. |
+| [`mesa-headers`](../packages/mesa-headers/package.toml)<br>Graphics API build headers<br>**Catalog only** | Provides EGL and Khronos platform declarations from the pinned Mesa source. | Used to compile the native Wayland toolkit. This package contains no graphics drivers or runtime libraries. |
 
 #### Alternate device provider
 
@@ -557,6 +578,7 @@ Owner: [`busybox`](../packages/busybox/package.toml).
 | --- | --- |
 | sh | Runs early boot, interactive terminal sessions and lightweight system scripts. |
 | stty and tee | Inspect terminal modes and sizes, and capture command output. |
+| awk, tr, basename, dirname, mktemp and readlink | Provide the text, path and temporary-file operations used by XDG default-application dispatch. |
 | mount and switch_root | Mount kernel filesystems and hand execution to the installed root. |
 | findfs | Resolves the root partition's UUID or label during early boot. |
 | poweroff | Stops the private VM from the console. |
@@ -670,6 +692,7 @@ than services silently running in the normal desktop.
 | [`system/desktop/etc/systemd/user/telorgon-shell.service`](../system/desktop/etc/systemd/user/telorgon-shell.service) | Starts the compositor after its bus/media dependencies and waits for its Wayland socket. |
 | [`system/desktop/etc/sysusers.d/custom-distro-media.conf`](../system/desktop/etc/sysusers.d/custom-distro-media.conf) | Adds the desktop user to the audio and video groups for the selected device-access policy. |
 | [`system/desktop/etc/sysusers.d/custom-distro-seat.conf`](../system/desktop/etc/sysusers.d/custom-distro-seat.conf) | Declares the seat group and grants the custom user access to the seatd socket. |
+| [`system/desktop/etc/xdg/mimeapps.list`](../system/desktop/etc/xdg/mimeapps.list) | Selects Firefox as the default desktop HTTP, HTTPS and HTML handler. |
 | [`system/desktop/usr/lib/custom-distro/check-desktop-services`](../system/desktop/usr/lib/custom-distro/check-desktop-services) | Checks the selected desktop services during qualification; removed from normal desktop payloads. |
 | [`system/desktop/usr/lib/custom-distro/check-desktop-session`](../system/desktop/usr/lib/custom-distro/check-desktop-session) | Runs graphical-session qualification using the real Wayland probe; removed from normal desktop payloads. |
 | [`system/desktop/usr/lib/custom-distro/start-telorgon-shell`](../system/desktop/usr/lib/custom-distro/start-telorgon-shell) | Qualification shell launcher: records the shell log and enables latency tracing; replaced by the normal-session overlay. |
