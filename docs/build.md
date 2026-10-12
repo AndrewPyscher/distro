@@ -45,6 +45,10 @@ Watch the progress bar for the current stage and elapsed time. Large compiler
 stages can take a long time at one percentage; see [build progress](#build-progress).
 If a stage fails, read its reported log, fix the underlying problem and rerun the
 same command. Completed work is reused; cleaning is unnecessary for a retry.
+Source downloads try the primary URL, then any `fallback_urls` declared in the
+source manifest if a download fails or times out. Each URL must use HTTPS and
+the downloaded bytes must match the same SHA256 pin. A checksum mismatch stops
+the build. GCC's bootstrap source declares an alternate official server.
 See [troubleshooting](#troubleshooting) for common failures.
 
 ### 3. Check the running desktop

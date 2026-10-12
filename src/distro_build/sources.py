@@ -30,25 +30,28 @@ def fetch(source: Source, cache: Path, *, offline: bool = False) -> Path:
         return destination
     if offline:
         raise BuildError(f"{source.name}: source absent from offline cache")
-    temporary = None
-    try:
-        with tempfile.NamedTemporaryFile(dir=cache, prefix=f".{source.filename}.", delete=False) as target:
-            temporary = Path(target.name)
-            request = urllib.request.Request(source.url, headers={"User-Agent": "Custom-Distro-Build/0.1"})
-            with urllib.request.urlopen(request, timeout=60) as response:
-                if not response.geturl().startswith("https://"):
-                    raise BuildError(f"{source.name}: rejected non-HTTPS redirect")
-                shutil.copyfileobj(response, target, length=1024 * 1024)
-        actual = sha256(temporary)
-        if actual != source.sha256:
-            raise BuildError(f"{source.name}: SHA256 mismatch; expected {source.sha256}, got {actual}")
-        os.replace(temporary, destination)
-        return destination
-    except (OSError, urllib.error.URLError) as error:
-        raise BuildError(f"{source.name}: fetch failed: {error}") from error
-    finally:
-        if temporary and temporary.exists():
-            temporary.unlink()
+    failures = []
+    for url in (source.url, *source.fallback_urls):
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(dir=cache, prefix=f".{source.filename}.", delete=False) as target:
+                temporary = Path(target.name)
+                request = urllib.request.Request(url, headers={"User-Agent": "Custom-Distro-Build/0.1"})
+                with urllib.request.urlopen(request, timeout=60) as response:
+                    if not response.geturl().startswith("https://"):
+                        raise BuildError(f"{source.name}: rejected non-HTTPS redirect")
+                    shutil.copyfileobj(response, target, length=1024 * 1024)
+            actual = sha256(temporary)
+            if actual != source.sha256:
+                raise BuildError(f"{source.name}: SHA256 mismatch; expected {source.sha256}, got {actual}")
+            os.replace(temporary, destination)
+            return destination
+        except (OSError, urllib.error.URLError) as error:
+            failures.append(f"{url}: {error}")
+        finally:
+            if temporary and temporary.exists():
+                temporary.unlink()
+    raise BuildError(f"{source.name}: fetch failed: {'; '.join(failures)}")
 
 
 def fetch_all(sources: list[Source], cache: Path, *, offline: bool = False, workers: int = 4) -> list[Path]:

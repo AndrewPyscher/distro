@@ -20,8 +20,9 @@ Follow these guides in order:
    — rebuild changed applications and install them into a saved development VM.
 
 The environment guide covers one-time setup. The build guide covers daily
-commands, progress, incremental builds, cleanup and troubleshooting. Rebuilding
-an image does not upgrade an existing named VM's disk; use application deployment
+commands, progress, incremental builds, cleanup and troubleshooting, including
+checksum-verified fallback URLs for source downloads. Rebuilding an image does
+not upgrade an existing named VM's disk; use application deployment
 or a new VM name when testing a new base.
 
 ## Explore the project

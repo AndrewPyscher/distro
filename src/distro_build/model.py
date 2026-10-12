@@ -23,6 +23,7 @@ class Source:
     sha256: str
     filename: str
     format: str = "archive"
+    fallback_urls: tuple[str, ...] = ()
 
     @classmethod
     def parse(cls, value: dict, where: str) -> Source:
@@ -35,6 +36,12 @@ class Source:
             raise BuildError(f"{where}: invalid source name")
         if not isinstance(url, str) or urlsplit(url).scheme != "https":
             raise BuildError(f"{where}: source URL must use HTTPS")
+        fallback_urls = value.get("fallback_urls", [])
+        if not isinstance(fallback_urls, list) or any(
+            not isinstance(candidate, str) or urlsplit(candidate).scheme != "https"
+            for candidate in fallback_urls
+        ):
+            raise BuildError(f"{where}: source fallback_urls must be an array of HTTPS URLs")
         if not isinstance(digest, str) or not _DIGEST.fullmatch(digest):
             raise BuildError(f"{where}: source requires a lowercase SHA256 pin")
         filename = value.get("filename", Path(urlsplit(url).path).name)
@@ -43,7 +50,7 @@ class Source:
         source_format = value.get("format", "archive")
         if source_format not in {"archive", "file"}:
             raise BuildError(f"{where}: unsupported source format")
-        return cls(name, url, digest, filename, source_format)
+        return cls(name, url, digest, filename, source_format, tuple(fallback_urls))
 
 
 @dataclass(frozen=True)
