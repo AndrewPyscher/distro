@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="3396" viewBox="0 0 1200 3396" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="3542" viewBox="0 0 1200 3542" role="img" aria-labelledby="title description">
   <title id="title">Custom Distro component architecture</title>
-  <desc id="description">All 88 declared packages and 6 source projects, grouped by function from applications to the Linux kernel. Boot, development and alternate components are shown separately. See components.md for linked text equivalents.</desc>
-  <rect width="1200" height="3396" fill="#f8fafc" />
+  <desc id="description">All 99 declared packages and 6 source projects, grouped by function from applications to the Linux kernel. Boot, development and alternate components are shown separately. See components.md for linked text equivalents.</desc>
+  <rect width="1200" height="3542" fill="#f8fafc" />
   <text x="32" y="48" fill="#0f172a" font-size="30" font-weight="700" font-family="DejaVu Sans, sans-serif">Custom Distro</text>
   <text x="32" y="78" fill="#334155" font-size="19" font-weight="400" font-family="DejaVu Sans, sans-serif">Component architecture · from applications to the Linux kernel</text>
-  <text x="32" y="108" fill="#334155" font-size="15" font-weight="400" font-family="DejaVu Sans, sans-serif">88 package recipes · 6 source projects · grouped by function</text>
+  <text x="32" y="108" fill="#334155" font-size="15" font-weight="400" font-family="DejaVu Sans, sans-serif">99 package recipes · 6 source projects · grouped by function</text>
   <text x="32" y="137" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">P = package recipe     S = source repository     Placement shows responsibility, not every dependency.</text>
   <rect x="32" y="160" width="5" height="43" rx="2" fill="#2563eb" />
   <text x="49" y="180" fill="#2563eb" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">01  Applications</text>
@@ -21,336 +21,369 @@
   <text x="68" y="349" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/telorgon-file-explorer</text>
   <rect x="416" y="224" width="368" height="156" rx="9" fill="#ffffff" stroke="#cbd5e1" />
   <rect x="416" y="236" width="4" height="132" rx="2" fill="#2563eb" />
-  <text x="432" y="253" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Terminal</text>
-  <text x="432" y="277" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Native Wayland command-line access.</text>
-  <text x="432" y="309" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="309" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">foot</text>
+  <text x="432" y="253" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Web browser</text>
+  <text x="432" y="277" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Native Wayland web browsing and the</text>
+  <text x="432" y="295" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">default HTTP/HTTPS handler.</text>
+  <text x="432" y="327" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="327" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">firefox</text>
   <rect x="800" y="224" width="368" height="156" rx="9" fill="#ffffff" stroke="#cbd5e1" />
   <rect x="800" y="236" width="4" height="132" rx="2" fill="#2563eb" />
-  <text x="816" y="253" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Desktop settings</text>
-  <text x="816" y="277" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Display, audio, network, power and</text>
-  <text x="816" y="295" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">personalization controls.</text>
-  <text x="816" y="327" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="327" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">telorgon-settings-app</text>
-  <text x="816" y="349" fill="#7c3aed" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">S</text>
-  <text x="836" y="349" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/telorgon-settings-app</text>
-  <rect x="32" y="396" width="1136" height="138" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="408" width="4" height="114" rx="2" fill="#2563eb" />
-  <text x="48" y="425" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Sharing consent</text>
-  <text x="48" y="449" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Screen-sharing selection UI; capture support depends on the packaged SDK capability.</text>
+  <text x="816" y="253" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Terminal</text>
+  <text x="816" y="277" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Native Wayland command-line access.</text>
+  <text x="816" y="309" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="309" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">foot</text>
+  <rect x="32" y="396" width="560" height="156" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="408" width="4" height="132" rx="2" fill="#2563eb" />
+  <text x="48" y="425" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Desktop settings</text>
+  <text x="48" y="449" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Display, audio, network, power and personalization controls.</text>
   <text x="48" y="481" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="481" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">telorgon-portal-picker</text>
+  <text x="68" y="481" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">telorgon-settings-app</text>
   <text x="48" y="503" fill="#7c3aed" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">S</text>
-  <text x="68" y="503" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/telorgon-portal-picker</text>
-  <rect x="32" y="562" width="5" height="43" rx="2" fill="#7c3aed" />
-  <text x="49" y="582" fill="#7c3aed" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">02  Desktop shell and shared SDK</text>
-  <text x="49" y="605" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">The shell and applications share SDK code; the SDK is not a separate background service.</text>
-  <rect x="32" y="626" width="560" height="156" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="638" width="4" height="132" rx="2" fill="#7c3aed" />
-  <text x="48" y="655" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Shell and Wayland compositor</text>
-  <text x="48" y="679" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Desktop, taskbar, window management, composition and input</text>
-  <text x="48" y="697" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">routing.</text>
-  <text x="48" y="729" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="729" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">telorgon-shell</text>
-  <text x="48" y="751" fill="#7c3aed" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">S</text>
-  <text x="68" y="751" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/test-shell</text>
-  <rect x="608" y="626" width="560" height="156" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="608" y="638" width="4" height="132" rx="2" fill="#7c3aed" />
-  <text x="624" y="655" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Telorgon SDK</text>
-  <text x="624" y="679" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">UI, rendering, hosting, media and service integration; also</text>
-  <text x="624" y="697" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">supplies boot UI support.</text>
-  <text x="624" y="729" fill="#7c3aed" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">S</text>
-  <text x="644" y="729" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/telorgon</text>
-  <rect x="32" y="810" width="5" height="43" rx="2" fill="#0f766e" />
-  <text x="49" y="830" fill="#0f766e" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">03  System and desktop services</text>
-  <text x="49" y="853" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Cooperating services and their supporting libraries, grouped by the capability they provide.</text>
-  <rect x="32" y="874" width="368" height="284" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="886" width="4" height="260" rx="2" fill="#0f766e" />
-  <text x="48" y="903" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Sessions, devices and IPC</text>
-  <text x="48" y="927" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">systemd includes init, journald, udev,</text>
-  <text x="48" y="945" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">logind and user managers; D-Bus carries</text>
-  <text x="48" y="963" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">service messages.</text>
-  <text x="48" y="995" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="995" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">systemd</text>
-  <text x="48" y="1017" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1017" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libsystemd</text>
-  <text x="48" y="1039" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1039" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">dbus</text>
-  <rect x="416" y="874" width="368" height="284" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="416" y="886" width="4" height="260" rx="2" fill="#0f766e" />
-  <text x="432" y="903" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Audio and media routing</text>
-  <text x="432" y="927" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">PipeWire graph, session policy, ALSA</text>
-  <text x="432" y="945" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">access and Lua policy runtime.</text>
-  <text x="432" y="977" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="977" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pipewire</text>
-  <text x="432" y="999" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="999" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">wireplumber</text>
-  <text x="432" y="1021" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1021" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">alsa-lib</text>
-  <text x="432" y="1043" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1043" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">lua</text>
-  <rect x="800" y="874" width="368" height="284" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="800" y="886" width="4" height="260" rx="2" fill="#0f766e" />
-  <text x="816" y="903" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Networking and HTTPS</text>
-  <text x="816" y="927" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Connection management, Wi-Fi</text>
-  <text x="816" y="945" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">authentication, kernel network APIs and</text>
-  <text x="816" y="963" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">verified downloads.</text>
-  <text x="816" y="995" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="995" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">networkmanager</text>
-  <text x="816" y="1017" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1017" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">wpa-supplicant</text>
-  <text x="816" y="1039" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1039" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libnl</text>
-  <text x="816" y="1061" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1061" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libndp</text>
-  <text x="816" y="1083" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1083" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">curl</text>
-  <text x="816" y="1105" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1105" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">openssl</text>
-  <text x="816" y="1127" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1127" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">ca-certificates</text>
-  <rect x="32" y="1174" width="368" height="284" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="1186" width="4" height="260" rx="2" fill="#0f766e" />
-  <text x="48" y="1203" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Authentication and power</text>
-  <text x="48" y="1227" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Login authentication, authorization rules,</text>
-  <text x="48" y="1245" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">battery status and power profiles.</text>
-  <text x="48" y="1277" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1277" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pam</text>
-  <text x="48" y="1299" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1299" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libxcrypt</text>
-  <text x="48" y="1321" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1321" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">polkit</text>
-  <text x="48" y="1343" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1343" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">duktape</text>
-  <text x="48" y="1365" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1365" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">upower</text>
-  <text x="48" y="1387" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1387" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">power-profiles-daemon</text>
-  <rect x="416" y="1174" width="368" height="284" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="416" y="1186" width="4" height="260" rx="2" fill="#0f766e" />
-  <text x="432" y="1203" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Portals and media validation</text>
-  <text x="432" y="1227" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Portal broker, document access,</text>
-  <text x="432" y="1245" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">sandboxing, image decoding and multimedia</text>
-  <text x="432" y="1263" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">validators.</text>
-  <text x="432" y="1295" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1295" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">xdg-desktop-portal</text>
-  <text x="432" y="1317" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1317" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">bubblewrap</text>
-  <text x="432" y="1339" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1339" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">fuse3</text>
-  <text x="432" y="1361" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1361" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gdk-pixbuf</text>
-  <text x="432" y="1383" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1383" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gstreamer</text>
-  <text x="432" y="1405" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1405" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gst-plugins-base</text>
-  <text x="432" y="1427" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1427" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gst-plugins-good</text>
-  <rect x="800" y="1174" width="368" height="284" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="800" y="1186" width="4" height="260" rx="2" fill="#0f766e" />
-  <text x="816" y="1203" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Settings and file integration</text>
-  <text x="816" y="1227" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Settings stores, MIME and application</text>
-  <text x="816" y="1245" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">databases, file identification, opening</text>
-  <text x="816" y="1263" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">and clipboard tools.</text>
-  <text x="816" y="1295" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1295" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">dconf</text>
-  <text x="816" y="1317" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1317" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gsettings-desktop-schemas</text>
-  <text x="816" y="1339" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1339" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">shared-mime-info</text>
-  <text x="816" y="1361" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1361" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">desktop-file-utils</text>
-  <text x="816" y="1383" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1383" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">file</text>
-  <text x="816" y="1405" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1405" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">xdg-utils</text>
-  <text x="816" y="1427" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1427" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">wl-clipboard</text>
-  <rect x="32" y="1486" width="5" height="43" rx="2" fill="#b45309" />
-  <text x="49" y="1506" fill="#b45309" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">04  Userspace display and device interfaces</text>
-  <text x="49" y="1529" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Libraries and data used by the compositor and services to work with kernel devices and clients.</text>
-  <rect x="32" y="1550" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="1562" width="4" height="242" rx="2" fill="#b45309" />
-  <text x="48" y="1579" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Display and window protocol</text>
-  <text x="48" y="1603" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Wayland client/server protocol, DRM/KMS</text>
-  <text x="48" y="1621" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">access and GBM buffers; the distro uses</text>
-  <text x="48" y="1639" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">CPU rendering.</text>
-  <text x="48" y="1671" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1671" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">wayland</text>
-  <text x="48" y="1693" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1693" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libdrm</text>
-  <text x="48" y="1715" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1715" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">mesa-gbm</text>
-  <rect x="416" y="1550" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="416" y="1562" width="4" height="242" rx="2" fill="#b45309" />
-  <text x="432" y="1579" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Fonts and software text rendering</text>
-  <text x="432" y="1603" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Font discovery, glyph rasterization,</text>
-  <text x="432" y="1621" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Unicode shaping and CPU pixel composition.</text>
-  <text x="432" y="1653" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1653" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">fontconfig</text>
-  <text x="432" y="1675" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1675" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">freetype</text>
-  <text x="432" y="1697" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1697" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">harfbuzz</text>
-  <text x="432" y="1719" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1719" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">fcft</text>
-  <text x="432" y="1741" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1741" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pixman</text>
-  <text x="432" y="1763" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1763" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">utf8proc</text>
-  <text x="432" y="1785" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="1785" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">fonts-dejavu</text>
-  <rect x="800" y="1550" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="800" y="1562" width="4" height="242" rx="2" fill="#b45309" />
-  <text x="816" y="1579" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Input and keyboard layouts</text>
-  <text x="816" y="1603" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Input event processing, multitouch,</text>
-  <text x="816" y="1621" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">keyboard state and layout data.</text>
-  <text x="816" y="1653" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1653" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libinput</text>
-  <text x="816" y="1675" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1675" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libevdev</text>
-  <text x="816" y="1697" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1697" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">mtdev</text>
-  <text x="816" y="1719" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1719" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libxkbcommon</text>
-  <text x="816" y="1741" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="1741" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">xkeyboard-config</text>
-  <rect x="32" y="1832" width="1136" height="138" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="1844" width="4" height="114" rx="2" fill="#b45309" />
-  <text x="48" y="1861" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Seat and device access</text>
-  <text x="48" y="1885" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">libseat includes seatd; libgudev wraps the selected libudev provider for GLib clients.</text>
-  <text x="48" y="1917" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1917" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libseat</text>
-  <text x="48" y="1939" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="1939" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libgudev</text>
-  <rect x="32" y="1998" width="5" height="43" rx="2" fill="#475569" />
-  <text x="49" y="2018" fill="#475569" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">05  Common runtimes and system utilities</text>
-  <text x="49" y="2041" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Shared foundations used across the upper layers; applications can call them directly.</text>
-  <rect x="32" y="2062" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="2074" width="4" height="242" rx="2" fill="#475569" />
-  <text x="48" y="2091" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Language runtimes and isolation</text>
-  <text x="48" y="2115" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">C and C++ runtimes, compiler support,</text>
-  <text x="48" y="2133" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">capabilities and syscall filtering.</text>
-  <text x="48" y="2165" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="2165" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">glibc</text>
-  <text x="48" y="2187" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="2187" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libgcc</text>
-  <text x="48" y="2209" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="2209" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libstdc++</text>
-  <text x="48" y="2231" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="2231" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libcap</text>
-  <text x="48" y="2253" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="2253" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libseccomp</text>
-  <rect x="416" y="2062" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="416" y="2074" width="4" height="242" rx="2" fill="#475569" />
-  <text x="432" y="2091" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Objects, parsing and images</text>
-  <text x="432" y="2115" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">GLib/GObject/GIO, JSON, foreign calls,</text>
-  <text x="432" y="2133" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">regular expressions, XML and PNG decoding.</text>
-  <text x="432" y="2165" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="2165" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">glib</text>
-  <text x="432" y="2187" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="2187" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">json-glib</text>
-  <text x="432" y="2209" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="2209" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libffi</text>
-  <text x="432" y="2231" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="2231" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pcre2</text>
-  <text x="432" y="2253" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="2253" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">expat</text>
-  <text x="432" y="2275" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="2275" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libxml2</text>
-  <text x="432" y="2297" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="2297" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libpng</text>
-  <rect x="800" y="2062" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="800" y="2074" width="4" height="242" rx="2" fill="#475569" />
-  <text x="816" y="2091" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Archives and compression</text>
-  <text x="816" y="2115" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Archive handling and gzip/DEFLATE and</text>
-  <text x="816" y="2133" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">XZ/LZMA compression.</text>
-  <text x="816" y="2165" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="2165" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libarchive</text>
-  <text x="816" y="2187" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="2187" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">zlib</text>
-  <text x="816" y="2209" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="2209" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">xz</text>
-  <rect x="32" y="2344" width="560" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="2356" width="4" height="242" rx="2" fill="#475569" />
-  <text x="48" y="2373" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">System and package tools</text>
-  <text x="48" y="2397" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Early userspace and repair tools, login and mount utilities,</text>
-  <text x="48" y="2415" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">pacman and libalpm.</text>
-  <text x="48" y="2447" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="2447" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">busybox</text>
-  <text x="48" y="2469" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="2469" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">util-linux</text>
-  <text x="48" y="2491" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="2491" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pacman</text>
-  <text x="48" y="2513" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="2513" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">ncurses</text>
-  <rect x="608" y="2344" width="560" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="608" y="2356" width="4" height="242" rx="2" fill="#475569" />
-  <text x="624" y="2373" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Package signatures and crypto</text>
-  <text x="624" y="2397" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">OpenPGP verification, cryptographic primitives, certificate</text>
-  <text x="624" y="2415" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">structures and GnuPG support.</text>
-  <text x="624" y="2447" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="644" y="2447" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gnupg</text>
-  <text x="624" y="2469" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="644" y="2469" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gpgme</text>
-  <text x="624" y="2491" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="644" y="2491" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libgpg-error</text>
-  <text x="624" y="2513" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="644" y="2513" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libgcrypt</text>
-  <text x="624" y="2535" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="644" y="2535" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libassuan</text>
-  <text x="624" y="2557" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="644" y="2557" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libksba</text>
-  <text x="624" y="2579" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="644" y="2579" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">npth</text>
-  <rect x="32" y="2638" width="5" height="43" rx="2" fill="#1d4ed8" />
-  <text x="49" y="2658" fill="#1d4ed8" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">06  Linux kernel</text>
-  <text x="49" y="2681" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">The boundary between userspace and hardware, including the virtual hardware exposed by QEMU.</text>
-  <rect x="32" y="2702" width="1136" height="116" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="2714" width="4" height="92" rx="2" fill="#1d4ed8" />
-  <text x="48" y="2731" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Core operating system</text>
-  <text x="48" y="2755" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Scheduling, memory, filesystems, networking, drivers, DRM/KMS, input, ALSA, V4L2 and FUSE.</text>
-  <text x="48" y="2787" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="2787" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">linux</text>
-  <rect x="32" y="2846" width="5" height="43" rx="2" fill="#9333ea" />
-  <text x="49" y="2866" fill="#9333ea" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">07  Boot handoff — before the running desktop</text>
-  <text x="49" y="2889" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">UEFI/OVMF → Telorgon EFI → Linux → BusyBox initramfs → root filesystem → profile-selected init.</text>
-  <rect x="32" y="2910" width="1136" height="116" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="2922" width="4" height="92" rx="2" fill="#9333ea" />
-  <text x="48" y="2939" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Telorgon bootloader</text>
-  <text x="48" y="2963" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">EFI application that selects and starts the kernel and initramfs; shares boot UI code from the SDK.</text>
-  <text x="48" y="2995" fill="#7c3aed" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">S</text>
-  <text x="68" y="2995" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/telorgon-bootloader</text>
-  <rect x="32" y="3054" width="5" height="43" rx="2" fill="#64748b" />
-  <text x="49" y="3074" fill="#64748b" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">08  Development, build data and alternate providers</text>
-  <text x="49" y="3097" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Catalog components with special roles; these are not an additional layer below the kernel.</text>
-  <rect x="32" y="3118" width="368" height="196" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="32" y="3130" width="4" height="172" rx="2" fill="#64748b" />
-  <text x="48" y="3147" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Private VM deployment</text>
-  <text x="48" y="3171" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Development-only guest agent for package</text>
-  <text x="48" y="3189" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">deployment into desktop-dev VMs.</text>
-  <text x="48" y="3221" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="68" y="3221" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">qemu-guest-agent</text>
-  <rect x="416" y="3118" width="368" height="196" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="416" y="3130" width="4" height="172" rx="2" fill="#64748b" />
-  <text x="432" y="3147" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Translation and protocol inputs</text>
-  <text x="432" y="3171" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Translation tooling and Wayland extension</text>
-  <text x="432" y="3189" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">XML used during builds; not desktop</text>
-  <text x="432" y="3207" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">daemons.</text>
-  <text x="432" y="3239" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="3239" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gettext</text>
-  <text x="432" y="3261" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="3261" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">wayland-protocols</text>
-  <text x="432" y="3283" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="452" y="3283" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">tllist</text>
-  <rect x="800" y="3118" width="368" height="196" rx="9" fill="#ffffff" stroke="#cbd5e1" />
-  <rect x="800" y="3130" width="4" height="172" rx="2" fill="#64748b" />
-  <text x="816" y="3147" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Alternate device provider</text>
-  <text x="816" y="3171" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Standalone eudev recipe. Desktop images</text>
-  <text x="816" y="3189" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">use systemd's udev/libudev provider</text>
-  <text x="816" y="3207" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">instead.</text>
-  <text x="816" y="3239" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
-  <text x="836" y="3239" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libudev</text>
-  <text x="32" y="3361" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Catalog view: profiles select installed components; SDK features determine available capabilities.</text>
-  <text x="32" y="3383" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Recipe and source manifests remain authoritative. Linked component index: docs/components.md</text>
+  <text x="68" y="503" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/telorgon-settings-app</text>
+  <rect x="608" y="396" width="560" height="156" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="608" y="408" width="4" height="132" rx="2" fill="#2563eb" />
+  <text x="624" y="425" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Sharing consent</text>
+  <text x="624" y="449" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Screen-sharing selection UI; capture support depends on the</text>
+  <text x="624" y="467" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">packaged SDK capability.</text>
+  <text x="624" y="499" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="644" y="499" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">telorgon-portal-picker</text>
+  <text x="624" y="521" fill="#7c3aed" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">S</text>
+  <text x="644" y="521" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/telorgon-portal-picker</text>
+  <rect x="32" y="580" width="5" height="43" rx="2" fill="#7c3aed" />
+  <text x="49" y="600" fill="#7c3aed" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">02  Desktop shell and shared SDK</text>
+  <text x="49" y="623" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">The shell and applications share SDK code; the SDK is not a separate background service.</text>
+  <rect x="32" y="644" width="560" height="156" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="656" width="4" height="132" rx="2" fill="#7c3aed" />
+  <text x="48" y="673" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Shell and Wayland compositor</text>
+  <text x="48" y="697" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Desktop, taskbar, window management, composition and input</text>
+  <text x="48" y="715" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">routing.</text>
+  <text x="48" y="747" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="747" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">telorgon-shell</text>
+  <text x="48" y="769" fill="#7c3aed" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">S</text>
+  <text x="68" y="769" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/test-shell</text>
+  <rect x="608" y="644" width="560" height="156" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="608" y="656" width="4" height="132" rx="2" fill="#7c3aed" />
+  <text x="624" y="673" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Telorgon SDK</text>
+  <text x="624" y="697" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">UI, rendering, hosting, media and service integration; also</text>
+  <text x="624" y="715" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">supplies boot UI support.</text>
+  <text x="624" y="747" fill="#7c3aed" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">S</text>
+  <text x="644" y="747" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/telorgon</text>
+  <rect x="32" y="828" width="5" height="43" rx="2" fill="#0f766e" />
+  <text x="49" y="848" fill="#0f766e" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">03  System and desktop services</text>
+  <text x="49" y="871" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Cooperating services and their supporting libraries, grouped by the capability they provide.</text>
+  <rect x="32" y="892" width="368" height="284" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="904" width="4" height="260" rx="2" fill="#0f766e" />
+  <text x="48" y="921" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Sessions, devices and IPC</text>
+  <text x="48" y="945" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">systemd includes init, journald, udev,</text>
+  <text x="48" y="963" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">logind and user managers; D-Bus carries</text>
+  <text x="48" y="981" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">service messages.</text>
+  <text x="48" y="1013" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1013" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">systemd</text>
+  <text x="48" y="1035" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1035" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libsystemd</text>
+  <text x="48" y="1057" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1057" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">dbus</text>
+  <rect x="416" y="892" width="368" height="284" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="416" y="904" width="4" height="260" rx="2" fill="#0f766e" />
+  <text x="432" y="921" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Audio and media routing</text>
+  <text x="432" y="945" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">PipeWire graph, session policy, ALSA</text>
+  <text x="432" y="963" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">access and Lua policy runtime.</text>
+  <text x="432" y="995" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="995" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pipewire</text>
+  <text x="432" y="1017" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1017" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">wireplumber</text>
+  <text x="432" y="1039" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1039" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">alsa-lib</text>
+  <text x="432" y="1061" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1061" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">lua</text>
+  <text x="432" y="1083" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1083" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libpulse</text>
+  <text x="432" y="1105" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1105" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libsndfile</text>
+  <rect x="800" y="892" width="368" height="284" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="800" y="904" width="4" height="260" rx="2" fill="#0f766e" />
+  <text x="816" y="921" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Networking and HTTPS</text>
+  <text x="816" y="945" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Connection management, Wi-Fi</text>
+  <text x="816" y="963" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">authentication, kernel network APIs and</text>
+  <text x="816" y="981" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">verified downloads.</text>
+  <text x="816" y="1013" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1013" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">networkmanager</text>
+  <text x="816" y="1035" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1035" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">wpa-supplicant</text>
+  <text x="816" y="1057" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1057" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libnl</text>
+  <text x="816" y="1079" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1079" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libndp</text>
+  <text x="816" y="1101" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1101" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">curl</text>
+  <text x="816" y="1123" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1123" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">openssl</text>
+  <text x="816" y="1145" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1145" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">ca-certificates</text>
+  <rect x="32" y="1192" width="368" height="306" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="1204" width="4" height="282" rx="2" fill="#0f766e" />
+  <text x="48" y="1221" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Authentication and power</text>
+  <text x="48" y="1245" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Login authentication, authorization rules,</text>
+  <text x="48" y="1263" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">battery status and power profiles.</text>
+  <text x="48" y="1295" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1295" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pam</text>
+  <text x="48" y="1317" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1317" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libxcrypt</text>
+  <text x="48" y="1339" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1339" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">polkit</text>
+  <text x="48" y="1361" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1361" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">duktape</text>
+  <text x="48" y="1383" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1383" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">upower</text>
+  <text x="48" y="1405" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1405" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">power-profiles-daemon</text>
+  <rect x="416" y="1192" width="368" height="306" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="416" y="1204" width="4" height="282" rx="2" fill="#0f766e" />
+  <text x="432" y="1221" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Portals and media validation</text>
+  <text x="432" y="1245" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Portal broker, document access,</text>
+  <text x="432" y="1263" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">sandboxing, image decoding and multimedia</text>
+  <text x="432" y="1281" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">validators.</text>
+  <text x="432" y="1313" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1313" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">xdg-desktop-portal</text>
+  <text x="432" y="1335" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1335" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">bubblewrap</text>
+  <text x="432" y="1357" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1357" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">fuse3</text>
+  <text x="432" y="1379" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1379" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gdk-pixbuf</text>
+  <text x="432" y="1401" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1401" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gstreamer</text>
+  <text x="432" y="1423" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1423" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gst-plugins-base</text>
+  <text x="432" y="1445" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1445" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gst-plugins-good</text>
+  <rect x="800" y="1192" width="368" height="306" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="800" y="1204" width="4" height="282" rx="2" fill="#0f766e" />
+  <text x="816" y="1221" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Settings and file integration</text>
+  <text x="816" y="1245" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Settings stores, MIME and application</text>
+  <text x="816" y="1263" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">databases, file identification, opening</text>
+  <text x="816" y="1281" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">and clipboard tools.</text>
+  <text x="816" y="1313" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1313" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">dconf</text>
+  <text x="816" y="1335" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1335" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gsettings-desktop-schemas</text>
+  <text x="816" y="1357" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1357" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">shared-mime-info</text>
+  <text x="816" y="1379" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1379" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">desktop-file-utils</text>
+  <text x="816" y="1401" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1401" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">file</text>
+  <text x="816" y="1423" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1423" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">xdg-utils</text>
+  <text x="816" y="1445" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1445" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">wl-clipboard</text>
+  <text x="816" y="1467" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1467" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">hicolor-icon-theme</text>
+  <rect x="32" y="1526" width="5" height="43" rx="2" fill="#b45309" />
+  <text x="49" y="1546" fill="#b45309" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">04  Userspace display and device interfaces</text>
+  <text x="49" y="1569" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Libraries and data used by the compositor and services to work with kernel devices and clients.</text>
+  <rect x="32" y="1590" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="1602" width="4" height="242" rx="2" fill="#b45309" />
+  <text x="48" y="1619" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Display and window protocol</text>
+  <text x="48" y="1643" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Wayland client/server protocol, DRM/KMS</text>
+  <text x="48" y="1661" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">access and GBM buffers; the distro uses</text>
+  <text x="48" y="1679" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">CPU rendering.</text>
+  <text x="48" y="1711" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1711" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">wayland</text>
+  <text x="48" y="1733" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1733" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libdrm</text>
+  <text x="48" y="1755" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1755" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">mesa-gbm</text>
+  <rect x="416" y="1590" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="416" y="1602" width="4" height="242" rx="2" fill="#b45309" />
+  <text x="432" y="1619" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Native desktop widgets</text>
+  <text x="432" y="1643" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">GTK widgets, text layout, vector drawing</text>
+  <text x="432" y="1661" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">and accessibility for the browser.</text>
+  <text x="432" y="1693" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1693" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gtk3</text>
+  <text x="432" y="1715" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1715" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pango</text>
+  <text x="432" y="1737" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1737" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">cairo</text>
+  <text x="432" y="1759" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1759" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">fribidi</text>
+  <text x="432" y="1781" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1781" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">at-spi2-core</text>
+  <text x="432" y="1803" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="1803" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libepoxy</text>
+  <rect x="800" y="1590" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="800" y="1602" width="4" height="242" rx="2" fill="#b45309" />
+  <text x="816" y="1619" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Fonts and software text rendering</text>
+  <text x="816" y="1643" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Font discovery, glyph rasterization,</text>
+  <text x="816" y="1661" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Unicode shaping and CPU pixel composition.</text>
+  <text x="816" y="1693" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1693" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">fontconfig</text>
+  <text x="816" y="1715" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1715" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">freetype</text>
+  <text x="816" y="1737" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1737" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">harfbuzz</text>
+  <text x="816" y="1759" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1759" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">fcft</text>
+  <text x="816" y="1781" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1781" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pixman</text>
+  <text x="816" y="1803" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1803" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">utf8proc</text>
+  <text x="816" y="1825" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="1825" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">fonts-dejavu</text>
+  <rect x="32" y="1872" width="560" height="222" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="1884" width="4" height="198" rx="2" fill="#b45309" />
+  <text x="48" y="1901" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Input and keyboard layouts</text>
+  <text x="48" y="1925" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Input event processing, multitouch, keyboard state and layout</text>
+  <text x="48" y="1943" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">data.</text>
+  <text x="48" y="1975" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1975" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libinput</text>
+  <text x="48" y="1997" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="1997" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libevdev</text>
+  <text x="48" y="2019" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2019" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">mtdev</text>
+  <text x="48" y="2041" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2041" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libxkbcommon</text>
+  <text x="48" y="2063" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2063" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">xkeyboard-config</text>
+  <rect x="608" y="1872" width="560" height="222" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="608" y="1884" width="4" height="198" rx="2" fill="#b45309" />
+  <text x="624" y="1901" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Seat and device access</text>
+  <text x="624" y="1925" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">libseat includes seatd; libgudev wraps the selected libudev</text>
+  <text x="624" y="1943" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">provider for GLib clients.</text>
+  <text x="624" y="1975" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="644" y="1975" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libseat</text>
+  <text x="624" y="1997" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="644" y="1997" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libgudev</text>
+  <rect x="32" y="2122" width="5" height="43" rx="2" fill="#475569" />
+  <text x="49" y="2142" fill="#475569" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">05  Common runtimes and system utilities</text>
+  <text x="49" y="2165" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Shared foundations used across the upper layers; applications can call them directly.</text>
+  <rect x="32" y="2186" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="2198" width="4" height="242" rx="2" fill="#475569" />
+  <text x="48" y="2215" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Language runtimes and isolation</text>
+  <text x="48" y="2239" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">C and C++ runtimes, compiler support,</text>
+  <text x="48" y="2257" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">capabilities and syscall filtering.</text>
+  <text x="48" y="2289" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2289" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">glibc</text>
+  <text x="48" y="2311" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2311" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libgcc</text>
+  <text x="48" y="2333" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2333" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libstdc++</text>
+  <text x="48" y="2355" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2355" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libcap</text>
+  <text x="48" y="2377" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2377" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libseccomp</text>
+  <rect x="416" y="2186" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="416" y="2198" width="4" height="242" rx="2" fill="#475569" />
+  <text x="432" y="2215" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Objects, parsing and images</text>
+  <text x="432" y="2239" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">GLib/GObject/GIO, JSON, foreign calls,</text>
+  <text x="432" y="2257" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">regular expressions, XML and PNG decoding.</text>
+  <text x="432" y="2289" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="2289" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">glib</text>
+  <text x="432" y="2311" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="2311" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">json-glib</text>
+  <text x="432" y="2333" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="2333" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libffi</text>
+  <text x="432" y="2355" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="2355" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pcre2</text>
+  <text x="432" y="2377" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="2377" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">expat</text>
+  <text x="432" y="2399" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="2399" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libxml2</text>
+  <text x="432" y="2421" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="2421" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libpng</text>
+  <rect x="800" y="2186" width="368" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="800" y="2198" width="4" height="242" rx="2" fill="#475569" />
+  <text x="816" y="2215" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Archives and compression</text>
+  <text x="816" y="2239" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Archive handling and gzip/DEFLATE and</text>
+  <text x="816" y="2257" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">XZ/LZMA compression.</text>
+  <text x="816" y="2289" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="2289" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libarchive</text>
+  <text x="816" y="2311" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="2311" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">zlib</text>
+  <text x="816" y="2333" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="2333" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">xz</text>
+  <rect x="32" y="2468" width="560" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="2480" width="4" height="242" rx="2" fill="#475569" />
+  <text x="48" y="2497" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">System and package tools</text>
+  <text x="48" y="2521" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Early userspace and repair tools, login and mount utilities,</text>
+  <text x="48" y="2539" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">pacman and libalpm.</text>
+  <text x="48" y="2571" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2571" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">busybox</text>
+  <text x="48" y="2593" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2593" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">util-linux</text>
+  <text x="48" y="2615" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2615" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">pacman</text>
+  <text x="48" y="2637" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2637" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">ncurses</text>
+  <rect x="608" y="2468" width="560" height="266" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="608" y="2480" width="4" height="242" rx="2" fill="#475569" />
+  <text x="624" y="2497" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Package signatures and crypto</text>
+  <text x="624" y="2521" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">OpenPGP verification, cryptographic primitives, certificate</text>
+  <text x="624" y="2539" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">structures and GnuPG support.</text>
+  <text x="624" y="2571" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="644" y="2571" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gnupg</text>
+  <text x="624" y="2593" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="644" y="2593" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gpgme</text>
+  <text x="624" y="2615" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="644" y="2615" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libgpg-error</text>
+  <text x="624" y="2637" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="644" y="2637" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libgcrypt</text>
+  <text x="624" y="2659" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="644" y="2659" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libassuan</text>
+  <text x="624" y="2681" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="644" y="2681" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libksba</text>
+  <text x="624" y="2703" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="644" y="2703" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">npth</text>
+  <rect x="32" y="2762" width="5" height="43" rx="2" fill="#1d4ed8" />
+  <text x="49" y="2782" fill="#1d4ed8" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">06  Linux kernel</text>
+  <text x="49" y="2805" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">The boundary between userspace and hardware, including the virtual hardware exposed by QEMU.</text>
+  <rect x="32" y="2826" width="1136" height="116" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="2838" width="4" height="92" rx="2" fill="#1d4ed8" />
+  <text x="48" y="2855" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Core operating system</text>
+  <text x="48" y="2879" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Scheduling, memory, filesystems, networking, drivers, DRM/KMS, input, ALSA, V4L2 and FUSE.</text>
+  <text x="48" y="2911" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="2911" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">linux</text>
+  <rect x="32" y="2970" width="5" height="43" rx="2" fill="#9333ea" />
+  <text x="49" y="2990" fill="#9333ea" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">07  Boot handoff — before the running desktop</text>
+  <text x="49" y="3013" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">UEFI/OVMF → Telorgon EFI → Linux → BusyBox initramfs → root filesystem → profile-selected init.</text>
+  <rect x="32" y="3034" width="1136" height="116" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="3046" width="4" height="92" rx="2" fill="#9333ea" />
+  <text x="48" y="3063" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Telorgon bootloader</text>
+  <text x="48" y="3087" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">EFI application that selects and starts the kernel and initramfs; shares boot UI code from the SDK.</text>
+  <text x="48" y="3119" fill="#7c3aed" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">S</text>
+  <text x="68" y="3119" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">sources/telorgon-bootloader</text>
+  <rect x="32" y="3178" width="5" height="43" rx="2" fill="#64748b" />
+  <text x="49" y="3198" fill="#64748b" font-size="20" font-weight="700" font-family="DejaVu Sans, sans-serif">08  Development, build data and alternate providers</text>
+  <text x="49" y="3221" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Catalog components with special roles; these are not an additional layer below the kernel.</text>
+  <rect x="32" y="3242" width="368" height="218" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="32" y="3254" width="4" height="194" rx="2" fill="#64748b" />
+  <text x="48" y="3271" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Private VM deployment</text>
+  <text x="48" y="3295" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Development-only guest agent for package</text>
+  <text x="48" y="3313" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">deployment into desktop-dev VMs.</text>
+  <text x="48" y="3345" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="68" y="3345" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">qemu-guest-agent</text>
+  <rect x="416" y="3242" width="368" height="218" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="416" y="3254" width="4" height="194" rx="2" fill="#64748b" />
+  <text x="432" y="3271" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Translation and protocol inputs</text>
+  <text x="432" y="3295" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Translation tooling and Wayland extension</text>
+  <text x="432" y="3313" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">XML used during builds; not desktop</text>
+  <text x="432" y="3331" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">daemons.</text>
+  <text x="432" y="3363" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="3363" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">gettext</text>
+  <text x="432" y="3385" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="3385" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">wayland-protocols</text>
+  <text x="432" y="3407" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="3407" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">tllist</text>
+  <text x="432" y="3429" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="452" y="3429" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">mesa-headers</text>
+  <rect x="800" y="3242" width="368" height="218" rx="9" fill="#ffffff" stroke="#cbd5e1" />
+  <rect x="800" y="3254" width="4" height="194" rx="2" fill="#64748b" />
+  <text x="816" y="3271" fill="#0f172a" font-size="17" font-weight="700" font-family="DejaVu Sans, sans-serif">Alternate device provider</text>
+  <text x="816" y="3295" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Standalone eudev recipe. Desktop images</text>
+  <text x="816" y="3313" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">use systemd's udev/libudev provider</text>
+  <text x="816" y="3331" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">instead.</text>
+  <text x="816" y="3363" fill="#1d4ed8" font-size="12" font-weight="700" font-family="DejaVu Sans, sans-serif">P</text>
+  <text x="836" y="3363" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans Mono, monospace">libudev</text>
+  <text x="32" y="3507" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Catalog view: profiles select installed components; SDK features determine available capabilities.</text>
+  <text x="32" y="3529" fill="#334155" font-size="14" font-weight="400" font-family="DejaVu Sans, sans-serif">Recipe and source manifests remain authoritative. Linked component index: docs/components.md</text>
 </svg>

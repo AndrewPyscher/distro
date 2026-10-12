@@ -97,6 +97,10 @@ class Recipe:
                 for c in commands
             ):
                 raise BuildError(f"{path}: build.commands must be command argument arrays")
+        toolchain = build.get("rust_toolchain")
+        if toolchain is not None and (not isinstance(toolchain, str)
+                                     or not re.fullmatch(r"(?:stable|[0-9]+\.[0-9]+\.[0-9]+|nightly-[0-9]{4}-[0-9]{2}-[0-9]{2})", toolchain)):
+            raise BuildError(f"{path}: invalid build.rust_toolchain")
         dependencies = {}
         for role, names in data.get("dependencies", {}).items():
             if role not in {"native", "target", "runtime", "test"}:

@@ -170,6 +170,10 @@ rustup toolchain install nightly-2026-10-06 --profile minimal \
 ```
 
 Rustup supplies Cargo and Rust for the bootloader and desktop applications.
+Firefox also uses the selected Rust compiler and host Clang/libclang. Its recipe
+fetches checksum-pinned upstream Node, LLVM tools and WASI SDK build seeds into
+`out/`, and builds its private cbindgen and NASM tools from pinned sources.
+These tools do not need a host package installation and are not guest packages.
 The build selects this toolchain explicitly; its bootloader pin is defined in
 [`src/distro_build/boot.py`](../src/distro_build/boot.py).
 

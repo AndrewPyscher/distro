@@ -43,6 +43,13 @@ Use a new image and unused VM name for runtime libraries, kernel, loader or
 system policy. A saved disk keeps its installed state across image rebuilds.
 The private deploy command updates application packages only.
 
+For browser changes, open Firefox from the launcher and visit an HTTPS page.
+Confirm that text, images and JavaScript render, keyboard input and scrolling
+work, and resizing restores the page without leftover pixels. Open an HTTP or
+HTTPS link through `xdg-open` and confirm it reaches Firefox. Test audio through
+the existing PipeWire session, and check the content sandbox in `about:support`.
+Use a fresh named VM for browser runtime dependencies.
+
 For terminal changes, open Foot from the launcher and with **Ctrl+Alt+T** while
 the desktop has focus. In the terminal, run `tty`, `stty size`,
 `infocmp "$TERM"` and `tput colors`; confirm a PTY, valid terminal definitions

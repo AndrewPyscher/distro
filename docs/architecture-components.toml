@@ -13,6 +13,11 @@ packages = ["telorgon-file-explorer"]
 projects = ["telorgon-file-explorer"]
 
 [[layers.groups]]
+title = "Web browser"
+description = "Native Wayland web browsing and the default HTTP/HTTPS handler."
+packages = ["firefox"]
+
+[[layers.groups]]
 title = "Terminal"
 description = "Native Wayland command-line access."
 packages = ["foot"]
@@ -58,7 +63,7 @@ packages = ["systemd", "libsystemd", "dbus"]
 [[layers.groups]]
 title = "Audio and media routing"
 description = "PipeWire graph, session policy, ALSA access and Lua policy runtime."
-packages = ["pipewire", "wireplumber", "alsa-lib", "lua"]
+packages = ["pipewire", "wireplumber", "alsa-lib", "lua", "libpulse", "libsndfile"]
 
 [[layers.groups]]
 title = "Networking and HTTPS"
@@ -78,7 +83,7 @@ packages = ["xdg-desktop-portal", "bubblewrap", "fuse3", "gdk-pixbuf", "gstreame
 [[layers.groups]]
 title = "Settings and file integration"
 description = "Settings stores, MIME and application databases, file identification, opening and clipboard tools."
-packages = ["dconf", "gsettings-desktop-schemas", "shared-mime-info", "desktop-file-utils", "file", "xdg-utils", "wl-clipboard"]
+packages = ["dconf", "gsettings-desktop-schemas", "shared-mime-info", "desktop-file-utils", "file", "xdg-utils", "wl-clipboard", "hicolor-icon-theme"]
 
 [[layers]]
 title = "Userspace display and device interfaces"
@@ -89,6 +94,11 @@ color = "#b45309"
 title = "Display and window protocol"
 description = "Wayland client/server protocol, DRM/KMS access and GBM buffers; the distro uses CPU rendering."
 packages = ["wayland", "libdrm", "mesa-gbm"]
+
+[[layers.groups]]
+title = "Native desktop widgets"
+description = "GTK widgets, text layout, vector drawing and accessibility for the browser."
+packages = ["gtk3", "pango", "cairo", "fribidi", "at-spi2-core", "libepoxy"]
 
 [[layers.groups]]
 title = "Fonts and software text rendering"
@@ -168,7 +178,7 @@ packages = ["qemu-guest-agent"]
 [[layers.groups]]
 title = "Translation and protocol inputs"
 description = "Translation tooling and Wayland extension XML used during builds; not desktop daemons."
-packages = ["gettext", "wayland-protocols", "tllist"]
+packages = ["gettext", "wayland-protocols", "tllist", "mesa-headers"]
 
 [[layers.groups]]
 title = "Alternate device provider"

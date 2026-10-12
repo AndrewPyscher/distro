@@ -98,6 +98,22 @@ stage=Path(os.environ['CD_STAGE_DIR'])
             state = json.loads((root / "out/state/packages/example.json").read_text())
             self.assertEqual(state["sha256"], results[0]["sha256"])
 
+    def test_rust_seed_changes_invalidate_build_and_cached_lookup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            recipe, _ = self.fixture(root)
+            recipe.build["rust_toolchain"] = "nightly-2026-10-06"
+            with patch("distro_build.runner.seed_report", return_value={"kind": "test-seed"}), \
+                    patch("distro_build.runner.rust_build_seed", return_value={"compiler": "first"}) as rust:
+                first = build_package(root, recipe, jobs=1, seed_build=True)
+                self.assertIsNotNone(cli.cached_package(root, recipe, {"kind": "test-seed"}, [], seed_build=True))
+                rust.return_value = {"compiler": "changed"}
+                self.assertIsNone(cli.cached_package(root, recipe, {"kind": "test-seed"}, [], seed_build=True))
+                second = build_package(root, recipe, jobs=1, seed_build=True)
+            self.assertNotEqual(first["build_identity"], second["build_identity"])
+            self.assertEqual(second["provenance"]["seed"]["rust"], {"compiler": "changed"})
+            self.assertEqual((root / "out/calls").read_text(), "build\nbuild\n")
+
     def test_compiler_cache_dispatch_is_used_and_recorded_by_package_builder(self):
         from distro_build.compiler_cache import seed_input
         with tempfile.TemporaryDirectory() as directory:

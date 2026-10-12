@@ -1,6 +1,56 @@
 # Explanations of named distro components. Versions, pins, dependencies and
 # profile selections remain authoritative in their existing manifests.
 
+[packages.firefox]
+kind = "Web browser"
+purpose = "Displays web pages in a native Wayland window."
+use = "Included in desktop profiles and selected as the default HTTP, HTTPS and HTML handler. The recipe compiles the browser and bundled engines against the distro sysroot; Node, LLVM tools and the WASI SDK are pinned private upstream build seeds; cbindgen/NASM are source-built private tools. The WASI SDK supplies the compiler and sysroot for Firefox’s library sandboxes. Browser updates use distro packages."
+
+[packages.gtk3]
+kind = "Native widget toolkit"
+purpose = "Provides GTK widgets and the Wayland window backend."
+use = "Supplies Firefox's Linux interface without requiring an X11 server. GLib generators and the Wayland scanner stay private to the build."
+
+[packages.pango]
+kind = "Text layout library"
+purpose = "Lays out and shapes Unicode text for GTK widgets."
+use = "Uses the packaged font stack and Cairo for native browser controls."
+
+[packages.cairo]
+kind = "Vector graphics library"
+purpose = "Renders paths, images and text using software pixel buffers."
+use = "Supports GTK and Pango without an X11 dependency."
+
+[packages.fribidi]
+kind = "Bidirectional text library"
+purpose = "Orders mixed right-to-left and left-to-right Unicode text."
+use = "Pango uses it when laying out native widget text."
+
+[packages.at-spi2-core]
+kind = "Accessibility libraries and bus"
+purpose = "Provides ATK, the AT-SPI bridge and accessibility D-Bus services."
+use = "GTK and Firefox use these interfaces to expose native controls to assistive clients."
+
+[packages.mesa-headers]
+kind = "Graphics API build headers"
+purpose = "Provides EGL and Khronos platform declarations from the pinned Mesa source."
+use = "Used to compile the native Wayland toolkit. This package contains no graphics drivers or runtime libraries."
+
+[packages.libepoxy]
+kind = "Graphics function dispatch library"
+purpose = "Resolves OpenGL and EGL functions dynamically."
+use = "GTK uses its dispatch API. This library does not itself provide GPU drivers."
+
+[packages.libpulse]
+kind = "Audio client library"
+purpose = "Provides the PulseAudio client protocol and GLib integration."
+use = "Firefox uses it to send audio to the desktop's existing PipeWire PulseAudio service; a second audio daemon is not installed."
+
+[packages.libsndfile]
+kind = "Audio file library"
+purpose = "Reads and writes audio files for the PulseAudio client stack."
+use = "Built with its internal formats; Firefox supplies its own web media decoders."
+
 [packages.foot]
 kind = "Wayland terminal emulator"
 purpose = "Runs interactive command-line programs in a native Wayland window."
@@ -65,7 +115,7 @@ use = "The desktop portal uses it to isolate image and sound validators when ins
 kind = "Static utility collection"
 purpose = "One executable supplies the shell and small Unix utilities needed for mounting filesystems, copying files, inspecting the system and powering off."
 use = "It makes the initramfs independent of shared libraries, performs the switch to the persistent root, and supplies the console profile's shell and repair tools."
-parts = { "sh" = "Runs early boot, interactive terminal sessions and lightweight system scripts.", "stty and tee" = "Inspect terminal modes and sizes, and capture command output.", "mount and switch_root" = "Mount kernel filesystems and hand execution to the installed root.", "findfs" = "Resolves the root partition's UUID or label during early boot.", "poweroff" = "Stops the private VM from the console." }
+parts = { "sh" = "Runs early boot, interactive terminal sessions and lightweight system scripts.", "stty and tee" = "Inspect terminal modes and sizes, and capture command output.", "awk, tr, basename, dirname, mktemp and readlink" = "Provide the text, path and temporary-file operations used by XDG default-application dispatch.", "mount and switch_root" = "Mount kernel filesystems and hand execution to the installed root.", "findfs" = "Resolves the root partition's UUID or label during early boot.", "poweroff" = "Stops the private VM from the console." }
 
 [packages.ca-certificates]
 kind = "Trust data"
@@ -532,6 +582,7 @@ ui = "Mounted UI, layout, text, overlays, accessibility semantics and presentati
 "system/systemd/usr/lib/custom-distro/check-user-session" = "Exercises a real unprivileged PAM/logind session and records qualification markers; removed from normal desktop payloads."
 "system/systemd/usr/lib/custom-distro/check-system-services" = "Checks the guest's selected service/session runtime during qualification; removed from normal desktop payloads."
 "system/desktop/etc/sysusers.d/custom-distro-seat.conf" = "Declares the seat group and grants the custom user access to the seatd socket."
+"system/desktop/etc/xdg/mimeapps.list" = "Selects Firefox as the default desktop HTTP, HTTPS and HTML handler."
 "system/desktop/etc/sysusers.d/custom-distro-media.conf" = "Adds the desktop user to the audio and video groups for the selected device-access policy."
 "system/desktop/etc/systemd/system/seatd.service" = "Starts seatd with the socket group used by the compositor's libseat backend."
 "system/desktop/etc/systemd/system/custom-distro-session-check.service.d/desktop.conf" = "Extends the disposable session-check unit for graphical qualification; removed from normal desktop payloads."
@@ -553,3 +604,8 @@ ui = "Mounted UI, layout, text, overlays, accessibility semantics and presentati
 "system/desktop-use/usr/lib/custom-distro/start-desktop-session" = "Keeps the PAM session open, imports its environment into the user manager and waits for the graphical session target."
 "system/desktop-use/usr/lib/custom-distro/start-telorgon-shell" = "Normal shell launcher: creates the per-user shell log and runs telorgon-session."
 "system/desktop-use/usr/lib/custom-distro/wait-telorgon-shell" = "Normal readiness helper: verifies the actual Wayland socket, updates activation environments and records the socket for clients."
+
+[packages.hicolor-icon-theme]
+kind = "Desktop icon metadata"
+purpose = "Describes standard icon sizes and directories for the fallback hicolor theme."
+use = "Included in desktop profiles so the launcher and taskbar can resolve packaged application icons, including Firefox. Applications supply their own images under the indexed directories."
