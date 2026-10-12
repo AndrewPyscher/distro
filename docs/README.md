@@ -14,6 +14,9 @@ Setup steps identify the terminal and working directory to use. After setup,
 build commands run from `~/wip-os/distro` in a Linux terminal. The `./run` wrapper
 calls the Python CLI.
 
+The build guide covers [automatic distro and component updates](build.md#automatic-source-updates),
+including preservation of local work and offline builds.
+
 ## Guides
 
 | Guide | Use it for |
