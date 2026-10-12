@@ -3,6 +3,8 @@
 Complete [environment setup](setup.md) first. All commands below run from the
 **distro directory in a Linux terminal**, as your normal user. The `./run`
 launcher forwards arguments to `python3 build.py run`.
+Both entry points update distro from its canonical upstream before building;
+see [automatic source updates](#automatic-source-updates).
 
 ## First build
 
@@ -31,11 +33,13 @@ before starting the build.
 No separate bootstrap or manual package-build sequence is needed. The first
 build needs internet access and can take substantial time. The pipeline:
 
-1. Updates component clones to organization `main`, audits host tools, validates
+1. Fetches distro's canonical default branch and fast-forwards the current
+   checkout when safe, restarting Python if the coordinator changes.
+2. Updates component clones to organization `main`, audits host tools, validates
    recipes and downloads verified sources.
-2. Builds and checks the bootstrap compiler and private package tools.
-3. Builds the OS runtime packages, Telorgon EFI, desktop SDK and applications.
-4. Composes the OS image, prepares a private VM disk and opens QEMU.
+3. Builds and checks the bootstrap compiler and private package tools.
+4. Builds the OS runtime packages, Telorgon EFI, desktop SDK and applications.
+5. Composes the OS image, prepares a private VM disk and opens QEMU.
 
 The build chooses a CPU/memory-aware job count up to eight. Let it choose the
 default, or add `--jobs 4` to set a smaller budget. See
@@ -117,17 +121,33 @@ or press **Ctrl+Alt+T** with desktop focus. A terminal window with a shell promp
 that it launched. Fonts and terminal capability data are included in the image.
 
 This defaults to `desktop-use`. Framework, loader and apps must form a compatible
-source set. Before compiling, builds fetch organization `main` and fast-forward
-local component clones, including existing uncommitted edits in snapshots. If
-local work conflicts with an update, the build stops for integration in the owning
-repository. `--offline` uses the current local files without fetching. A missing
-Rust feature/API still requires compatible implementations in the source set.
-See [source synchronization](sources.md) for details.
+source set. A missing Rust feature/API still requires compatible implementations
+in the source set. See [automatic source updates](#automatic-source-updates) and
+[component source synchronization](sources.md) for details.
 
 Without `--name`, `run` chooses `test-<build-identity-prefix>`: the same image
 build reuses its disk, while a different build gets a separate VM. This identity
 is derived from build inputs, independently of filesystem timestamps in image
 bytes. Use an explicit name when you want to retain one disk across builds.
+
+### Automatic source updates
+
+Online `./run` and `python3 build.py run` first verify distro's canonical
+organization origin, fetch its advertised default branch and fast-forward the
+current checkout. If distro changes, the entry point restarts Python before
+loading the CLI and build catalogs. New default applications, recipes, profiles
+and registered components are therefore available to that build. Component
+clones under `sources/` then follow organization `main` before snapshotting.
+
+Local branches, contribution commits and uncommitted work are preserved when
+Git can fast-forward safely. Overlapping edits, diverged history and network
+errors stop the run before compilation; resolve the reported issue in the owning
+repository and rerun. Nothing is reset or stashed.
+
+Use `./run --offline` to keep both distro and component checkouts unchanged;
+required archives and Cargo dependencies must already be cached. Help commands
+also skip updates. Updating the checkout and rebuilding an image does not
+upgrade an existing named VM's disk: use a new VM name to test a changed base.
 
 ## Reopen a saved VM
 

@@ -463,7 +463,7 @@ def parser() -> argparse.ArgumentParser:
     action.add_argument("--jobs", type=positive_integer, default=jobs_default, help="Compiler job budget (default: CPU/memory aware, up to 8)")
     action.add_argument("--package-workers", type=positive_integer, default=2, help="Concurrent ready native packages sharing --jobs (default: 2)")
     action.add_argument("--no-progress", action="store_true", help="Disable the progress display and keep JSON event output")
-    action.add_argument("--offline", action="store_true", help="Require verified cached sources and Cargo inputs")
+    action.add_argument("--offline", action="store_true", help="Keep distro and component checkouts unchanged; require verified cached sources and Cargo inputs")
     action.add_argument("--verify", action="store_true", help="Run full build/input integrity checks instead of trusting local development stage receipts")
     action.add_argument("--source-root", type=Path, help="Source workspace override (default: sources/ local clones)")
     action.add_argument("--name", help="Resume a named desktop VM; default selects a VM for the newly built image")

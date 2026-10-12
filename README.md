@@ -24,6 +24,9 @@ commands, progress, incremental builds, cleanup and troubleshooting. Rebuilding
 an image does not upgrade an existing named VM's disk; use application deployment
 or a new VM name when testing a new base.
 
+Online builds [update distro and component sources](docs/build.md#automatic-source-updates)
+before compiling, so newly registered default applications are included.
+
 ## Explore the project
 
 | Guide | What you will find |

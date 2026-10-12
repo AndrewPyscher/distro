@@ -27,6 +27,10 @@ branches, commits and uncommitted work stay intact when Git can apply that updat
 safely. Diverged commits or overlapping edits stop with the affected repository;
 resolve them in that owning checkout, then retry. Nothing is reset or stashed.
 Network errors also stop online builds instead of silently using stale sources.
+Online `./run` and `python3 build.py run` additionally update the distro checkout
+itself before loading build catalogs, so new recipes and registered components
+are included. See [automatic source updates](build.md#automatic-source-updates)
+for restart, local-work and offline behavior.
 Online builds can fetch the dependencies selected by each component's `Cargo.lock`;
 `--online` remains accepted explicitly, and `--offline` disables both Git and Cargo
 network access.
