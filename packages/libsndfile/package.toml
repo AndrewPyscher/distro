@@ -1,0 +1,24 @@
+schema = 1
+
+[package]
+name = "libsndfile"
+version = "1.2.2"
+revision = 1
+arch = "x86_64"
+description = "Audio file library for the desktop audio client stack"
+license = "LGPL-2.1-or-later"
+
+[[sources]]
+name = "main"
+url = "https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz"
+filename = "libsndfile-1.2.2.tar.xz"
+sha256 = "3799ca9924d3125038880367bf1468e53a1b7e3686a934f098b7e1d286cdb80e"
+
+[dependencies]
+native = []
+target = ["glibc"]
+runtime = ["glibc"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]

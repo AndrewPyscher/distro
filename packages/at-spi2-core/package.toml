@@ -1,0 +1,24 @@
+schema = 1
+
+[package]
+name = "at-spi2-core"
+version = "2.58.0"
+revision = 1
+arch = "x86_64"
+description = "ATK and desktop accessibility bus libraries"
+license = "LGPL-2.1-or-later"
+
+[[sources]]
+name = "main"
+url = "https://download.gnome.org/sources/at-spi2-core/2.58/at-spi2-core-2.58.0.tar.xz"
+filename = "at-spi2-core-2.58.0.tar.xz"
+sha256 = "dfdd3300da2783a21969ffade2889817fb7c1906a4ef92497eba65969b3dab5a"
+
+[dependencies]
+native = []
+target = ["glib", "dbus", "libsystemd", "libxml2"]
+runtime = ["glib", "dbus", "libsystemd", "libxml2"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]

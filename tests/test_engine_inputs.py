@@ -28,7 +28,7 @@ class EngineInputsTests(unittest.TestCase):
             recipe.mkdir(parents=True)
             (recipe / "package.toml").touch()
             (recipe / "build.py").write_text("from distro_build.helper import build\n")
-            item = SimpleNamespace(path=recipe / "package.toml", sources=[])
+            item = SimpleNamespace(path=recipe / "package.toml", sources=[], build={})
 
             def identity():
                 return build_identity(root, item, {}, [], root / "stamps", seed_build=True)

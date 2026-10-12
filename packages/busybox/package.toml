@@ -3,7 +3,7 @@ schema = 1
 [package]
 name = "busybox"
 version = "1.37.0"
-revision = 4
+revision = 5
 arch = "x86_64"
 description = "Static source-built early console and repair utilities"
 license = "GPL-2.0-only"

@@ -1,0 +1,24 @@
+schema = 1
+
+[package]
+name = "libpulse"
+version = "17.0"
+revision = 1
+arch = "x86_64"
+description = "PulseAudio client API for the PipeWire audio service"
+license = "LGPL-2.1-or-later"
+
+[[sources]]
+name = "main"
+url = "https://www.freedesktop.org/software/pulseaudio/releases/pulseaudio-17.0.tar.xz"
+filename = "pulseaudio-17.0.tar.xz"
+sha256 = "053794d6671a3e397d849e478a80b82a63cb9d8ca296bd35b73317bb5ceb87b5"
+
+[dependencies]
+native = []
+target = ["glibc", "glib", "libsystemd", "dbus", "libsndfile", "gettext"]
+runtime = ["glibc", "glib", "libsystemd", "dbus", "libsndfile"]
+
+[build]
+adapter = "script"
+commands = [["python3", "{recipe}/build.py"]]
