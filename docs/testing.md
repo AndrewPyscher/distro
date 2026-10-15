@@ -13,6 +13,10 @@ python3 -m unittest discover -s tests -v
 ```
 
 During iteration, select the relevant test module with unittest's `-p` option.
+`test_launcher.py` exercises distro updates and Python restarts through both
+entry points using private local Git upstreams. It checks new app/component
+inputs, preservation of local work, conflict/divergence stops and offline/help
+behavior without compiling packages or launching a VM.
 Run the affected required checks before handoff. Native integration tests need
 their recorded artifacts and an executor that permits private sockets; report
 skips and environment failures explicitly. Do not replace a real ALPM or guest

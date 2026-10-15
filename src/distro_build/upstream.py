@@ -79,6 +79,22 @@ def check(project: Path, source_root: Path, projects: set[str], *, offline: bool
     return [check_repository(path, url, offline=offline) for path, url in repositories]
 
 
+def synchronize_distro(project: Path) -> dict:
+    """Fast-forward the coordinator; the caller must reload after an update."""
+    result = check_repository(project, "https://github.com/WIPOperatingSystemName/distro.git")
+    if result["ahead"] and result["behind"]:
+        raise RuntimeError(f"{project}: local distro history diverges from origin/{result['branch']}; "
+                           "preserve local work, merge upstream deliberately and rerun ./run")
+    if result["behind"]:
+        update = git(project, "merge", "--ff-only", "refs/remotes/origin/" + result["branch"], check=False)
+        if update.returncode:
+            raise RuntimeError(f"{project}: cannot update distro without overwriting local work; "
+                               f"resolve the local changes and rerun ./run. {update.stderr.strip()}")
+    head = git(project, "rev-parse", "HEAD").stdout.strip()
+    return {**result, "previous_head": result["head"], "head": head,
+            "action": "updated" if head != result["head"] else "current"}
+
+
 def synchronize_repository(path: Path, expected_url: str, *, offline: bool = False) -> dict:
     """Clone main or fast-forward; Git refuses updates that overwrite local work."""
     if not path.exists() or (path.is_dir() and not any(path.iterdir())):
